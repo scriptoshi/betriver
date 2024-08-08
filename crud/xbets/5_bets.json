@@ -1,0 +1,98 @@
+{
+    "fields": [
+        {
+            "name": "betId",
+            "type": "string|nullable|unique"
+        },
+        {
+            "name": "name",
+            "type": "string|nullable"
+        },
+        {
+            "name": "boolOutcome",
+            "type": "boolean|default:0"
+        },
+        {
+            "name": "market",
+            "type": "select|default:'GameResult'",
+            "options": {
+                "GameResult": "GameResult",
+                "BothTeamsToScore": "BothTeamsToScore",
+                "CleanSheet": "CleanSheet",
+                "AsianHandiCap": "AsianHandiCap",
+                "EvenOddResult": "EvenOddResult",
+                "ExactGoals": "ExactGoals",
+                "ExactScore": "ExactScore",
+                "GoalsOverUnder": "GoalsOverUnder",
+                "GoalsRange": "GoalsRange",
+                "HalfTimeFullTime": "HalfTimeFullTime",
+                "HighestScoringHalf": "HighestScoringHalf",
+                "ScoreBothHalfs": "ScoreBothHalfs",
+                "ScoresFirstHalf": "ScoresFirstHalf",
+                "TeamScoresBothHalfs": "TeamScoresBothHalfs",
+                "WinBothHalfs": "WinBothHalfs",
+                "WinEitherHalfs": "WinEitherHalfs",
+                "CompoundBet": "CompoundBet",
+                "Gold": "Gold",
+                "Silver": "Silver",
+                "Bronze": "Bronze"
+            }
+        },
+        {
+            "name": "half",
+            "enum": "Halfs",
+            "type": "select|default:0",
+            "options": [
+                "firstHalf",
+                "secondHalf",
+                "bothHalfs"
+            ]
+        },
+        {
+            "name": "team",
+            "enum": "GoalCount",
+            "type": "select|default:0",
+            "options": [
+                "total",
+                "away",
+                "home"
+            ]
+        },
+        {
+            "name": "result",
+            "type": "tinyint|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "is_compound_bet",
+            "type": "boolean|default:false"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "odds",
+            "type": "hasMany",
+            "class": "Odd|bet_id|id"
+        },
+        {
+            "name": "stakes",
+            "type": "hasMany",
+            "class": "Stake|bet_id|id"
+        },
+        {
+            "name": "tickets",
+            "type": "belongsToMany|withPivot:['winner']|withTimestamps",
+            "class": "Ticket|wagers|bet_id|ticket_id"
+        },
+        {
+            "name": "wagers",
+            "type": "hasMany",
+            "class": "Wager|bet_id|id"
+        },
+        {
+            "name": "winGames",
+            "type": "belongsToMany",
+            "class": "Game|bet_game|bet_id|game_id"
+        }
+    ]
+}

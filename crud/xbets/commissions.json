@@ -1,0 +1,37 @@
+{
+    "fields": [
+        {
+            "name": "type",
+            "type": "select|deposit",
+            "options": {
+                "deposit": "Deposit Commission",
+                "slip": "Exchange winnings Commission",
+                "ticket": "Bookie Winnings Commission",
+                "cancellation": "Early Cancellation Fee"
+            },
+            "rules": "required|string"
+        },
+        {
+            "name": "level",
+            "type": "integer",
+            "rules": "required|integer"
+        },
+        {
+            "name": "percent",
+            "type": "decimal:7,4",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "active",
+            "type": "boolean|default:false",
+            "rules": "required|boolean"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "payouts",
+            "type": "hasMany",
+            "class": "Payout|commission_id|id"
+        }
+    ]
+}

@@ -1,0 +1,54 @@
+{
+    "fields": [
+        {
+            "name": "commission_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'"
+        },
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'"
+        },
+        {
+            "name": "referral_id",
+            "type": "foreignId|constrained:'users'|onUpdate:'cascade'|onDelete:'cascade'"
+        },
+        {
+            "name": "uuid",
+            "type": "uuid|unique"
+        },
+        {
+            "name": "description",
+            "type": "string|nullable"
+        },
+        {
+            "name": "amount",
+            "type": "decimal:10,2"
+        },
+        {
+            "name": "percent",
+            "type": "decimal:7,4"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "commission",
+            "type": "belongsTo",
+            "class": "Commission|commission_id|id"
+        },
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        },
+        {
+            "name": "referral",
+            "type": "belongsTo",
+            "class": "User|referral_id|id"
+        },
+        {
+            "name": "transaction",
+            "type": "morphOne",
+            "class": "Transaction|transactable"
+        }
+    ]
+}

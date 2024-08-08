@@ -1,0 +1,34 @@
+{
+    "config": {
+        "only": [
+            "migration"
+        ],
+        "softdeletes": false,
+        "is_pivot": true
+    },
+    "fields": [
+        {
+            "name": "bet_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'"
+        },
+        {
+            "name": "game_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'"
+        }
+    ],
+    "indexes": [
+        "unique:bet_id,game_id"
+    ],
+    "relationships": [
+        {
+            "name": "bet",
+            "type": "belongsTo",
+            "class": "Bet|bet_id|id"
+        },
+        {
+            "name": "game",
+            "type": "belongsTo",
+            "class": "Game|game_id|id"
+        }
+    ]
+}

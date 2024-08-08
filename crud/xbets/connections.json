@@ -1,0 +1,34 @@
+{
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:users,id"
+        },
+        {
+            "name": "provider",
+            "type": "select|default:'google'",
+            "options": {
+                "google": "Google One Tap",
+                "telegram": "Telegram Connect",
+                "github": "Github Connect",
+                "facebook": "Facebook",
+                "twitter": "Twitter (X)",
+                "twitter-oauth-2": "Twitter V2 (X)",
+                "gitlab": "Gitlab",
+                "bitbucket": "Bitbucket"
+            }
+        },
+        {
+            "name": "userId",
+            "type": "string|unique"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        }
+    ]
+}

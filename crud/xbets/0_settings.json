@@ -1,0 +1,18 @@
+{
+    "config": {
+        "softdeletes": false
+    },
+    "fields": [
+        {
+            "name": "name",
+            "type": "string|unique",
+            "rules": "required|string"
+        },
+        {
+            "name": "val",
+            "type": "string|nullable",
+            "rules": "required|string"
+        }
+    ],
+    "relationships": []
+}

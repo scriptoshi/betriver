@@ -1,0 +1,51 @@
+{
+    "fields": [
+        {
+            "name": "game_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:games,id"
+        },
+        {
+            "name": "type",
+            "type": "select|default:'goals'",
+            "options": {
+                "total": "Total Game Scores",
+                "halftime": "Half Time Game Scores",
+                "fulltime": "Full Time Game Scores",
+                "extratime": "Extra Time Game Scores",
+                "penality": "Penality Goals",
+                "quater_1": "First Quater",
+                "quater_2": "Second Quater",
+                "quater_3": "Third Quater",
+                "quater_4": "Fourth Quater",
+                "overtime": "Extra Time Game Scores",
+                "hits": "Hits",
+                "errors": "Errors",
+                "innings": "Innings",
+                "score": "Score",
+                "goals": "Goals",
+                "behinds": "behinds",
+                "psgoals": "psgoals",
+                "psbehinds": "psbehinds"
+            },
+            "rules": "required|string"
+        },
+        {
+            "name": "home",
+            "type": "string:600",
+            "rules": "required|string"
+        },
+        {
+            "name": "away",
+            "type": "string:600",
+            "rules": "required|string"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "game",
+            "type": "belongsTo",
+            "class": "Game|game_id|id"
+        }
+    ]
+}

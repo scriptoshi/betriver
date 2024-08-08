@@ -1,0 +1,64 @@
+{
+    "fields": [
+        {
+            "name": "leagueId",
+            "type": "string|unique"
+        },
+        {
+            "name": "name",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "description",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "image",
+            "type": "logo|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "sport",
+            "type": "select|default:'soccer'",
+            "options": {
+                "afl": "AFL",
+                "baseball": "Baseball",
+                "basketball": "Basketball",
+                "football": "Football",
+                "formula1": "Formula1",
+                "handball": "Handball",
+                "hockey": "Hockey",
+                "mma": "MMA",
+                "nba": "NBA",
+                "nfl": "NFL",
+                "rugby": "Rugby",
+                "volleyball": "Volleyball"
+            },
+            "rules": "required|string"
+        },
+        {
+            "name": "country",
+            "type": "string:5|nullable",
+            "rules": "nullable|string"
+        },
+        {
+            "name": "season",
+            "type": "string|nullable",
+            "rules": "nullable|string"
+        },
+        {
+            "name": "active",
+            "type": "boolean|default:true",
+            "rules": "nullable|string"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "games",
+            "type": "hasMany",
+            "class": "Game|league_id|id"
+        }
+    ]
+}

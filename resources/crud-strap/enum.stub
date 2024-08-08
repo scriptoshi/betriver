@@ -1,0 +1,7 @@
+<?php
+
+namespace {{enumNamespace}};
+enum {{enum}}: {{type}}
+{
+{{cases}}
+}

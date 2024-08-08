@@ -1,0 +1,219 @@
+<script setup>
+import ConfirmationModal from "@/Components/ConfirmationModal.vue";
+import Loading from "@/Components/Loading.vue";
+import Pagination from "@/Components/Pagination.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue";
+import SearchInput from "@/Components/SearchInput.vue";
+import VueIcon from "@/Components/VueIcon.vue";
+import AdminLayout from "@/Layouts/AdminLayout.vue";
+import { Head, Link, router, useForm } from "@inertiajs/vue3";
+import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+import { HiPencil, HiTrash } from "oh-vue-icons/icons";
+import { ref } from "vue";
+	defineProps({
+		%%crudName%%: Object,
+		title: { required: false, type: String },
+	});
+
+	const params = useUrlSearchParams("history");
+	const search = ref(params.search ?? "");
+	const delete%%modelName%%Form = useForm({});
+	const %%crudNameSingular%%BeingDeleted = ref(null);
+
+	const delete%%modelName%% = () => {
+		delete%%modelName%%Form.delete(
+			window.route("admin.%%crudName%%.destroy", %%crudNameSingular%%BeingDeleted.value?.id),
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onSuccess: () => (%%crudNameSingular%%BeingDeleted.value = null),
+			},
+		);
+	};
+	debouncedWatch(
+		[search],
+		([search]) => {
+			router.get(
+				window.route("admin.%%crudName%%.index"),
+				{ search },
+				{
+					preserveState: true,
+					preserveScroll: true,
+				},
+			);
+		},
+		{
+			maxWait: 700,
+		},
+	);
+
+	const toggle = (%%crudNameSingular%%) => {
+		%%crudNameSingular%%.busy = true;
+		router.put(
+			window.route("admin.%%crudName%%.toggle", %%crudNameSingular%%.id),
+			{},
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onFinish: () => {
+					%%crudNameSingular%%.busy = false;
+					%%crudNameSingular%%BeingDeleted.value = null;
+				},
+			},
+		);
+	};
+</script>
+<template>
+	<Head :title="title ?? '%%modelName%%s'" />
+	<AdminLayout>
+		<main class="h-full">
+			<div
+				class="relative h-full flex flex-auto flex-col px-4 sm:px-6 py-12 sm:py-6 md:px-8">
+				<div class="flex flex-col gap-4 h-full">
+					<div
+						class="lg:flex items-center justify-between mb-4 gap-3">
+						<div class="mb-4 lg:mb-0">
+							<h3 class="h3">
+								{{ $t("Accepted %%modelName%%s") }}
+							</h3>
+							<p>{{ $t("Available %%modelName%%s") }}</p>
+						</div>
+						<div
+							class="flex flex-col lg:flex-row lg:items-center gap-3">
+							<button
+								type="button"
+								@click="update%%modelName%%s"
+								class="focus:outline-none text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:ring-emerald-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800">
+								<Loading
+									v-if="loading"
+									class="w-4 h-4 -ml-2 mr-2 inline-block" />
+								{{ $t("Check for New %%modelName%%s") }}
+							</button>
+						</div>
+					</div>
+					<div class="card border-0 card-border">
+						<div class="card-body px-0 card-gutterless h-full">
+							<div
+								class="lg:flex items-center justify-between mb-4 px-6">
+								<div class="flex gap-x-3 sm:w-1/2 lg:w-1/4">
+									<SearchInput
+										class="max-w-md"
+										v-model="search" />
+								</div>
+							</div>
+							<div>
+								<div class="overflow-x-auto">
+									<table
+										class="table-default table-hover"
+										role="table">
+										<thead>
+											<tr role="row">
+												<th role="columnheader">
+													{{ $t("%%modelName%%") }}
+												</th>
+												%%tableHeaderHtml%%
+												<td role="columnheader"></td>
+											</tr>
+										</thead>
+										<tbody role="rowgroup">
+											<tr
+												v-for="%%crudNameSingular%% in %%crudName%%.data"
+												:key="%%crudNameSingular%%.id"
+												role="row">
+												%%tableBodyHtml%%
+												<td role="cell">
+													<div
+														class="flex justify-end text-lg">
+														<Link
+															:href="
+																route(
+																	'admin.%%crudName%%.edit',
+																	%%crudNameSingular%%.id,
+																)
+															"
+															class="cursor-pointer p-2 hover:text-blue-600">
+															<VueIcon
+																:icon="HiPencil"
+																class="w-4 h-4" />
+														</Link>
+														<a
+															href="#"
+															@click.prevent="
+																%%crudNameSingular%%BeingDeleted =
+																	%%crudNameSingular%%
+															"
+															class="cursor-pointer p-2 hover:text-red-500">
+															<VueIcon
+																:icon="HiTrash"
+																class="w-4 h-4" />
+														</a>
+													</div>
+												</td>
+											</tr>
+										</tbody>
+									</table>
+								</div>
+								<Pagination :meta="%%crudName%%.meta" />
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</main>
+		<ConfirmationModal
+			:show="%%crudNameSingular%%BeingDeleted"
+			@close="%%crudNameSingular%%BeingDeleted = null">
+			<template #title>
+				{{
+					$t("Are you sure about deleting {%%crudNameSingular%%} ?", {
+						%%crudNameSingular%%: %%crudNameSingular%%BeingDeleted.name,
+					})
+				}}
+			</template>
+
+			<template #content>
+				<p>
+					{{
+						$t(
+							"This Action will remove the %%crudNameSingular%% from the database and cannot be undone",
+						)
+					}}
+				</p>
+				<p>
+					{{
+						$t(
+							"Its Recommended to Disable the %%crudNameSingular%% Instead",
+						)
+					}}
+				</p>
+			</template>
+
+			<template #footer>
+				<PrimaryButton
+					primary
+					class="uppercase text-xs font-semibold"
+					@click="%%crudNameSingular%%BeingDeleted = null">
+					{{ $t("Cancel") }}
+				</PrimaryButton>
+
+				<PrimaryButton
+					secondary
+					class="ml-2 uppercase text-xs font-semibold"
+					v-if="%%crudNameSingular%%BeingDeleted.active"
+					@click="toggle(%%crudNameSingular%%BeingDeleted)">
+					<Loading v-if="%%crudNameSingular%%BeingDeleted.busy" />
+					{{ $t("Disable") }}
+				</PrimaryButton>
+
+				<PrimaryButton
+					error
+					class="ml-2 uppercase text-xs font-semibold"
+					@click="delete%%modelName%%"
+					:class="{ 'opacity-25': delete%%modelName%%Form.processing }"
+					:disabled="delete%%modelName%%Form.processing">
+					{{ $t("Delete") }}
+				</PrimaryButton>
+			</template>
+		</ConfirmationModal>
+	</AdminLayout>
+</template>

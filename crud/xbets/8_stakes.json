@@ -1,0 +1,110 @@
+{
+    "fields": [
+        {
+            "name": "slip_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:slips,id"
+        },
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:users,id"
+        },
+        {
+            "name": "bet_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:bets,id"
+        },
+        {
+            "name": "game_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:bets,id"
+        },
+        {
+            "name": "uuid",
+            "type": "string|max:255"
+        },
+        {
+            "name": "scoreType",
+            "type": "string",
+            "cast": "App\\Enums\\ScoreType::class",
+            "rules": "required|string"
+        },
+        {
+            "name": "amount",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "filled",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "unfilled",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "payout",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "odds",
+            "type": "decimal:6,2|default:0",
+            "rules": "required|decimal"
+        },
+        {
+            "name": "status",
+            "type": "select",
+            "options": {
+                "pending": "Pending",
+                "partial": "Partially Matched",
+                "matched": "Matched",
+                "winner": "Winner",
+                "loser": "Loser",
+                "cancelled": "Cancelled"
+            }
+        },
+        {
+            "name": "won",
+            "type": "boolean|default:false"
+        },
+        {
+            "name": "is_withdrawn",
+            "type": "boolean|default:false"
+        },
+        {
+            "name": "allow_partial",
+            "type": "boolean|default:true"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        },
+        {
+            "name": "game",
+            "type": "belongsTo",
+            "class": "Game|game_id|id"
+        },
+        {
+            "name": "bet",
+            "type": "belongsTo",
+            "class": "Bet|bet_id|id"
+        },
+        {
+            "name": "maker_trades",
+            "type": "hasMany",
+            "class": "Trade|maker_id|id"
+        },
+        {
+            "name": "taker_trades",
+            "type": "hasMany",
+            "class": "Trade|taker_id|id"
+        }
+    ]
+}

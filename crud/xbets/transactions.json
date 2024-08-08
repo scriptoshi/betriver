@@ -1,0 +1,59 @@
+{
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'"
+        },
+        {
+            "name": "transactable",
+            "type": "morphs"
+        },
+        {
+            "name": "uuid",
+            "type": "uuid|unique"
+        },
+        {
+            "name": "description",
+            "type": "string|nullable"
+        },
+        {
+            "name": "amount",
+            "type": "decimal:10,2"
+        },
+        {
+            "name": "balance_before",
+            "type": "decimal:10,2"
+        },
+        {
+            "name": "action",
+            "type": "select|default:'credit'",
+            "options": {
+                "credit": "credit",
+                "debit": "debit"
+            }
+        },
+        {
+            "name": "type",
+            "type": "select|default:'withdraw'",
+            "options": {
+                "withdraw": "withdraw",
+                "transfer": "transfer",
+                "deposit": "deposit",
+                "win": "win",
+                "bet": "bet",
+                "payout": "referral_payout"
+            }
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        },
+        {
+            "name": "transactable",
+            "type": "morphTo"
+        }
+    ]
+}

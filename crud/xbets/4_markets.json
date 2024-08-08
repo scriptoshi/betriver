@@ -1,0 +1,28 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "string|nullable"
+        },
+        {
+            "name": "slug",
+            "type": "string|unique"
+        },
+        {
+            "name": "mode",
+            "type": "tinyint|default:0"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "bets",
+            "type": "hasMany",
+            "class": "Bet|market_id|id"
+        },
+        {
+            "name": "games",
+            "type": "belongsToMany",
+            "class": "Game|game_market|market_id|game_id"
+        }
+    ]
+}

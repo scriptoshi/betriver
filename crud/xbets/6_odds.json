@@ -1,0 +1,42 @@
+{
+    "config": {
+        "softdeletes": false
+    },
+    "fields": [
+        {
+            "name": "market_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:bets,id"
+        },
+        {
+            "name": "game_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:games,id"
+        },
+        {
+            "name": "odd",
+            "type": "decimal:5,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "odd",
+            "type": "decimal:5,2|default:0",
+            "rules": "required|numeric"
+        }
+    ],
+    "indexes": [
+        "unique:bet_id,game_id"
+    ],
+    "relationships": [
+        {
+            "name": "bet",
+            "type": "belongsTo",
+            "class": "Bet|bet_id|id"
+        },
+        {
+            "name": "game",
+            "type": "belongsTo",
+            "class": "Game|game_id|id"
+        }
+    ]
+}

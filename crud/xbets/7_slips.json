@@ -1,0 +1,40 @@
+{
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:users,id"
+        },
+        {
+            "name": "uid",
+            "type": "string|max:255"
+        },
+        {
+            "name": "amount",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "payout",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "total_odds",
+            "type": "decimal:6,2|default:0",
+            "rules": "required|decimal"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        },
+        {
+            "name": "stakes",
+            "type": "hasMany",
+            "class": "Stake|slip_id|id"
+        }
+    ]
+}

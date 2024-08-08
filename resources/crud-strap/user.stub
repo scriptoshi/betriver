@@ -1,0 +1,77 @@
+<?php
+namespace DummyNamespace;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Sanctum\HasApiTokens;
+{{useSoftDeletes}}
+{{use}}
+class DummyClass extends Authenticatable
+{
+    use HasApiTokens;
+    use HasProfilePhoto;
+    use Notifiable;
+    use TwoFactorAuthenticatable;
+    {{softDeletes}}
+    {{useTrait}}
+
+    /**
+     * The database table used by the model.
+     *
+     * @var string
+     */
+    protected $table = '{{table}}';
+
+    {{primaryKey}}
+	
+	/**
+     * Attributes that should be cast to native types.
+     *
+     * @var string
+     */
+    {{casts}}
+
+    /**
+     * Attributes that should be mass-assignable.
+     *
+     * @var array
+     */
+    protected $fillable = {{fillable}};
+
+   
+
+    /**
+     * The attributes that should be hidden for serialization.
+     *
+     * @var array
+     */
+    protected $hidden = [
+        'password',
+        'remember_token',
+        'two_factor_recovery_codes',
+        'two_factor_secret',
+    ];
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        'profile_photo_url',
+    ];
+
+     {{relationships}}
+
+     /**
+     * Check if a user has required permissions.
+     *
+     * @var array
+     */
+    public function hasPermission(string|array $permissions)
+    {
+        return false;
+    }
+}

@@ -1,0 +1,122 @@
+{
+    "fields": [
+        {
+            "name": "league_id",
+            "type": "foreignId|nullable|constrained",
+            "rules": "required|integer|exists:leagues,id"
+        },
+        {
+            "name": "home_team_id",
+            "type": "foreignId|nullable|constrained:'teams'",
+            "rules": "required|integer|exists:teams,id"
+        },
+        {
+            "name": "away_team_id",
+            "type": "foreignId|nullable|constrained:'teams'",
+            "rules": "required|integer|exists:teams,id"
+        },
+        {
+            "name": "gameId",
+            "type": "string|unique"
+        },
+        {
+            "name": "name",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "slug",
+            "type": "string|nullable"
+        },
+        {
+            "name": "startTime",
+            "type": "timestamp|nullable",
+            "rules": "required|datetime"
+        },
+        {
+            "name": "endTime",
+            "type": "timestamp|nullable",
+            "rules": "required|datetime"
+        },
+        {
+            "name": "elapsed",
+            "type": "integer|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "status",
+            "type": "string|nullable",
+            "cast": "App\\Enums\\GameStatus::class",
+            "rules": "required|string"
+        },
+        {
+            "name": "sport",
+            "type": "select|default:'football'",
+            "options": {
+                "football": "Football (Soccer)",
+                "handball": "Handball",
+                "basketball": "Basketball",
+                "baseball": "Baseball",
+                "afl": "Australian Football League"
+            },
+            "rules": "required|string"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "scores",
+            "type": "hasMany",
+            "class": "Score|game_id|id"
+        },
+        {
+            "name": "league",
+            "type": "belongsTo",
+            "class": "League|league_id|id"
+        },
+        {
+            "name": "homeTeam",
+            "type": "belongsTo",
+            "class": "Team|home_team_id|id"
+        },
+        {
+            "name": "awayTeam",
+            "type": "belongsTo",
+            "class": "Team|away_team_id|id"
+        },
+        {
+            "name": "markets",
+            "type": "belongsToMany",
+            "class": "Market|game_market|game_id|market_id"
+        },
+        {
+            "name": "stakes",
+            "type": "hasMany",
+            "class": "Stake|game_id|id"
+        },
+        {
+            "name": "trades",
+            "type": "hasMany",
+            "class": "Trade|game_id|id"
+        },
+        {
+            "name": "tickets",
+            "type": "belongsToMany|withPivot:['winner','odds']|withTimestamps",
+            "class": "Ticket|wagers|game_id|ticket_id"
+        },
+        {
+            "name": "wagers",
+            "type": "hasMany",
+            "class": "Wager|game_id|id"
+        },
+        {
+            "name": "odds",
+            "type": "hasMany",
+            "class": "Odd|bet_id|id"
+        },
+        {
+            "name": "winBets",
+            "type": "belongsToMany",
+            "class": "Bet|bet_game|game_id|bet_id"
+        }
+    ]
+}

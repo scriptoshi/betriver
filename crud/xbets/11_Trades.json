@@ -1,0 +1,46 @@
+{
+    "fields": [
+        {
+            "name": "maker_id",
+            "type": "foreignId|constrained:'stakes'|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:stakes,id"
+        },
+        {
+            "name": "taker_id",
+            "type": "foreignId|constrained:'stakes'|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:stakes,id"
+        },
+        {
+            "name": "amount",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "buy",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "sell",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        },
+        {
+            "name": "margin",
+            "type": "decimal:10,2|default:0",
+            "rules": "required|numeric"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "maker",
+            "type": "belongsTo",
+            "class": "Stake|maker_id|id"
+        },
+        {
+            "name": "taker",
+            "type": "belongsTo",
+            "class": "Taker|taker_id|id"
+        }
+    ]
+}

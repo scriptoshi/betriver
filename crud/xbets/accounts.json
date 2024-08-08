@@ -1,0 +1,32 @@
+{
+    "fields": [
+        {
+            "name": "accountable",
+            "type": "morphs"
+        },
+        {
+            "name": "type",
+            "type": "select|nullable",
+            "options": {
+                "profit": "Profit",
+                "loss": "Losses",
+                "arbitrage": "Arbitrage",
+                "fees": "Fees"
+            }
+        },
+        {
+            "name": "amount",
+            "type": "decimal|8,2"
+        },
+        {
+            "name": "created_at",
+            "type": "timestamp"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "accountable",
+            "type": "morphTo"
+        }
+    ]
+}

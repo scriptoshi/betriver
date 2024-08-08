@@ -1,0 +1,125 @@
+@import "tippy.js/dist/tippy.css";
+@import "tippy.js/animations/shift-away.css";
+
+.tippy-box {
+    @apply bg-gray-100 shadow-md border dark:!border-gray-500 !border-gray-300 text-gray-800 dark:bg-gray-600 dark:text-gray-50;
+}
+
+.tippy-arrow {
+    @apply fill-current text-gray-100  dark:text-gray-600;
+}
+
+.tippy-box[data-theme~="content"] .tippy-content {
+    @apply p-0;
+}
+
+.tippy-box[data-theme~="primary"] {
+    @apply bg-primary text-white dark:bg-accent;
+}
+
+.tippy-box[data-theme~="primary"] > .tippy-arrow {
+    @apply text-primary dark:text-accent;
+}
+
+.tippy-box[data-theme~="secondary"] {
+    @apply bg-secondary text-white;
+}
+
+.tippy-box[data-theme~="secondary"] > .tippy-arrow {
+    @apply text-secondary;
+}
+
+.tippy-box[data-theme~="info"] {
+    @apply bg-info text-white;
+}
+
+.tippy-box[data-theme~="info"] > .tippy-arrow {
+    @apply text-info;
+}
+
+.tippy-box[data-theme~="success"] {
+    @apply bg-success text-white;
+}
+
+.tippy-box[data-theme~="success"] > .tippy-arrow {
+    @apply text-success;
+}
+
+.tippy-box[data-theme~="warning"] {
+    @apply bg-warning text-white;
+}
+
+.tippy-box[data-theme~="warning"] > .tippy-arrow {
+    @apply text-warning;
+}
+
+.tippy-box[data-theme~="error"] {
+    @apply bg-error text-white;
+}
+
+.tippy-box[data-theme~="error"] > .tippy-arrow {
+    @apply text-error;
+}
+
+.tippy-box[data-theme~="light"] {
+    @apply bg-gray-100 text-gray-600;
+}
+
+.tippy-box[data-theme~="light"] > .tippy-arrow {
+    @apply text-gray-100;
+}
+
+.tippy-box[data-placement^="top"] > .tippy-arrow:after {
+    border-top-color: inherit;
+    border-width: 8px 8px 0;
+    bottom: -8px;
+    left: 0;
+}
+.tippy-box[data-placement^="bottom"] > .tippy-arrow:after {
+    border-bottom-color: inherit;
+    border-width: 0 8px 8px;
+    top: -8px;
+    left: 0;
+}
+.tippy-box[data-placement^="left"] > .tippy-arrow:after {
+    border-left-color: inherit;
+    border-width: 8px 0 8px 8px;
+    right: -8px;
+    top: 0;
+}
+.tippy-box[data-placement^="right"] > .tippy-arrow:after {
+    border-width: 8px 8px 8px 0;
+    left: -8px;
+    top: 0;
+    border-right-color: inherit;
+}
+.tippy-box[data-placement^="top"]
+    > .tippy-svg-arrow
+    > svg:first-child:not(:last-child) {
+    top: 17px;
+}
+.tippy-box[data-placement^="bottom"]
+    > .tippy-svg-arrow
+    > svg:first-child:not(:last-child) {
+    bottom: 17px;
+}
+.tippy-box[data-placement^="left"]
+    > .tippy-svg-arrow
+    > svg:first-child:not(:last-child) {
+    left: 12px;
+}
+.tippy-box[data-placement^="right"]
+    > .tippy-svg-arrow
+    > svg:first-child:not(:last-child) {
+    right: 12px;
+}
+.tippy-arrow {
+    border-color: inherit;
+}
+.tippy-arrow:after {
+    content: "";
+    z-index: -1;
+    position: absolute;
+    border-color: transparent;
+    border-style: solid;
+}

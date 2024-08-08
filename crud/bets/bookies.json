@@ -1,0 +1,25 @@
+{
+    "fields": [
+        {
+            "name": "bId",
+            "type": "string|unique"
+        },
+        {
+            "name": "name",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "rank",
+            "type": "integer|default:1",
+            "rules": "required|integer"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "games",
+            "type": "hasMany",
+            "class": "Game|league_id|id"
+        }
+    ]
+}

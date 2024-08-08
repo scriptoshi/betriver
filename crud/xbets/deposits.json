@@ -1,0 +1,97 @@
+{
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'"
+        },
+        {
+            "name": "uuid",
+            "type": "uuid|unique"
+        },
+        {
+            "name": "gateway",
+            "type": "enum|default:Wallet",
+            "options": {
+                "Wallet": "Wallet",
+                "Authorize": "Authorize",
+                "Blockchain": "Blockchain",
+                "BTCPay": "BTCPay",
+                "Cashmaal": "Cashmaal",
+                "Checkout": "Checkout",
+                "CoinbaseCommerce": "CoinbaseCommerce",
+                "Coingate": "Coingate",
+                "Coinpayments": "Coinpayments",
+                "CoinpaymentsFiat": "CoinpaymentsFiat",
+                "Flutterwave": "Flutterwave",
+                "Instamojo": "Instamojo",
+                "MercadoPago": "MercadoPago",
+                "Mollie": "Mollie",
+                "NMI": "NMI",
+                "NowPaymentsCheckout": "NowPaymentsCheckout",
+                "NowPaymentsHosted": "NowPaymentsHosted",
+                "Payeer": "Payeer",
+                "Paypal": "Paypal",
+                "PaypalSdk": "PaypalSdk",
+                "Paystack": "Paystack",
+                "Paytm": "Paytm",
+                "PerfectMoney": "PerfectMoney",
+                "Razorpay": "Razorpay",
+                "Skrill": "Skrill",
+                "Stripe": "Stripe",
+                "StripeJs": "StripeJs",
+                "StripeV3": "StripeV3",
+                "TwoCheckout": "TwoCheckout",
+                "Voguepay": "Voguepay"
+            }
+        },
+        {
+            "name": "remoteId",
+            "type": "string|nullable"
+        },
+        {
+            "name": "from",
+            "type": "string|nullable"
+        },
+        {
+            "name": "gross_amount",
+            "type": "decimal:10,2"
+        },
+        {
+            "name": "fees",
+            "type": "decimal:10,2"
+        },
+        {
+            "name": "amount",
+            "type": "decimal:10,2"
+        },
+        {
+            "name": "data",
+            "type": "json|nullable"
+        },
+        {
+            "name": "status",
+            "type": "select|default:0",
+            "options": {
+                "pending": "pending",
+                "review": "review",
+                "rejected": "rejected",
+                "approved": "approved",
+                "processing": "processing",
+                "failed": "failed",
+                "complete": "complete"
+            }
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        },
+        {
+            "name": "transaction",
+            "type": "morphOne",
+            "class": "Transaction|transactable"
+        }
+    ]
+}

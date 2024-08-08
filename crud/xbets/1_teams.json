@@ -1,0 +1,51 @@
+{
+    "fields": [
+        {
+            "name": "teamId",
+            "type": "string|unique"
+        },
+        {
+            "name": "name",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "code",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "country",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "description",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "sport",
+            "type": "string|default:'football'",
+            "cast": "App\\Enums\\LeagueSport::class",
+            "rules": "required|string"
+        },
+        {
+            "name": "image",
+            "type": "logo|nullable",
+            "rules": "required|string"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "home_games",
+            "type": "hasMany",
+            "class": "Game|home_team_id|id"
+        },
+        {
+            "name": "away_games",
+            "type": "hasMany",
+            "class": "Game|away_team_id|id"
+        }
+    ]
+}

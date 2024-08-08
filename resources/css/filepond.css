@@ -1,0 +1,49 @@
+@import "filepond/dist/filepond.min.css";
+@import "filepond-plugin-image-preview/dist/filepond-plugin-image-preview.css";
+
+.filepond {
+	@apply block w-full;
+}
+
+.fp-grid {
+	@apply [--fp-grid:1];
+}
+
+.filepond--credits {
+	@apply !opacity-[.1] !h-0 !p-0 !m-0 !font-light !text-sm;
+}
+
+.filepond.fp-grid .filepond--item {
+	width: calc(calc(1 / var(--fp-grid)) * 100% - 0.5rem);
+}
+
+.filepond.fp-bordered .filepond--panel-root {
+	@apply border-2 border-gray-300 border-dashed dark:border-gray-500 bg-transparent;
+}
+.filepond.nft-upload .filepond--root {
+	@apply !mb-0;
+}
+
+.filepond.nft-upload .filepond--panel-root {
+	@apply min-h-[256px] bg-transparent;
+}
+
+.filepond.nft-upload .filepond--drop-label {
+	@apply min-h-[256px];
+}
+
+.filepond.nft-upload {
+	@apply min-h-[256px];
+}
+
+.filepond.fp-bg-filled .filepond--panel-root {
+	@apply bg-gray-200/80 dark:bg-gray-500/[.85];
+}
+
+.filepond--drop-label label {
+	@apply text-gray-600 dark:text-gray-100;
+}
+
+.filepond.label-icon .filepond--drop-label label {
+	@apply text-gray-400 dark:text-gray-300;
+}
