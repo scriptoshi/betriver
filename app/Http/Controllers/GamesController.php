@@ -24,8 +24,6 @@ class GamesController extends Controller
 
         $keyword = $request->get('search');
         $perPage = 25;
-        $game_result = Market::query()
-            ->where('is_default', true);
         $query  = Game::query()
             ->with(['scores', 'league', 'homeTeam', 'awayTeam']);
         $query->with([
@@ -80,6 +78,42 @@ class GamesController extends Controller
             'country' => $country,
         ]);
     }
+
+
+    /**
+     * XHR Search Input for games based on user input.
+     *
+     * This function searches for games whose names match the given query.
+     * Results are limited to 5 games and sorted by start time.
+     *
+     * @param \Illuminate\Http\Request $request The incoming request object
+     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection A collection of GameResource objects
+     */
+    public function filter(Request $request): \Illuminate\Http\Resources\Json\AnonymousResourceCollection|array
+    {
+        $search = $request->input('search');
+        if (strlen($search) < 3) return [];
+        $games = Game::query()
+            ->with(['scores', 'league', 'homeTeam', 'awayTeam'])
+            ->where(function (Builder $query) use ($search) {
+                $query->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('name', 'LIKE', "%{$search}%");
+            })
+            ->where(function (Builder $query) {
+                $query->where('startTime', '>=', now())
+                    ->orWhere('endTime', '>=', now()->subHour());
+            })
+            ->orderBy('startTime')
+            ->take(5)
+            ->get();
+        return GameResource::collection($games);
+    }
+
+
+
+
+
+
 
 
 

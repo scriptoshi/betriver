@@ -25,8 +25,11 @@ return new class extends Migration
             $table->timestamp('kyc_verified_at')->nullable();
             $table->timestamp('phone_verified_at')->nullable();
             $table->string('refId', 16);
+            $table->string('odds_type')->default('decimal');
+            $table->string('lang', 3)->default('en');
             $table->text('referral')->nullable();
             $table->boolean('is_admin')->default(false);
+            $table->boolean('hide_balance')->default(false);
             $table->rememberToken();
             $table->timestamps();
         });

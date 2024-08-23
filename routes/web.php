@@ -72,6 +72,8 @@ Route::name('teams')->controller(TeamsController::class)->group(function () {
 
 #sports
 Route::name('sports.')->controller(GamesController::class)->group(function () {
+    Route::post('/sports/search', 'search')->name('search');
+    Route::post('/sports/filter', 'filter')->name('filter');
     Route::get('/sport/watchlist', 'watchlist')->name('watchlist');
     Route::get('/sport/in-play', 'inPlay')->name('inplay');
     Route::get('/sports/{sport?}/{region?}/{country?}', 'index')->name('index');
@@ -244,6 +246,9 @@ Route::name('favourites.')
     ->middleware('auth')
     ->group(function () {
         Route::post('/favourites/store', 'store')->name('store');
+        Route::post('/favourites/odds', 'odds')->name('odds');
+        Route::post('/favourites/lang', 'lang')->name('lang');
+        Route::post('/favourites/hide-balance', 'hideBalance')->name('hide.balance');
         Route::delete('/favourites/{favourite}', 'destroy')->name('destroy');
     });
 #favourites

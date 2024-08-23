@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\CommonLanguage;
+use App\Enums\OddsType;
 use App\Traits\HasProfilePhoto;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -36,6 +38,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'banned_at',
         'refId',
         'referrer',
+        'hide_balance',
+        'lang',
+        'odds_type',
     ];
 
     /**
@@ -63,6 +68,9 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_banned' => 'boolean',
+            'hide_balance' => 'boolean',
+            'lang' =>  CommonLanguage::class,
+            'odds_type' => OddsType::class,
         ];
     }
 

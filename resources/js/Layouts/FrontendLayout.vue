@@ -4,7 +4,7 @@
 	import { useDark } from "@vueuse/core";
 
 	import AppHeader from "@/Layouts/FontendLayout/AppHeader.vue";
-
+	import Sidebar from "@/Layouts/FontendLayout/Sidebar.vue";
 	const isDarkMode = useDark();
 	const leftSidebarOpen = ref(true);
 	const rightSidebarOpen = ref(true);
@@ -38,24 +38,8 @@
 							? 'lg:visible'
 							: 'lg:hidden',
 					}"
-					class="contain-strict left-0 w-[240px] z-40 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent lg:overflow-y-auto fixed top-[52px] bottom-0 text-left transition duration-600">
-					<ul class="space-y-2 p-4 bg-white dark:bg-gray-800">
-						<li class="text-gray-700 dark:text-gray-300">
-							Menu Item 1
-						</li>
-						<li class="text-gray-700 dark:text-gray-300">
-							Menu Item 2
-						</li>
-						<li class="text-gray-700 dark:text-gray-300">
-							Menu Item 3
-						</li>
-						<li
-							v-for="i in 50"
-							:key="i"
-							class="mt-4 text-gray-700 dark:text-gray-300">
-							Menu Item{{ i }}
-						</li>
-					</ul>
+					class="contain-strict border-r border-gray-250 dark:border-gray-650 left-0 w-[240px] z-40 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-track-transparent lg:overflow-y-auto fixed top-[52px] bottom-0 text-left transition duration-600">
+					<Sidebar class="py-4 bg-gray-100 dark:bg-gray-850" />
 				</nav>
 				<div
 					id="main"

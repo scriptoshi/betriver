@@ -59,7 +59,7 @@
 			leave-from-class="transform opacity-100 scale-100"
 			leave-to-class="transform opacity-0 scale-95">
 			<MenuItems
-				class="aside bottom place-left tracking-wider pb-3 text-xs mt-1 origin-top-right absolute right-0 w-72 rounded-sm with-shadow pt-4 bg-white dark:bg-gray-750 focus:outline-none">
+				class="aside bottom top-[50px] place-left tracking-wider pb-3 text-xs mt-1 absolute right-0 w-72 rounded-sm with-shadow pt-4 bg-white dark:bg-gray-750 focus:outline-none">
 				<h3
 					class="px-6 pb-3 border-b text-gray-800 dark:text-white dark:border-gray-650">
 					Help Resources

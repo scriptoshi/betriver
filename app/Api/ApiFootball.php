@@ -269,6 +269,15 @@ class ApiFootball extends ApiSports
                 'away' => $score->away,
             ]);
         }
+        /**
+         * current total
+         */
+        $game->scores()->updateOrCreate([
+            'type' => ScoreType::TOTAL,
+        ], [
+            'home' => $info->goals->home,
+            'away' => $info->goals->away,
+        ]);
         if (($game->teams->home->winner ?? null))
             $game->win_team_id = $game->home_team_id;
         if (($game->teams->away->winner ?? null))

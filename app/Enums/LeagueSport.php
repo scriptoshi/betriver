@@ -71,6 +71,28 @@ enum LeagueSport: string
         };
     }
 
+    /**
+     * This is the win determinant score for a game. 
+     * Lost of scores are entered eg goals points, first-half etc
+     * 
+     */
+    public function finalScoreType()
+    {
+        return match ($this) {
+            static::FOOTBALL => ScoreType::TOTAL->value,
+            static::AFL => AflScoreType::TOTAL_SCORE->value,
+            static::BASEBALL => BaseballScoreType::TOTAL->value,
+            static::BASKETBALL => BasketballScoreType::TOTAL->value,
+            static::HANDBALL => HandballScoreType::TOTAL->value,
+            static::HOCKEY => HockeyScoreType::TOTAL->value,
+            static::NFL => NflScoreType::TOTAL->value,
+            static::VOLLEYBALL => VolleyballScoreType::TOTAL->value,
+            static::RUGBY => RugbyScoreType::TOTAL->value,
+            static::MMA => null,
+            static::RACING => null,
+        };
+    }
+
     public function gameStatus($status): ContractsGameStatus
     {
         $state = match ($this) {

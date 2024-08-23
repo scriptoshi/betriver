@@ -1,10 +1,12 @@
 <script setup>
-	import { HiSearch, RiMenuFill } from "oh-vue-icons/icons";
+	import { BiTicketDetailed, HiSearch, RiMenuFill } from "oh-vue-icons/icons";
 
 	import FormInput from "@/Components/FormInput.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
 	import DarkSwitch from "@/Layouts/FontendLayout/Dropdowns/DarkSwitch.vue";
 	import HelpDropDown from "@/Layouts/FontendLayout/Dropdowns/HelpDropDown.vue";
+	import UserDropDown from "./Dropdowns/UserDropDown.vue";
+import SearchInput from "./SearchInput.vue";
 	defineProps({
 		leftSidebarOpen: Boolean,
 		rightSidebarOpen: Boolean,
@@ -34,26 +36,20 @@
 			<div class="text-gray-800 ml-4 dark:text-white font-bold text-xl">
 				Smarkets
 			</div>
-			<FormInput
-				input-classes="!border-none !bg-gray-200 dark:!bg-gray-800 !py-1.5"
-				class="w-56 lg:ml-[102px]"
-				size="xs">
-				<template #lead>
-					<VueIcon :icon="HiSearch" class="text-gray-400 w-4 h-4" />
-				</template>
-			</FormInput>
+			<SearchInput/>
 		</div>
 		<div
 			class="flex items-center justify-end flex-nowrap h-full lg:flex-[2]">
-			<HelpDropDown />
+			<HelpDropDown class="hidden lg:flex" />
 			<DarkSwitch />
-
 			<button
 				@click="toggleRightSidebar"
-				class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
-				<XIcon v-if="rightSidebarOpen" size="24" />
-				<MenuIcon v-else size="24" />
+				class="h-full px-5 flex lg:hidden items-center hover:bg-gray-150 dark:hover:bg-gray-750 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+				<VueIcon
+					:icon="BiTicketDetailed"
+					class="w-6 h-6 rotate-[135deg]" />
 			</button>
+			<UserDropDown class="-mr-2.5" />
 		</div>
 	</header>
 </template>
