@@ -5,8 +5,8 @@ namespace App\Enums\Handball;
 enum ScoreType: string
 {
     case TOTAL = 'total';
-    case PERIOD_1 = 'firsthalf';
-    case PERIOD_2 = 'secondhalf';
+    case PERIOD_1 = 'first';
+    case PERIOD_2 = 'second';
     public function name()
     {
         return match ($this) {

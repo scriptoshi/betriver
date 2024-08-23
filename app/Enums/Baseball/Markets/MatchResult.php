@@ -107,6 +107,7 @@ enum MatchResult: string implements BetMarket
                     'description' => $case->name(),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::BASEBALL,
+                    'is_default' => $case == self::FULL_GAME,
                 ]
             );
 

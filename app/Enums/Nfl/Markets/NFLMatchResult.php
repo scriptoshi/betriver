@@ -90,7 +90,8 @@ enum NFLMatchResult: string implements BetMarket
                     'description' => $case->name(),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::NFL,
-                    'type' => EnumsMarket::NFL_MATCH_RESULT
+                    'type' => EnumsMarket::NFL_MATCH_RESULT,
+                    'is_default' => $case == self::FULL_TIME,
                 ]
             );
             foreach (AFLMatchResultOutcome::cases() as $outcome) {

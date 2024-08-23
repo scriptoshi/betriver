@@ -171,10 +171,78 @@
 			],
 		},
 		{
-			text: "Bets",
+			text: "Bet Exchange",
 			url: "#",
 			active:
-				window.route().current("admin.slips.*") ||
+				window.route().current("admin.tickets.*") ||
+				window.route().current("admin.tickets.*"),
+			value: "frontend",
+			icon: RiAlarmWarningFill,
+			id: uid(),
+			submenu: [
+				{
+					text: "Configurations",
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Exchange Tickets",
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Backing  Orders",
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Laying  Orders",
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Order Book",
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Matched Orders",
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Exchange Trades",
+					url: window.route("admin.trades.index"),
+					active: window.route().current("admin.trades.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+			],
+		},
+		{
+			text: "Bets Bookie",
+			url: "#",
+			active:
+				window.route().current("admin.tickets.*") ||
 				window.route().current("admin.tickets.*"),
 			value: "frontend",
 			icon: RiAlarmWarningFill,
@@ -182,8 +250,8 @@
 			submenu: [
 				{
 					text: "Bet Exchange Slips",
-					url: window.route("admin.slips.index"),
-					active: window.route().current("admin.slips.index"),
+					url: window.route("admin.tickets.index"),
+					active: window.route().current("admin.tickets.index"),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
@@ -268,6 +336,7 @@
 							sport.toLowerCase(),
 						),
 						active:
+							usePage().props.sport === sport ||
 							window
 								.route()
 								.current(

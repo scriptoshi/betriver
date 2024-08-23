@@ -6,6 +6,7 @@ use App\Enums\GameStatus;
 use App\Enums\LeagueSport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Game as GameResource;
+use App\Http\Resources\League as ResourcesLeague;
 use App\Models\Game;
 use App\Models\League;
 use App\Models\Team;
@@ -26,9 +27,18 @@ class GamesController extends Controller
         $keyword = $request->get('search');
         $status = $request->get('status');
         $lid = $request->get('lid');
+        $country = $request->get('country');
+        $odds = $request->get('odds');
+        $scores = $request->get('scores');
         $perPage = 25;
         $query  = Game::query()
-            ->with(['league', 'homeTeam', 'awayTeam'])
+            ->with([
+                'league',
+                'homeTeam',
+                'awayTeam'
+            ])
+            ->withExists('odds as has_odds')
+            ->withExists('scores as has_scores')
             ->withSum('tickets', 'amount');
         if (!empty($keyword)) {
             $query->where('name', 'LIKE', "%$keyword%");
@@ -39,15 +49,45 @@ class GamesController extends Controller
         if (!empty($lid)) {
             $query->where('league_id', $lid);
         }
+        if (!empty($country)) {
+            $query->whereHas('league', function ($query) use ($country) {
+                $query->where('country', $country);
+            });
+        }
+        if (!empty($odds)) {
+            $query->whereHas('odds');
+        }
+        if (!empty($scores)) {
+            $query->whereHas('scores');
+        }
         if ($sport && $sport != 'all') {
             $query->where('sport', $sport);
         }
-        $gamesItems = $query->latest()->paginate($perPage);
+
+        $gamesItems = $query->oldest('startTime')->paginate($perPage)->withQueryString();
         $games = GameResource::collection($gamesItems);
+
         return Inertia::render('Admin/Games/Index', [
             'games' => $games,
             'league' => League::find($lid)?->name,
-            'sport' => fn () => strlen($sport) == 3 ? strtoupper($sport) :  ucfirst($sport),
+            'leagues' => function () use ($sport, $country) {
+                $query = League::query();
+                if ($sport && $sport != 'all') {
+                    $query->where('sport', $sport);
+                }
+                if (!empty($country)) {
+                    $query->where('country', $country);
+                }
+                $leagues = $query->has('games')->get();
+                return $leagues->map(function (League $league) {
+                    return [
+                        'label' => $league->name,
+                        'value' => $league->id,
+                        'key' => $league->id
+                    ];
+                });
+            },
+            'sport' => fn() => strlen($sport) == 3 ? strtoupper($sport) :  ucfirst($sport),
             'statuses' =>  collect(GameStatus::cases())->map(function (GameStatus $status) {
                 return [
                     'label' => $status->statusText(),
@@ -66,13 +106,13 @@ class GamesController extends Controller
     {
         $leagueSport =  $sport == 'all' ? LeagueSport::from('football') : LeagueSport::from($sport);
         return Inertia::render('Admin/Games/Create', [
-            'sport' => fn () => strlen($sport) == 3 ? strtoupper($sport) :  ucfirst($sport),
+            'sport' => fn() => strlen($sport) == 3 ? strtoupper($sport) :  ucfirst($sport),
             'leagues' => function () use ($leagueSport) {
                 $leagues = League::query()
                     ->where('active', true)
                     ->where('sport', $leagueSport)
                     ->get();
-                return  $leagues->map(fn (League $lg) => [
+                return  $leagues->map(fn(League $lg) => [
                     'label' => $lg->name,
                     'value' => $lg->id,
                     'key' => $lg->id,
@@ -84,7 +124,7 @@ class GamesController extends Controller
                     ->where('active', true)
                     ->where('sport', $leagueSport)
                     ->get();
-                return  $teams->map(fn (Team $team) => [
+                return  $teams->map(fn(Team $team) => [
                     'label' => $team->name,
                     'value' => $team->id,
                     'key' => $team->id,
@@ -151,7 +191,7 @@ class GamesController extends Controller
                     ->where('active', true)
                     ->where('sport', $leagueSport)
                     ->get();
-                return  $leagues->map(fn (League $lg) => [
+                return  $leagues->map(fn(League $lg) => [
                     'label' => $lg->name,
                     'value' => $lg->id,
                     'key' => $lg->id,
@@ -163,7 +203,7 @@ class GamesController extends Controller
                     ->where('active', true)
                     ->where('sport', $leagueSport)
                     ->get();
-                return  $teams->map(fn (Team $team) => [
+                return  $teams->map(fn(Team $team) => [
                     'label' => $team->name,
                     'value' => $team->id,
                     'key' => $team->id,
@@ -226,6 +266,31 @@ class GamesController extends Controller
         $game->save();
         return back()->with('success', $game->active ? __(' :name Game Enabled !', ['name' => $game->name]) : __(' :name  Game Disabled!', ['name' => $game->name]));
     }
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function loadFromApi(Request $request)
+    {
+        $request->validate([
+            'sport' => ['required', 'string', new Enum(LeagueSport::class)],
+            'start' => ['integer', 'required'],
+            'days' => ['integer', 'required', 'min:1'],
+        ]);
+        $apiKey = settings('site.apifootball_api_key');
+        if (empty($apiKey)) throw ValidationException::withMessages(['start' => ['Missing api key']]);
+        LeagueSport::from($request->sport)->api()::loadGames($request->start, $request->days);
+        // cleare menu cache
+        League::clearCache();
+        Game::clearCache();
+        return back()->with('success', 'Games Loaded');
+    }
+
 
     /**
      * Remove the specified resource from storage.

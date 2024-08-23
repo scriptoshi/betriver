@@ -6,18 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Slip extends Model
+class Favourite extends Model
 {
-    use SoftDeletes;
+    //use SoftDeletes;
 
     /**
      * The database table used by the model.
      *
      * @var string
      */
-    protected $table = 'slips';
+    protected $table = 'favourites';
 
     /**
      * The database primary key value.
@@ -40,10 +39,7 @@ class Slip extends Model
      */
     protected $fillable = [
         'user_id',
-        'uid',
-        'amount',
-        'payout',
-        'total_odds'
+        'key'
     ];
 
 
@@ -55,15 +51,5 @@ class Slip extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
-    }
-
-    /**
-
-     * Get the stakes this model Owns.
-     *
-     */
-    public function stakes(): HasMany
-    {
-        return $this->hasMany(Stake::class, 'slip_id', 'id');
     }
 }

@@ -1,40 +1,38 @@
 <?php
 
-namespace App\Enums\Rugby;
+namespace App\Enums\Volleyball;
 
-enum GameStatus: string
+use App\Contracts\GameStatus as ContractsGameStatus;
+
+enum GameStatus: string implements ContractsGameStatus
 {
     case NotStarted = 'NS';
-    case FirstHalf = '1H';
-    case SecondHalf = '2H';
-    case HalfTime = 'HT';
-    case ExtraTime = 'ET';
-    case BreakTime = 'BT';
-    case PenaltiesTime = 'PT';
+    case Set1 = 'S1';
+    case Set2 = 'S2';
+    case Set3 = 'S3';
+    case Set4 = 'S4';
+    case Set5 = 'S5';
     case Awarded = 'AW';
     case Postponed = 'POST';
     case Cancelled = 'CANC';
     case Interrupted = 'INTR';
     case Abandoned = 'ABD';
-    case AfterExtraTime = 'AET';
     case Finished = 'FT';
 
     public function description(): string
     {
         return match ($this) {
             self::NotStarted => 'Not Started',
-            self::FirstHalf => 'First Half (In Play)',
-            self::SecondHalf => 'Second Half (In Play)',
-            self::HalfTime => 'Half Time (In Play)',
-            self::ExtraTime => 'Extra Time (In Play)',
-            self::BreakTime => 'Break Time (In Play)',
-            self::PenaltiesTime => 'Penalties Time (In Play)',
+            self::Set1 => 'Set 1 (In Play)',
+            self::Set2 => 'Set 2 (In Play)',
+            self::Set3 => 'Set 3 (In Play)',
+            self::Set4 => 'Set 4 (In Play)',
+            self::Set5 => 'Set 5 (In Play)',
             self::Awarded => 'Awarded',
             self::Postponed => 'Postponed',
             self::Cancelled => 'Cancelled',
             self::Interrupted => 'Interrupted',
             self::Abandoned => 'Abandoned',
-            self::AfterExtraTime => 'After Extra Time (Game Finished)',
             self::Finished => 'Finished (Game Finished)',
         };
     }
@@ -43,8 +41,8 @@ enum GameStatus: string
     {
         return match ($this) {
             self::NotStarted => 'scheduled',
-            self::FirstHalf, self::SecondHalf, self::HalfTime, self::ExtraTime, self::BreakTime, self::PenaltiesTime => 'in_play',
-            self::Awarded, self::AfterExtraTime, self::Finished => 'finished',
+            self::Set1, self::Set2, self::Set3, self::Set4, self::Set5 => 'in_play',
+            self::Awarded, self::Finished => 'finished',
             self::Postponed => 'postponed',
             self::Cancelled => 'cancelled',
             self::Interrupted => 'interrupted',
@@ -56,18 +54,16 @@ enum GameStatus: string
     {
         return match ($this) {
             self::NotStarted => 'Not Started',
-            self::FirstHalf => '1st Half',
-            self::SecondHalf => '2nd Half',
-            self::HalfTime => 'Half Time',
-            self::ExtraTime => 'Extra Time',
-            self::BreakTime => 'Break Time',
-            self::PenaltiesTime => 'Penalties',
+            self::Set1 => '1st Set',
+            self::Set2 => '2nd Set',
+            self::Set3 => '3rd Set',
+            self::Set4 => '4th Set',
+            self::Set5 => '5th Set',
             self::Awarded => 'Awarded',
             self::Postponed => 'Postponed',
             self::Cancelled => 'Cancelled',
             self::Interrupted => 'Interrupted',
             self::Abandoned => 'Abandoned',
-            self::AfterExtraTime => 'Ended in Extra Time',
             self::Finished => 'Finished',
         };
     }
@@ -80,7 +76,25 @@ enum GameStatus: string
             self::Cancelled,
             self::Interrupted,
             self::Abandoned,
-            self::AfterExtraTime,
+            self::Finished => true,
+            default => false
+        };
+    }
+
+    public function cancelled(): bool
+    {
+        return match ($this) {
+            self::Postponed,
+            self::Cancelled,
+            self::Interrupted,
+            self::Abandoned => true,
+            default => false
+        };
+    }
+    public function finished(): bool
+    {
+        return match ($this) {
+            self::Awarded,
             self::Finished => true,
             default => false
         };

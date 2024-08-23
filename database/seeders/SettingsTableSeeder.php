@@ -66,7 +66,24 @@ class SettingsTableSeeder extends Seeder
                 'enable_kyc' => 'true',
                 'sms_gateway' => null,
                 'apifootball_api_key' => null,
-                'load_games_for_days' => 14
+                'load_games_for_days' => 14,
+                'load_games_start' => 0,
+                'update_leagues_cron' =>  'daily',
+                'load_games_cron' => 'daily',
+                'load_odds_cron' => 'daily',
+                'load_results_cron' => 'every_five_minutes',
+                'auto_settle_exchange' => 'true',
+                'auto_settle_bookie' => 'true',
+                'bookie_buy_tickets' => 'true',
+            ],
+            // sitemap
+            'cron' => [
+                'update_leagues' =>  'daily',
+                'update_games' =>  'daily',
+                'update_games_' =>  'daily',
+                'games' =>  100,
+                'enable_sitemap' => 'true',
+                'enable_meta' => 'true',
             ],
             // sitemap
             'sitemap' => [
@@ -194,7 +211,7 @@ class SettingsTableSeeder extends Seeder
             ],
         ];
         foreach ($config as $group => $settings) {
-            $rows = collect($settings)->map(fn ($val, $name) => [
+            $rows = collect($settings)->map(fn($val, $name) => [
                 'name' => $name,
                 'val' => $val,
                 'group' => $group,

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Contracts\BetMarket;
+use App\Enums\Market as EnumsMarket;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -36,6 +38,8 @@ class Market extends Model
         return [
             'active' => 'boolean',
             'bookie_active' => 'boolean',
+            'is_default' => 'boolean',
+            'type' => EnumsMarket::class
         ];
     }
 
@@ -54,7 +58,8 @@ class Market extends Model
         'description',
         'sport',
         'active',
-        'bookie_active'
+        'bookie_active',
+        'is_default'
     ];
 
 
@@ -70,11 +75,39 @@ class Market extends Model
 
     /**
 
+     * Get the bets this model Owns.
+     *
+     */
+    public function trades(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'market_id', 'id');
+    }
+
+    /**
+
+     * Get the bets this model Owns.
+     *
+     */
+    public function odds(): HasMany
+    {
+        return $this->hasMany(Odd::class, 'market_id', 'id');
+    }
+
+    /**
+
      * Get the games this model Belongs To.
      *
      */
     public function games(): BelongsToMany
     {
         return $this->belongsToMany(Game::class, 'game_market', 'market_id', 'game_id');
+    }
+
+    /**
+     * Get the Betting Market for this Market;
+     */
+    public function manager(): BetMarket
+    {
+        return $this->type->make($this->segment);
     }
 }

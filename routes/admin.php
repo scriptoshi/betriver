@@ -48,10 +48,15 @@ Route::name('leagues.')->controller(LeaguesController::class)->group(function ()
     Route::get('/leagues/create/{sport?}', 'create')->name('create');
     Route::get('/leagues/{sport?}', 'index')->name('index');
     Route::post('/leagues/store', 'store')->name('store');
+    Route::post('/leagues/pull', 'pull')->name('pull');
     Route::get('/leagues/{league}/show', 'show')->name('show');
     Route::get('/leagues/{league}/edit', 'edit')->name('edit');
+    Route::put('/league/load-odds/{league}', 'loadOddsFromApi')->name('load.odds');
+    Route::put('/leagues/enable', 'enableAll')->name('enable');
+    Route::put('/leagues/disable', 'disableAll')->name('disable');
     Route::put('/leagues/{league}', 'update')->name('update');
     Route::put('/leagues/toggle/{league}', 'toggle')->name('toggle');
+    Route::put('/leagues/menu/{league}', 'toggleMenu')->name('menu');
     Route::delete('/leagues/{league}', 'destroy')->name('destroy');
 });
 #leagues
@@ -77,6 +82,7 @@ Route::name('games.')->controller(GamesController::class)->group(function () {
     Route::post('/games/store', 'store')->name('store');
     Route::get('/games/{game}/show', 'show')->name('show');
     Route::get('/games/{game}/edit', 'edit')->name('edit');
+    Route::put('/games/load', 'loadFromApi')->name('load');
     Route::put('/games/{game}', 'update')->name('update');
     Route::put('/games/toggle/{game}', 'toggle')->name('toggle');
     Route::delete('/games/{game}', 'destroy')->name('destroy');
@@ -88,6 +94,7 @@ Route::name('games.')->controller(GamesController::class)->group(function () {
 Route::name('scores.')->controller(ScoresController::class)->group(function () {
     Route::get('/scores/{game:uuid}', 'index')->name('index');
     Route::post('/scores/store', 'store')->name('store');
+    Route::post('/scores/mma', 'mma')->name('mma');
 });
 #scores
 
@@ -96,7 +103,7 @@ Route::name('scores.')->controller(ScoresController::class)->group(function () {
 Route::name('markets.')->controller(MarketsController::class)->group(function () {
     Route::get('/markets/{sport?}', 'index')->name('index');
     Route::put('/markets/toggle/{market}', 'toggle')->name('toggle');
-    Route::put('/markets/toggle-bookie/{market}', 'toggleBookie')->name('toggle');
+    Route::put('/markets/toggle-bookie/{market}', 'toggleBookie')->name('toggle.bookie');
 });
 #markets
 
@@ -168,19 +175,6 @@ Route::name('transactions.')->controller(TransactionsController::class)->group(f
     Route::delete('/transactions/{transaction}', 'destroy')->name('destroy');
 });
 #transactions
-#slips
-Route::name('slips.')->controller(SlipsController::class)->group(function () {
-    Route::get('/slips', 'index')->name('index');
-    Route::get('/slips/create', 'create')->name('create');
-    Route::post('/slips/store', 'store')->name('store');
-    Route::get('/slips/{slip}/show', 'show')->name('show');
-    Route::get('/slips/{slip}/edit', 'edit')->name('edit');
-    Route::put('/slips/{slip}', 'update')->name('update');
-    Route::put('/slips/toggle/{slip}', 'toggle')->name('toggle');
-    Route::delete('/slips/{slip}', 'destroy')->name('destroy');
-});
-#slips
-
 #settings
 Route::name('settings.')->controller(SettingsController::class)->group(function () {
     Route::get('/settings', 'index')->name('index');

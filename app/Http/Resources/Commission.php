@@ -1,15 +1,12 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Commission extends JsonResource
 {
-    
+
     /**
      * Transform the resource into an array.
      *
@@ -19,11 +16,11 @@ class Commission extends JsonResource
     public function toArray($request)
     {
         return [
-			'type'=>$this->type,
-			'level'=>$this->level,
-			'percent'=>$this->percent,
-			'active'=>$this->active,
-			'payouts'=> Payout::collection($this->whenLoaded('payouts')),
-		];
+            'type' => $this->type,
+            'level' => $this->level,
+            'percent' => $this->percent,
+            'active' => $this->active,
+            'payouts' => Payout::collection($this->whenLoaded('payouts')),
+        ];
     }
 }

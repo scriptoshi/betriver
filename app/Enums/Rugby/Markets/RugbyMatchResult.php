@@ -74,7 +74,8 @@ enum RugbyMatchResult: string implements BetMarket
                     'description' => $case->name(),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::RUGBY,
-                    'type' => EnumsMarket::RUGBY_MATCH_RESULT
+                    'type' => EnumsMarket::RUGBY_MATCH_RESULT,
+                    'is_default' => $case == self::FULL_TIME,
                 ]
             );
             foreach (RugbyMatchResultOutcome::cases() as $outcome) {

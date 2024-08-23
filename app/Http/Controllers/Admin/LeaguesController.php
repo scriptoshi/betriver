@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Actions\Uploads;
 use App\Enums\LeagueSport;
+use App\Enums\RaceTag;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\League as LeagueResource;
+use App\Models\Game;
 use App\Models\League;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
@@ -20,6 +22,10 @@ class LeaguesController extends Controller
     public function index(Request $request, $sport = 'all')
     {
         $keyword = $request->get('search');
+        $country = $request->get('country');
+        $active = $request->get('active');
+        $submenu = $request->get('submenu');
+        $odds = $request->get('odds');
         $perPage = 25;
         $query  = League::query()->with(['games']);
         if (!empty($keyword)) {
@@ -29,11 +35,23 @@ class LeaguesController extends Controller
         if ($sport && $sport != 'all') {
             $query->where('sport', $sport);
         }
-        $leaguesItems = $query->latest()->paginate($perPage);
+        if (!empty($country)) {
+            $query->where('country', $country);
+        }
+        if (!empty($active)) {
+            $query->where('active', true);
+        }
+        if (!empty($submenu)) {
+            $query->where('menu', true);
+        }
+        if (!empty($odds)) {
+            $query->where('has_odds', true);
+        }
+        $leaguesItems = $query->latest()->paginate($perPage)->withQueryString();
         $leagues = LeagueResource::collection($leaguesItems);
         return Inertia::render('Admin/Leagues/Index', [
             'leagues' => $leagues,
-            'sport' => fn () => strlen($sport) == 3 ? strtoupper($sport) :  ucfirst($sport),
+            'sport' => fn() => strlen($sport) == 3 ? strtoupper($sport) :  ucfirst($sport),
         ]);
     }
 
@@ -45,7 +63,12 @@ class LeaguesController extends Controller
     {
         return Inertia::render('Admin/Leagues/Create', [
             'sport' => $sport == 'all' ? null : $sport,
-            'leagueSports' => collect(LeagueSport::cases())->map(fn (LeagueSport $l) => [
+            'racetags' =>  collect(RaceTag::cases())->map(fn(RaceTag $l) => [
+                'label' => $l->name(),
+                'value' => $l->value,
+                'key' => $l->name
+            ]),
+            'leagueSports' => collect(LeagueSport::cases())->map(fn(LeagueSport $l) => [
                 'label' => strlen($l->value) == 3 ? strtoupper($l->value) :  ucfirst($l->value),
                 'value' => $l->value,
                 'key' => $l->name
@@ -66,6 +89,7 @@ class LeaguesController extends Controller
             'country' => ['required', 'string'],
             'season' => ['required', 'string'],
             'sport' => ['required', 'string', new Enum(LeagueSport::class)],
+            'race_tag' => ['nullable', 'required_if:sport,racing', 'string', new Enum(RaceTag::class)],
             'image_uri' => ['required', 'string'],
             'image_upload' => ['required', 'boolean'],
             'image_path' => ['nullable', 'array'],
@@ -75,6 +99,7 @@ class LeaguesController extends Controller
         $league->sport =  $request->sport;
         $league->country =  $request->country;
         $league->season =  $request->season;
+        $league->race_tag =  $request->race_tag;
         $league->name = $request->name;
         $league->description = $request->description;
         $league->save();
@@ -84,23 +109,42 @@ class LeaguesController extends Controller
         return redirect()->route('admin.leagues.index')->with('success', 'League added!');
     }
 
+
     /**
-     * Display the specified resource.
-     * @param  int  $id
-     * @return \Illuminate\View\View
+     * Pull leagues from API
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
-    public function show(Request $request, League $league)
+    public function pull(Request $request)
     {
-        $league->load(['games']);
-        return Inertia::render('Admin/Leagues/Show', [
-            'league' => new LeagueResource($league),
-            'leagueSports' => collect(LeagueSport::cases())->map(fn (LeagueSport $l) => [
-                'label' => strlen($l->value) == 3 ? strtoupper($l->value) :  ucfirst($l->value),
-                'value' => $l->value,
-                'key' => $l->name
-            ])
+        $request->validate([
+            'sport' => ['required', 'string', new Enum(LeagueSport::class)]
         ]);
+        LeagueSport::from($request->sport)->api()::updateLeagues();
+        // cleare menu cache
+        League::clearCache();
+        Game::clearCache();
+        return back()->with('success', 'Leagues Loaded');
     }
+
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function loadOddsFromApi(Request $request, League $league)
+    {
+        $apiKey = settings('site.apifootball_api_key');
+        if (empty($apiKey)) return back()->with('error', 'Missing api key');
+        return $league->sport->api()::loadOdds($league);
+        // cleare menu cache
+        League::clearCache();
+        Game::clearCache();
+    }
+
 
     /**
      * Show the form for editing the specified resource.
@@ -112,11 +156,17 @@ class LeaguesController extends Controller
         $league->load(['games']);
         return Inertia::render('Admin/Leagues/Edit', [
             'league' => new LeagueResource($league),
-            'leagueSports' => collect(LeagueSport::cases())->map(fn (LeagueSport $l) => [
+            'sport' => fn() => strlen($league->sport->value) == 3 ? strtoupper($league->sport->value) :  ucfirst($league->sport->value),
+            'leagueSports' => collect(LeagueSport::cases())->map(fn(LeagueSport $l) => [
                 'label' => strlen($l->value) == 3 ? strtoupper($l->value) :  ucfirst($l->value),
                 'value' => $l->value,
                 'key' => $l->name
-            ])
+            ]),
+            'racetags' =>  collect(RaceTag::cases())->map(fn(RaceTag $l) => [
+                'label' => $l->name(),
+                'value' => $l->value,
+                'key' => $l->name
+            ]),
         ]);
     }
 
@@ -135,6 +185,7 @@ class LeaguesController extends Controller
             'description' => ['required', 'string'],
             'country' => ['required', 'string'],
             'season' => ['required', 'string'],
+            'race_tag' => ['nullable', 'required_if:sport,racing', 'string', new Enum(RaceTag::class)],
             'sport' => ['required', 'string', new Enum(LeagueSport::class)],
             'image_uri' => ['required', 'string'],
             'image_upload' => ['required', 'boolean'],
@@ -144,6 +195,7 @@ class LeaguesController extends Controller
         $league->sport =  $request->sport;
         $league->country =  $request->country;
         $league->season =  $request->season;
+        $league->race_tag =  $request->race_tag;
         $league->name = $request->name;
         $league->description = $request->description;
         if (isset($upload->url))
@@ -165,6 +217,63 @@ class LeaguesController extends Controller
         $league->active = !$league->active;
         $league->save();
         return back()->with('success', $league->active ? __(' :name League Enabled !', ['name' => $league->name]) : __(' :name  League Disabled!', ['name' => $league->name]));
+    }
+    /**
+     * toggle status of  the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggleMenu(Request $request, League $league)
+    {
+        $league->menu = !$league->menu;
+        $league->save();
+        return back()->with('success', $league->menu ? __(' :name League Submenu Added!', ['name' => $league->name]) : __(' :name  League Submenu Removed!', ['name' => $league->name]));
+    }
+
+    /**
+     * diable all the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function disableAll(Request $request)
+    {
+        $query = League::query();
+        if ($request->filled('country')) {
+            $query->where('country', $request->country);
+        }
+        if ($request->filled('sport')) {
+            $query->where('sport', $request->sport);
+        }
+        $query->update(['active' => FALSE]);
+
+        return back()->with('success', __('All leagues disabled'));
+    }
+
+    /**
+     * diable all the specified resource in storage.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function enableAll(Request $request)
+    {
+        $query = League::query();
+        if ($request->filled('country')) {
+            $query->where('country', $request->country);
+        }
+        if ($request->filled('sport')) {
+            $query->where('sport', $request->sport);
+        }
+        $query->update(['active' => true]);
+        return back()->with('success', __('All leagues enabled'));
     }
 
     /**

@@ -1,8 +1,5 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 
 namespace App\Policies;
 
@@ -13,15 +10,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class AccountPolicy
 {
     use HandlesAuthorization;
-	
-	public function before(User $user)
-	{
-		if ($user->isAdmin()) {
-			return true;
-		}
-	}
-	
-	 /**
+
+    public function before(User $user)
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -41,7 +38,7 @@ class AccountPolicy
      */
     public function view(User $user, Account $account): bool
     {
-		return $user->hasPermission('view.account');
+        return $user->hasPermission('view.account');
     }
 
     /**
@@ -52,7 +49,7 @@ class AccountPolicy
      */
     public function create(User $user): bool
     {
-		return $user->hasPermission('create.account');
+        return $user->hasPermission('create.account');
     }
 
     /**
@@ -88,7 +85,7 @@ class AccountPolicy
      */
     public function restore(User $user, Account $account): bool
     {
-         return $user->hasPermission('restore.account') || $user->id == $account->user_id;
+        return $user->hasPermission('restore.account') || $user->id == $account->user_id;
     }
 
     /**
@@ -100,6 +97,6 @@ class AccountPolicy
      */
     public function forceDelete(User $user, Account $account): bool
     {
-        return $user->hasPermission('forcedelete.account') || $user->id == $account->user_id;		
+        return $user->hasPermission('forcedelete.account') || $user->id == $account->user_id;
     }
 }

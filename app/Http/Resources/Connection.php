@@ -1,15 +1,12 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Connection extends JsonResource
 {
-    
+
     /**
      * Transform the resource into an array.
      *
@@ -19,10 +16,10 @@ class Connection extends JsonResource
     public function toArray($request)
     {
         return [
-			'user_id'=>$this->user_id,
-			'provider'=>$this->provider,
-			'userId'=>$this->userId,
-			'user'=> new User($this->whenLoaded('user')),
-		];
+            'user_id' => $this->user_id,
+            'provider' => $this->provider,
+            'userId' => $this->userId,
+            'user' => new User($this->whenLoaded('user')),
+        ];
     }
 }

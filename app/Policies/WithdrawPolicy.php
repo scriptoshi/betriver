@@ -1,8 +1,5 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 
 namespace App\Policies;
 
@@ -13,15 +10,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class WithdrawPolicy
 {
     use HandlesAuthorization;
-	
-	public function before(User $user)
-	{
-		if ($user->isAdmin()) {
-			return true;
-		}
-	}
-	
-	 /**
+
+    public function before(User $user)
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -41,7 +38,7 @@ class WithdrawPolicy
      */
     public function view(User $user, Withdraw $withdraw): bool
     {
-		return $user->hasPermission('view.withdraw');
+        return $user->hasPermission('view.withdraw');
     }
 
     /**
@@ -52,7 +49,7 @@ class WithdrawPolicy
      */
     public function create(User $user): bool
     {
-		return $user->hasPermission('create.withdraw');
+        return $user->hasPermission('create.withdraw');
     }
 
     /**
@@ -88,7 +85,7 @@ class WithdrawPolicy
      */
     public function restore(User $user, Withdraw $withdraw): bool
     {
-         return $user->hasPermission('restore.withdraw') || $user->id == $withdraw->user_id;
+        return $user->hasPermission('restore.withdraw') || $user->id == $withdraw->user_id;
     }
 
     /**
@@ -100,6 +97,6 @@ class WithdrawPolicy
      */
     public function forceDelete(User $user, Withdraw $withdraw): bool
     {
-        return $user->hasPermission('forcedelete.withdraw') || $user->id == $withdraw->user_id;		
+        return $user->hasPermission('forcedelete.withdraw') || $user->id == $withdraw->user_id;
     }
 }

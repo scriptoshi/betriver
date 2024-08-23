@@ -36,7 +36,7 @@ class User extends JsonResource
             'phone_verified_at' => $this->created_at->toDateTimeString(),
             'created_at' => $this->created_at->toDateTimeString(),
             'verified_at' => $this->created_at->toDateTimeString(),
-            'slips' => Slip::collection($this->whenLoaded('slips')),
+            //'slips' => Slip::collection($this->whenLoaded('slips')),
             'stakes' => Stake::collection($this->whenLoaded('stakes')),
             'tickets' => Ticket::collection($this->whenLoaded('tickets')),
         ];

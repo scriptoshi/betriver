@@ -32,14 +32,14 @@ class ApiHandball extends ApiSports
 
     public static function ended($status): bool
     {
-        return GameStatus::from($status)->ended();
+        return GameStatus::from(strtoupper($status))->ended();
     }
 
 
 
     public static function updateLiveGame(Collection $games)
     {
-        if ($games->count() > 1) $data = ['ids' => $games->map(fn ($game) => $game->gameId)->implode('-')];
+        if ($games->count() > 1) $data = ['ids' => $games->map(fn($game) => $game->gameId)->implode('-')];
         else $data = ['id' => $games->first()->gameId];
         $response = Curl::to(static::url('games'))
             ->withHeader('x-apisports-key: ' . static::apiKey())
@@ -49,27 +49,32 @@ class ApiHandball extends ApiSports
         foreach ($response->response as $lg) {
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
-            $game->scores()->createOrUpdate([
-                'type' => ScoreType::TOTAL->value,
-            ], [
-                'home' => $lg->scores->home,
-                'away' => $lg->scores->away,
-            ]);
-            foreach ($lg->periods as $type => $score) {
-                $game->scores()->createOrUpdate([
-                    'type' => $type,
-                ], [
-                    'home' => $score->home,
-                    'away' => $score->away,
-                ]);
-            }
-            $game->status = $lg->status->short;
-            $game->elapsed = intval($lg->time);
-            if (static::ended($lg->status->short)) {
-                $game->endTime = now();
-                $game->closed = true;
-            }
-            $game->save();
+            static::saveScores($game, $lg);
         }
+    }
+
+    protected static function saveScores(Game $game, $lg)
+    {
+        $game->scores()->updateOrCreate([
+            'type' => ScoreType::TOTAL->value,
+        ], [
+            'home' => $lg->scores->home,
+            'away' => $lg->scores->away,
+        ]);
+        foreach ($lg->periods as $type => $score) {
+            $game->scores()->updateOrCreate([
+                'type' => $type,
+            ], [
+                'home' => $score->home,
+                'away' => $score->away,
+            ]);
+        }
+        $game->status = $lg->status->short;
+        $game->elapsed = intval($lg->time);
+        if (static::ended($lg->status->short)) {
+            $game->endTime = now();
+            $game->closed = true;
+        }
+        $game->save();
     }
 }

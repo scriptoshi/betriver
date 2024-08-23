@@ -32,7 +32,7 @@ class ApiRugby extends ApiSports
 
     public static function ended($status): bool
     {
-        return GameStatus::from($status)->ended();
+        return GameStatus::from(strtoupper($status))->ended();
     }
 
     /**
@@ -42,7 +42,7 @@ class ApiRugby extends ApiSports
      */
     public static function updateLiveGame(Collection $games)
     {
-        if ($games->count() > 1) $data = ['ids' => $games->map(fn ($game) => $game->gameId)->implode('-')];
+        if ($games->count() > 1) $data = ['ids' => $games->map(fn($game) => $game->gameId)->implode('-')];
         else $data = ['id' => $games->first()->gameId];
         $response = Curl::to(static::url('games'))
             ->withHeader('x-apisports-key: ' . static::apiKey())
@@ -52,14 +52,14 @@ class ApiRugby extends ApiSports
         foreach ($response->response as $lg) {
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
-            $game->scores()->createOrUpdate([
+            $game->scores()->updateOrCreate([
                 'type' => ScoreType::TOTAL
             ], [
                 'home' => $lg->scores->home,
                 'away' => $lg->scores->away,
             ]);
             foreach ($lg->periods as $type => $score) {
-                $game->scores()->createOrUpdate([
+                $game->scores()->updateOrCreate([
                     'type' => $type,
                 ], [
                     'home' => $score->home,

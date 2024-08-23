@@ -1,6 +1,10 @@
 <script setup>
 	import { useForm } from "@inertiajs/vue3";
-	import { HiArrowLeft, HiSolidChevronDown } from "oh-vue-icons/icons";
+	import {
+		HiArrowLeft,
+		HiSolidChevronDown,
+		HiSolidX,
+	} from "oh-vue-icons/icons";
 
 	import FormInput from "@/Components/FormInput.vue";
 	import FormLabel from "@/Components/FormLabel.vue";
@@ -11,11 +15,13 @@
 	import fakeLogo from "@/Components/no-image-available-icon.jpeg?url";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
+	import { countries } from "@/constants/countries";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
 	const props = defineProps({
 		title: String,
 		sport: String,
 		leagueSports: Array,
+		racetags: Array,
 	});
 	const form = useForm({
 		leagueId: "",
@@ -25,6 +31,7 @@
 		description: "",
 		sport: props.sport,
 		image_uri: null,
+		race_tag: null,
 		image_path: null,
 		image_upload: false,
 	});
@@ -86,6 +93,54 @@
 													:icon="
 														HiSolidChevronDown
 													" />
+											</template>
+											<template #clear="{ clear }">
+												<a
+													href="#"
+													class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+													@click.prevent="clear">
+													<VueIcon
+														@click="clear"
+														class="mr-1 w-4 h-4"
+														:icon="HiSolidX" />
+												</a>
+											</template>
+										</Multiselect>
+									</div>
+									<div v-if="form.sport === 'racing'">
+										<FormLabel class="mb-2">
+											Filter Tag
+										</FormLabel>
+										<Multiselect
+											:options="racetags"
+											valueProp="value"
+											label="label"
+											:placeholder="
+												$t('Select an option')
+											"
+											v-model="form.race_tag"
+											searchable
+											closeOnSelect>
+											<template #caret="{ isOpen }">
+												<VueIcon
+													:class="{
+														'rotate-180': isOpen,
+													}"
+													class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+													:icon="
+														HiSolidChevronDown
+													" />
+											</template>
+											<template #clear="{ clear }">
+												<a
+													href="#"
+													class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+													@click.prevent="clear">
+													<VueIcon
+														@click="clear"
+														class="mr-1 w-4 h-4"
+														:icon="HiSolidX" />
+												</a>
 											</template>
 										</Multiselect>
 									</div>
@@ -161,12 +216,47 @@
 									</p>
 								</div>
 								<div class="grid sm:grid-cols-3 gap-4">
-									<FormInput
-										label="Country or Region or Continent"
-										v-model="form.country"
-										type="text"
-										placeholder="UK"
-										:error="form.errors.country" />
+									<div>
+										<FormLabel class="mb-2">
+											Country
+										</FormLabel>
+										<Multiselect
+											:options="countries"
+											valueProp="value"
+											label="label"
+											:placeholder="$t('Country')"
+											v-model="form.country"
+											searchable
+											closeOnSelect>
+											<template #caret="{ isOpen }">
+												<VueIcon
+													:class="{
+														'rotate-180': isOpen,
+													}"
+													class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+													:icon="
+														HiSolidChevronDown
+													" />
+											</template>
+											<template #clear="{ clear }">
+												<a
+													href="#"
+													class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+													@click.prevent="clear">
+													<VueIcon
+														@click="clear"
+														class="mr-1 w-4 h-4"
+														:icon="HiSolidX" />
+												</a>
+											</template>
+										</Multiselect>
+										<p
+											class="text-red-500"
+											v-if="form.errors.country">
+											{{ form.errors.country }}
+										</p>
+									</div>
+
 									<FormInput
 										label="Season"
 										v-model="form.season"

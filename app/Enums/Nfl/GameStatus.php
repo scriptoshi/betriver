@@ -2,7 +2,9 @@
 
 namespace App\Enums\Nfl;
 
-enum GameStatus: string
+use App\Contracts\GameStatus as ContractsGameStatus;
+
+enum GameStatus: string implements ContractsGameStatus
 {
     case NotStarted = 'NS';
     case FirstQuarter = 'Q1';
@@ -66,6 +68,24 @@ enum GameStatus: string
         return match ($this) {
             self::Finished,
             self::AfterOverTime,
+            self::Cancelled,
+            self::Postponed => true,
+            default => false
+        };
+    }
+
+    public function finished(): bool
+    {
+        return match ($this) {
+            self::Finished,
+            self::AfterOverTime => true,
+            default => false
+        };
+    }
+
+    public function cancelled(): bool
+    {
+        return match ($this) {
             self::Cancelled,
             self::Postponed => true,
             default => false

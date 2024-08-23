@@ -33,7 +33,7 @@
 	const lead = computed(() => !!slots.lead);
 	const classes = computed(() => {
 		if (xs.value)
-			return `py-1 rounded-sm text-xs ${lead.value ? "pl-12" : "pl-1"} ${
+			return `py-1 rounded-sm text-xs ${lead.value ? "pl-8" : "pl-1"} ${
 				trail.value ? "pr-12" : "pr-1"
 			}`;
 		if (xm.value)

@@ -58,6 +58,34 @@ class SettingsController extends Controller
      * Display meta Editing page.
      * @return \Illuminate\View\View
      */
+    public function betting(Request $request)
+    { // sitemap
+
+        return Inertia::render('Admin/Settings/Betting', [
+            'meta' => [
+                'sitemapLeagues' =>  settings('sitemap.leagues'),
+                'sitemapGames' =>  settings('sitemap.games'),
+                'sitemapEnableSitemap' => str(settings('sitemap.enable_sitemap'))->toBoolean(),
+                'sitemapEnableMeta' => str(settings('sitemap.enable_meta'))->toBoolean(),
+                'homeTitle' =>  settings('home.title'),
+                'homeKeywords' =>  settings('home.keywords'),
+                'homeDescription' =>  settings('home.description'),
+                'gamesTitle' =>  settings('games.title'),
+                'gamesKeywords' =>  settings('games.keywords'),
+                'gamesDescription' =>  settings('games.description'),
+                'gameTitle' =>  settings('game.title'),
+                'gameKeywords' =>  settings('game.keywords'),
+                'gameDescription' =>  settings('game.description'),
+            ]
+        ]);
+    }
+
+
+
+    /**
+     * Display meta Editing page.
+     * @return \Illuminate\View\View
+     */
     public function meta(Request $request)
     { // sitemap
 
@@ -105,8 +133,8 @@ class SettingsController extends Controller
         return Inertia::render(
             'Admin/Settings/Notifications',
             [
-                'smsDrivers' => collect(SmsDrivers::cases())->map(fn (SmsDrivers $d) => $d->info()),
-                'mailDrivers' => collect(MailDrivers::cases())->map(fn (MailDrivers $d) => $d->info()),
+                'smsDrivers' => collect(SmsDrivers::cases())->map(fn(SmsDrivers $d) => $d->info()),
+                'mailDrivers' => collect(MailDrivers::cases())->map(fn(MailDrivers $d) => $d->info()),
                 ...settings()->for([
                     'smspoh',
                     'touchsms',

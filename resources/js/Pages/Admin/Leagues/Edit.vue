@@ -1,6 +1,10 @@
 <script setup>
 	import { useForm } from "@inertiajs/vue3";
-	import { HiArrowLeft, HiSolidChevronDown } from "oh-vue-icons/icons";
+	import {
+		HiArrowLeft,
+		HiSolidChevronDown,
+		HiSolidX,
+	} from "oh-vue-icons/icons";
 
 	import FormInput from "@/Components/FormInput.vue";
 	import FormLabel from "@/Components/FormLabel.vue";
@@ -11,11 +15,14 @@
 	import fakeLogo from "@/Components/no-image-available-icon.jpeg?url";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
+	import { countries } from "@/constants/countries";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
 	const props = defineProps({
+		sport: String,
 		title: String,
 		league: Object,
 		leagueSports: Array,
+		racetags: Array,
 	});
 	const form = useForm({
 		name: props.league.name,
@@ -23,6 +30,7 @@
 		country: props.league.country,
 		description: props.league.description,
 		sport: props.league.sport,
+		race_tag: props.league.race_tag,
 		image_uri: props.league.image,
 		image_path: null,
 		image_upload: false,
@@ -40,14 +48,19 @@
 					<div
 						class="lg:flex items-center justify-between mb-4 gap-3">
 						<div class="mb-4 lg:mb-0">
-							<h3 class="h3">Add New League</h3>
+							<h3 class="h3">Update League</h3>
 						</div>
 						<div
 							class="flex flex-col lg:flex-row lg:items-center gap-3">
 							<PrimaryButton
 								link
 								secondary
-								:href="route('admin.leagues.index', sport)">
+								:href="
+									route(
+										'admin.leagues.index',
+										sport.toLowerCase(),
+									)
+								">
 								<VueIcon
 									:icon="HiArrowLeft"
 									class="w-4 h-4 -ml-2 mr-2 inline-block" />
@@ -86,6 +99,54 @@
 													:icon="
 														HiSolidChevronDown
 													" />
+											</template>
+											<template #clear="{ clear }">
+												<a
+													href="#"
+													class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+													@click.prevent="clear">
+													<VueIcon
+														@click="clear"
+														class="mr-1 w-4 h-4"
+														:icon="HiSolidX" />
+												</a>
+											</template>
+										</Multiselect>
+									</div>
+									<div v-if="form.sport === 'racing'">
+										<FormLabel class="mb-2">
+											Filter Tag
+										</FormLabel>
+										<Multiselect
+											:options="racetags"
+											valueProp="value"
+											label="label"
+											:placeholder="
+												$t('Select an option')
+											"
+											v-model="form.race_tag"
+											searchable
+											closeOnSelect>
+											<template #caret="{ isOpen }">
+												<VueIcon
+													:class="{
+														'rotate-180': isOpen,
+													}"
+													class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+													:icon="
+														HiSolidChevronDown
+													" />
+											</template>
+											<template #clear="{ clear }">
+												<a
+													href="#"
+													class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+													@click.prevent="clear">
+													<VueIcon
+														@click="clear"
+														class="mr-1 w-4 h-4"
+														:icon="HiSolidX" />
+												</a>
 											</template>
 										</Multiselect>
 									</div>
@@ -161,12 +222,46 @@
 									</p>
 								</div>
 								<div class="grid sm:grid-cols-3 gap-4">
-									<FormInput
-										label="2 letter ISO country code"
-										v-model="form.country"
-										type="text"
-										placeholder="UK"
-										:error="form.errors.country" />
+									<div>
+										<FormLabel class="mb-2">
+											Country
+										</FormLabel>
+										<Multiselect
+											:options="countries"
+											valueProp="value"
+											label="label"
+											:placeholder="$t('Country')"
+											v-model="form.country"
+											searchable
+											closeOnSelect>
+											<template #caret="{ isOpen }">
+												<VueIcon
+													:class="{
+														'rotate-180': isOpen,
+													}"
+													class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+													:icon="
+														HiSolidChevronDown
+													" />
+											</template>
+											<template #clear="{ clear }">
+												<a
+													href="#"
+													class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+													@click.prevent="clear">
+													<VueIcon
+														@click="clear"
+														class="mr-1 w-4 h-4"
+														:icon="HiSolidX" />
+												</a>
+											</template>
+										</Multiselect>
+										<p
+											class="text-red-500"
+											v-if="form.errors.country">
+											{{ form.errors.country }}
+										</p>
+									</div>
 									<FormInput
 										label="Season"
 										v-model="form.season"
@@ -180,7 +275,12 @@
 										<PrimaryButton
 											secondary
 											as="button"
-											:href="route('admin.leagues.index')"
+											:href="
+												route(
+													'admin.leagues.index',
+													sport.toLowerCase(),
+												)
+											"
 											type="button"
 											link>
 											{{ $t("Cancel") }}

@@ -4,6 +4,7 @@ namespace App\Contracts;
 
 use App\Models\Bet;
 use App\Models\Game;
+use App\Models\Team;
 
 interface BetMarket
 {

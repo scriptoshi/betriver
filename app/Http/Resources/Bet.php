@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 namespace App\Http\Resources;
 

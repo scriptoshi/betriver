@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\ConnectionsController;
+use App\Http\Controllers\FavouritesController;
+use App\Http\Controllers\GamesController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\S3Controller;
 use Illuminate\Foundation\Application;
@@ -11,7 +13,6 @@ use App\Http\Controllers\SportsController;
 use App\Http\Controllers\LeaguesController;
 use App\Http\Controllers\MarketsController;
 use App\Http\Controllers\OddsController;
-use App\Http\Controllers\SlipsController;
 use App\Http\Controllers\StakesController;
 use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\TicketsController;
@@ -70,9 +71,11 @@ Route::name('teams')->controller(TeamsController::class)->group(function () {
 #teams
 
 #sports
-Route::name('sports')->controller(SportsController::class)->group(function () {
-    Route::get('/sports', 'index')->name('index');
-    Route::get('/sports/{game}/show', 'show')->name('show');
+Route::name('sports.')->controller(GamesController::class)->group(function () {
+    Route::get('/sport/watchlist', 'watchlist')->name('watchlist');
+    Route::get('/sport/in-play', 'inPlay')->name('inplay');
+    Route::get('/sports/{sport?}/{region?}/{country?}', 'index')->name('index');
+    Route::get('/sport/{game}', 'show')->name('show');
 });
 #sports
 
@@ -155,18 +158,6 @@ Route::name('transactions')->controller(TransactionsController::class)->group(fu
 });
 #transactions
 
-#slips
-Route::name('slips')->controller(SlipsController::class)->group(function () {
-    Route::get('/slips', 'index')->name('index');
-    Route::get('/slips/create', 'create')->name('create');
-    Route::post('/slips/store', 'store')->name('store');
-    Route::get('/slips/{slip}/show', 'show')->name('show');
-    Route::get('/slips/{slip}/edit', 'edit')->name('edit');
-    Route::put('/slips/{slip}', 'update')->name('update');
-    Route::put('/slips/toggle/{slip}', 'toggle')->name('toggle');
-    Route::delete('/slips/{slip}', 'destroy')->name('destroy');
-});
-#slips
 
 #accounts
 Route::name('accounts')->controller(AccountsController::class)->group(function () {
@@ -247,15 +238,12 @@ Route::name('connections.')->controller(ConnectionsController::class)->group(fun
 #connections
 
 
-#sports
-Route::name('sports.')->controller(SportsController::class)->group(function () {
-    Route::get('/sports', 'index')->name('index');
-    Route::get('/sports/create', 'create')->name('create');
-    Route::post('/sports/store', 'store')->name('store');
-    Route::get('/sports/{game}/show', 'show')->name('show');
-    Route::get('/sports/{game}/edit', 'edit')->name('edit');
-    Route::put('/sports/{game}', 'update')->name('update');
-    Route::put('/sports/toggle/{game}', 'toggle')->name('toggle');
-    Route::delete('/sports/{game}', 'destroy')->name('destroy');
-});
-#sports
+#favourites
+Route::name('favourites.')
+    ->controller(FavouritesController::class)
+    ->middleware('auth')
+    ->group(function () {
+        Route::post('/favourites/store', 'store')->name('store');
+        Route::delete('/favourites/{favourite}', 'destroy')->name('destroy');
+    });
+#favourites

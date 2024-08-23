@@ -44,8 +44,8 @@ class Odd extends Model
      */
     protected $fillable = [
         'bet_id',
-        'oddable_id',
-        'oddable_type',
+        'game_id',
+        'game_type',
         'market_id',
         'oddId',
         'odd',
@@ -69,7 +69,7 @@ class Odd extends Model
      * Get the game this model Belongs To.
      *
      */
-    public function oddable(): MorphTo
+    public function game(): MorphTo
     {
         return $this->morphTo(Game::class);
     }

@@ -1,8 +1,5 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 
 namespace App\Policies;
 
@@ -13,15 +10,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class CommissionPolicy
 {
     use HandlesAuthorization;
-	
-	public function before(User $user)
-	{
-		if ($user->isAdmin()) {
-			return true;
-		}
-	}
-	
-	 /**
+
+    public function before(User $user)
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -41,7 +38,7 @@ class CommissionPolicy
      */
     public function view(User $user, Commission $commission): bool
     {
-		return $user->hasPermission('view.commission');
+        return $user->hasPermission('view.commission');
     }
 
     /**
@@ -52,7 +49,7 @@ class CommissionPolicy
      */
     public function create(User $user): bool
     {
-		return $user->hasPermission('create.commission');
+        return $user->hasPermission('create.commission');
     }
 
     /**
@@ -88,7 +85,7 @@ class CommissionPolicy
      */
     public function restore(User $user, Commission $commission): bool
     {
-         return $user->hasPermission('restore.commission') || $user->id == $commission->user_id;
+        return $user->hasPermission('restore.commission') || $user->id == $commission->user_id;
     }
 
     /**
@@ -100,6 +97,6 @@ class CommissionPolicy
      */
     public function forceDelete(User $user, Commission $commission): bool
     {
-        return $user->hasPermission('forcedelete.commission') || $user->id == $commission->user_id;		
+        return $user->hasPermission('forcedelete.commission') || $user->id == $commission->user_id;
     }
 }

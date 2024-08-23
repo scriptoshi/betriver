@@ -16,7 +16,27 @@ export default {
             colors: () => {
                 return {
                     emerald: colors.amber,
-                    gray: colors.zinc,
+                    gray: {
+                        50: "#fafafa",
+                        100: "#f4f4f5",
+                        150: "#ececed",  // New mid-range color
+                        200: "#e4e4e7",
+                        250: "#dcdcdf",  // New mid-range color
+                        300: "#d4d4d8",
+                        350: "#bbbbc1",  // New mid-range color
+                        400: "#a1a1aa",
+                        450: "#8c8c94",  // New mid-range color
+                        500: "#71717a",
+                        550: "#63636b",  // New mid-range color
+                        600: "#52525b",
+                        650: "#494951",  // New mid-range color
+                        700: "#3f3f46",
+                        750: "#353538",  // New mid-range color
+                        800: "#27272a",
+                        850: "#202022",  // New mid-range color
+                        900: "#18181b",
+                        950: "#09090b"
+                    },
                     primary: "#BFBFBF",
                     secondary: "#F000B9",
                     info: colors.amber["500"],
@@ -40,7 +60,10 @@ export default {
                 'multiselect-remove': `url("${svgToDataUri(
                     `<svg viewBox="0 0 320 512" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z"></path></svg>`,
                 )}")`,
-            })
+            }),
+            transitionProperty: {
+                'spacing': 'margin, padding',
+            }
         }
     },
 

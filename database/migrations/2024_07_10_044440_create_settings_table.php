@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;

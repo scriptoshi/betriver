@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 namespace App\Http\Resources;
 
@@ -25,10 +22,16 @@ class League extends JsonResource
             'leagueId' => $this->leagueId,
             'name' => $this->name,
             'sport' => $this->sport,
+            'race_tag' => $this->race_tag,
+            'race_tag_name' => $this->race_tag?->name(),
             'season' => $this->season,
+            'season_ends_at' => $this->season_ends_at,
+            'season_ends' => $this->season_ends_at?->toFormattedDateString(),
             'country' => $this->country,
             'description' => $this->description,
             'active' => $this->active,
+            'menu' => $this->menu,
+            'has_odds' => $this->has_odds,
             'image' => $this->image,
             'games' => Game::collection($this->whenLoaded('games')),
         ];

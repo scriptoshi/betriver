@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\TradeStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -30,7 +31,14 @@ class Trade extends Model
      *
      * @var string
      */
+    protected function casts()
+    {
+        return [
 
+            'status' => TradeStatus::class,
+
+        ];
+    }
 
     /**
      * Attributes that should be mass-assignable.
@@ -39,11 +47,18 @@ class Trade extends Model
      */
     protected $fillable = [
         'maker_id',
+        'bet_id',
+        'market_id',
         'taker_id',
+        'game_id',
         'amount',
-        'buy',
-        'sell',
-        'margin'
+        'price',
+        'maker_price',
+        'status',
+        // admin arbitrage info 
+        'buy', // bet lay odds
+        'sell', // bet back odds
+        'margin' // how much abitrage admin made on this trade
     ];
 
 
@@ -65,5 +80,30 @@ class Trade extends Model
     public function taker(): BelongsTo
     {
         return $this->belongsTo(Stake::class, 'taker_id', 'id');
+    }
+
+    /**
+     * Get the taker this model Belongs To.
+     *
+     */
+    public function game(): BelongsTo
+    {
+        return $this->belongsTo(Game::class, 'game_id', 'id');
+    }
+    /**
+     * Get the taker this model Belongs To.
+     *
+     */
+    public function bet(): BelongsTo
+    {
+        return $this->belongsTo(Bet::class, 'bet_id', 'id');
+    }
+    /**
+     * Get the taker this model Belongs To.
+     *
+     */
+    public function market(): BelongsTo
+    {
+        return $this->belongsTo(Market::class, 'market_id', 'id');
     }
 }

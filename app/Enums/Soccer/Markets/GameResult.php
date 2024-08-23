@@ -74,7 +74,8 @@ enum GameResult: string implements BetMarket
                     'slug' => Str::slug($case->name()),
                     'description' => $case->name(),
                     'name' => self::formatMarketName($case->name()),
-                    'sport' => LeagueSport::FOOTBALL
+                    'sport' => LeagueSport::FOOTBALL,
+                    'is_default' => $case == self::FULLTIME,
                 ]
             );
             foreach (MatchWinner::cases() as $bet) {

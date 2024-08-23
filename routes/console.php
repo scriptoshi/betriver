@@ -1,10 +1,12 @@
 <?php
 
+use App\Api\ApiAfl;
 use App\Api\ApiBaseball;
 use App\Api\ApiBasketball;
 use App\Api\ApiFootball;
 use App\Api\ApiHandball;
 use App\Api\ApiHokey;
+use App\Api\ApiMma;
 use App\Api\ApiNfl;
 use App\Api\ApiRugby;
 use App\Api\ApiVolleyball;
@@ -21,6 +23,15 @@ Artisan::command('lang:strap', function () {
     Artisan::call('vue-i18n:generate', ['--with-vendor' => 'en']);
 });
 
+Artisan::command('settle:trades', function () {
+   
+});
+
+
+
+
+
+
 Artisan::command('bo', function () {
-    ApiFootball::getBetOdds();
+    ApiMma::updateLeagues();
 });

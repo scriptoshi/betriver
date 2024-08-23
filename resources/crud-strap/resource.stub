@@ -1,8 +1,5 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 namespace DummyNamespace;
 {{morphTraitNamespace}}
 use Illuminate\Http\Resources\Json\JsonResource;

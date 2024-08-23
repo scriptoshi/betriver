@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -28,6 +25,7 @@ return new class extends Migration
             $table->string('oddsId')->nullable();
             $table->string('type')->nullable();
             $table->boolean('active')->default(true);
+            $table->boolean('is_default')->default(false);
             $table->boolean('bookie_active')->default(true);
             $table->timestamps();
             $table->softDeletes();

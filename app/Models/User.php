@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasProfilePhoto;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -84,6 +85,24 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get users watchlist.
+     *
+     */
+    public function watchlist(): BelongsToMany
+    {
+        return $this->belongsToMany(Game::class, 'game_user', 'user_id', 'game_id');
+    }
+
+    /**
+     * Get users watchlist.
+     *
+     */
+    public function favourites(): HasMany
+    {
+        return $this->hasMany(Favourite::class);
+    }
+
+    /**
      * Get staks the user has.
      *
      */
@@ -91,14 +110,7 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $this->hasMany(Stake::class, 'user_id', 'id');
     }
-    /**
-     * Get staks the user has.
-     *
-     */
-    public function slips(): HasMany
-    {
-        return $this->hasMany(Slip::class, 'user_id', 'id');
-    }
+
     /**
      * Get staks the user has.
      *
@@ -117,7 +129,7 @@ class User extends Authenticatable implements MustVerifyEmail
         if (!$this->referral) return [];
         $upline = str($this->referral)
             ->explode(':')
-            ->each(fn ($s) => trim($s))
+            ->each(fn($s) => trim($s))
             ->take($num)
             ->all();
         return User::query()

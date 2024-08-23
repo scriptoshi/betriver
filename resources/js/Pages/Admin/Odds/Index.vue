@@ -95,7 +95,11 @@
 										:key="odd.md5"
 										:label="odd.label"
 										v-model="form[odd.md5].odd"
-										sm />
+										sm>
+										<template #trail>
+											{{ odd.bookie }}
+										</template>
+									</FormInput>
 								</div>
 							</template>
 						</Accordion>

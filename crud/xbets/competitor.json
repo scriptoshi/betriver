@@ -1,0 +1,40 @@
+{
+    "fields": [
+        {
+            "name": "name",
+            "type": "string|nullable",
+            "rules": "required|string"
+        },
+        {
+            "name": "slug",
+            "type": "string|unique"
+        },
+        {
+            "name": "gold",
+            "type": "boolean|default:true",
+            "rules": "required|boolean"
+        },
+        {
+            "name": "silver",
+            "type": "boolean|default:true",
+            "rules": "required|boolean"
+        },
+        {
+            "name": "bronze",
+            "type": "boolean|default:true",
+            "rules": "required|boolean"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "",
+            "type": "hasMany",
+            "class": "Bet|market_id|id"
+        },
+        {
+            "name": "games",
+            "type": "belongsToMany",
+            "class": "Game|game_market|market_id|game_id"
+        }
+    ]
+}

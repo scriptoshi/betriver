@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -22,6 +19,7 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->foreignId('bet_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('market_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('league_id')->nullable()->constrained();
             $table->morphs('game');
             $table->string('bookie')->nullable();
             $table->string('md5')->unique();

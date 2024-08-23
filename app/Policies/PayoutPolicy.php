@@ -1,8 +1,5 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 
 namespace App\Policies;
 
@@ -13,15 +10,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class PayoutPolicy
 {
     use HandlesAuthorization;
-	
-	public function before(User $user)
-	{
-		if ($user->isAdmin()) {
-			return true;
-		}
-	}
-	
-	 /**
+
+    public function before(User $user)
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -41,7 +38,7 @@ class PayoutPolicy
      */
     public function view(User $user, Payout $payout): bool
     {
-		return $user->hasPermission('view.payout');
+        return $user->hasPermission('view.payout');
     }
 
     /**
@@ -52,7 +49,7 @@ class PayoutPolicy
      */
     public function create(User $user): bool
     {
-		return $user->hasPermission('create.payout');
+        return $user->hasPermission('create.payout');
     }
 
     /**
@@ -88,7 +85,7 @@ class PayoutPolicy
      */
     public function restore(User $user, Payout $payout): bool
     {
-         return $user->hasPermission('restore.payout') || $user->id == $payout->user_id;
+        return $user->hasPermission('restore.payout') || $user->id == $payout->user_id;
     }
 
     /**
@@ -100,6 +97,6 @@ class PayoutPolicy
      */
     public function forceDelete(User $user, Payout $payout): bool
     {
-        return $user->hasPermission('forcedelete.payout') || $user->id == $payout->user_id;		
+        return $user->hasPermission('forcedelete.payout') || $user->id == $payout->user_id;
     }
 }

@@ -1,8 +1,5 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 
 namespace App\Policies;
 
@@ -13,15 +10,15 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class DepositPolicy
 {
     use HandlesAuthorization;
-	
-	public function before(User $user)
-	{
-		if ($user->isAdmin()) {
-			return true;
-		}
-	}
-	
-	 /**
+
+    public function before(User $user)
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+    }
+
+    /**
      * Determine whether the user can view any models.
      *
      * @param  \App\Models\User  $user
@@ -41,7 +38,7 @@ class DepositPolicy
      */
     public function view(User $user, Deposit $deposit): bool
     {
-		return $user->hasPermission('view.deposit');
+        return $user->hasPermission('view.deposit');
     }
 
     /**
@@ -52,7 +49,7 @@ class DepositPolicy
      */
     public function create(User $user): bool
     {
-		return $user->hasPermission('create.deposit');
+        return $user->hasPermission('create.deposit');
     }
 
     /**
@@ -88,7 +85,7 @@ class DepositPolicy
      */
     public function restore(User $user, Deposit $deposit): bool
     {
-         return $user->hasPermission('restore.deposit') || $user->id == $deposit->user_id;
+        return $user->hasPermission('restore.deposit') || $user->id == $deposit->user_id;
     }
 
     /**
@@ -100,6 +97,6 @@ class DepositPolicy
      */
     public function forceDelete(User $user, Deposit $deposit): bool
     {
-        return $user->hasPermission('forcedelete.deposit') || $user->id == $deposit->user_id;		
+        return $user->hasPermission('forcedelete.deposit') || $user->id == $deposit->user_id;
     }
 }

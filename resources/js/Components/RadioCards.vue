@@ -49,14 +49,17 @@
 						checked
 							? 'border-transparent'
 							: 'border-gray-300 dark:border-gray-600',
-						active ? 'ring ring-emerald-500' : '',
-						'relative bg-white dark:bg-gray-900 border rounded-sm shadow-sm px-4 py-2 flex cursor-pointer focus:outline-none',
+						active ? 'ring-1 ring-emerald-500' : '',
+						'relative bg-white dark:bg-gray-900 border rounded-md shadow-sm px-4 py-2 flex cursor-pointer focus:outline-none',
 					]">
 					<div class="flex-1 flex">
-						<img
-							v-if="option.img"
-							:src="option.img"
-							class="w-7 h-7 mr-3" />
+						<slot name="img" :img="img">
+							<img
+								v-if="option.img"
+								:src="option.img"
+								class="w-7 h-7 mr-3" />
+						</slot>
+
 						<div class="flex flex-col">
 							<RadioGroupLabel
 								as="span"

@@ -1,12 +1,10 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 namespace App\Http\Resources;
 
+use App\Support\TradeManager;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Odd extends JsonResource
@@ -27,6 +25,8 @@ class Odd extends JsonResource
             'oddId' => $this->oddId,
             'md5' => $this->md5,
             'odd' => $this->odd,
+            'american_odd' => TradeManager::decimalToAmericanOdds($this->odd),
+            'percentage_odd' => TradeManager::decimalToPercentageOdds($this->odd),
             'active' => $this->active,
             'bet' => new Bet($this->whenLoaded('bet')),
             'game' => new Game($this->whenLoaded('game')),

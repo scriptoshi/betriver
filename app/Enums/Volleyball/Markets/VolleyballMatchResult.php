@@ -42,6 +42,7 @@ enum VolleyballMatchResult: string implements BetMarket
         return match ($outcome) {
             VolleyballMatchResultOutcome::HOME => $homeSets > $awaySets,
             VolleyballMatchResultOutcome::AWAY => $awaySets > $homeSets,
+            VolleyballMatchResultOutcome::DRAW => $awaySets === $homeSets,
         };
     }
 
@@ -59,7 +60,8 @@ enum VolleyballMatchResult: string implements BetMarket
                     'description' => $case->name(),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::VOLLEYBALL_MATCH_RESULT,
-                    'sport' => LeagueSport::VOLLEYBALL
+                    'sport' => LeagueSport::VOLLEYBALL,
+                    'is_default' => $case == self::FULL_MATCH,
                 ]
             );
             foreach (VolleyballMatchResultOutcome::cases() as $outcome) {

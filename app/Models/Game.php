@@ -2,21 +2,29 @@
 
 namespace App\Models;
 
+use App\Contracts\GameStatus;
 use App\Enums\LeagueSport;
-use App\Enums\GameStatus;
 use App\Enums\GoalCount;
+use App\Enums\StakeStatus;
+use App\Enums\StakeType;
 use App\Traits\HasUuid;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
+
+use function Clue\StreamFilter\fun;
 
 class Game extends Model
 {
     use SoftDeletes;
     use HasUuid;
+
+
 
     /**
      * The database table used by the model.
@@ -39,11 +47,13 @@ class Game extends Model
      */
     protected function casts()
     {
+
         return [
             'startTime' => 'datetime',
             'endTime' => 'datetime',
             'active' => 'boolean',
-            'status' => GameStatus::class,
+            'closed' => 'boolean',
+            'result' => 'array',
             'sport' => LeagueSport::class
         ];
     }
@@ -57,12 +67,18 @@ class Game extends Model
         'league_id',
         'home_team_id',
         'away_team_id',
+        'win_team_id',
         'gameId',
         'name',
         'startTime',
+        'elapsed',
         'endTime',
         'status',
-        'sport'
+        'result',
+        'rounds',
+        'sport',
+        'active',
+        'closed',
     ];
 
     public function getScores($type, GoalCount|string $team): float|int
@@ -126,6 +142,16 @@ class Game extends Model
 
     /**
 
+     * Get the winner of the game/fight
+     *
+     */
+    public function winner(): BelongsTo
+    {
+        return $this->belongsTo(Team::class, 'win_team_id', 'id');
+    }
+
+    /**
+
      * Get the markets this model Belongs To.
      *
      */
@@ -145,6 +171,31 @@ class Game extends Model
     {
         return $this->hasMany(Stake::class, 'game_id', 'id');
     }
+
+    /**
+     * Get the unmatched back stakes this model Owns.
+     *
+     */
+    public function backs(): HasMany
+    {
+        return $this->hasMany(Stake::class, 'bet_id', 'id')
+            ->where('type', StakeType::BACK)
+            ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value]);
+    }
+
+
+
+    /**
+     * Get the unmatched lay stakes this model Owns.
+     *
+     */
+    public function lays(): HasMany
+    {
+        return $this->hasMany(Stake::class, 'bet_id', 'id')
+            ->where('type', StakeType::LAY)
+            ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value]);
+    }
+
 
     /**
 
@@ -183,7 +234,7 @@ class Game extends Model
      */
     public function odds(): MorphMany
     {
-        return $this->morphMany(Odd::class, 'oddable');
+        return $this->morphMany(Odd::class, 'game');
     }
 
     /**
@@ -194,5 +245,213 @@ class Game extends Model
     public function winBets(): BelongsToMany
     {
         return $this->belongsToMany(Bet::class, 'bet_game', 'game_id', 'bet_id');
+    }
+
+
+    public function state(): GameStatus
+    {
+        return $this->sport->gameStatus($this->status);
+    }
+
+    ## QUERY SCOPES
+
+    /**
+     * Scope a query to only include live games.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeLive($query)
+    {
+        return $query->where('active', true)
+            ->where(fn($q) => $q->where('endTime', null)->orWhere('closed', false))
+            ->where('startTime', '<=', now())
+        ;
+    }
+
+    /**
+     * Scope a query to only include games for today.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeToday($query)
+    {
+        return $query->whereDate('startTime', Carbon::today());
+    }
+
+    /**
+     * Scope a query to only include games for tomorrow.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeTomorrow($query)
+    {
+        return $query->whereDate('startTime', Carbon::tomorrow());
+    }
+
+    /**
+     * Scope a query to only include games for this week.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeThisWeek($query)
+    {
+        return $query->whereBetween('startTime', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+    }
+
+    /**
+     * Scope a query to only include games for next week.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeNextWeek($query)
+    {
+        $nextWeekStart = Carbon::now()->addWeek()->startOfWeek();
+        $nextWeekEnd = Carbon::now()->addWeek()->endOfWeek();
+        return $query->whereBetween('startTime', [$nextWeekStart, $nextWeekEnd]);
+    }
+
+    /**
+     * Scope a query to only include ended games.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeEnded($query)
+    {
+        return $query->where('closed', true)
+            ->orWhere('endTime', '<=', now());
+    }
+
+    /**
+     * return statistic for count by sport.
+     * [
+     *      'football' => 50,
+     *      'basketball' => 30,
+     *      'tennis' => 20,
+     *      ... other sports
+     * ]
+     */
+    public static function getActiveCountsBySport()
+    {
+        $cacheKey = "active_game_counts";
+        $cacheDuration = now()->addMinutes(5); // Cache for 5 minutes
+
+        return Cache::remember($cacheKey, $cacheDuration, function () {
+            $counts = static::query()
+                ->select('sport')
+                ->selectRaw('COUNT(*) as active_count')
+                ->where('active', true)
+                ->where(function ($query) {
+                    $query->where('endTime', '>', now())
+                        ->orWhere('endTime', null);
+                })
+                ->where('closed', false)
+                ->groupBy('sport')
+                ->get();
+
+            return $counts->mapWithKeys(function ($item) {
+                // Convert the sport string to LeagueSport enum
+                // $sportEnum = LeagueSport::from($item->sport);
+                return [$item->sport => $item->active_count];
+            })->all();
+        });
+    }
+
+    public static function clearActiveCountsCache()
+    {
+        Cache::forget("active_game_counts");
+    }
+
+    /**
+     * The getCountsBySport method will return an array with the following structure:
+     *      [
+     *         'sport' => 'football',
+     *          'total' => 1000,
+     *          'live' => 10,
+     *          'today' => 50,
+     *          'tomorrowt' => 45,
+     *          'this_week' => 200,
+     *          'ended' => 700
+     *       ]
+     * When called without a sport, it will return an array of these structures, keyed by sport.
+     */
+    public static function getCountsBySport()
+    {
+        $cacheKey = "game_total_counts_all";
+        $cacheDuration = now()->addMinutes(10); // Cache for 10 minutes
+        return Cache::remember($cacheKey, $cacheDuration, function () {
+            $query = static::query();
+            return $query->select('sport')
+                ->selectRaw('COUNT(*) as total')
+                ->selectRaw('SUM(CASE WHEN active = 1 AND (endTime IS NULL OR closed = false) AND startTime <= ? THEN 1 ELSE 0 END) as live', [now()])
+                ->selectRaw('SUM(CASE WHEN DATE(startTime) = ? THEN 1 ELSE 0 END) as today', [now()->toDateString()])
+                ->selectRaw('SUM(CASE WHEN DATE(startTime) = ? THEN 1 ELSE 0 END) as tomorrow', [now()->addDay()->toDateString()])
+                ->selectRaw('SUM(CASE WHEN startTime BETWEEN ? AND ? THEN 1 ELSE 0 END) as this_week', [now()->startOfWeek(), now()->endOfWeek()])
+                ->selectRaw('SUM(CASE WHEN closed = 1 OR endTime <= ? THEN 1 ELSE 0 END) as ended', [now()])
+                ->groupBy('sport')
+                ->get()
+                ->keyBy(fn($m) => $m->sport->value)
+                ->map
+                ->toArray()
+                ->all();
+        });
+    }
+
+    public static function clearCountsCache(LeagueSport $sport = null)
+    {
+        if ($sport) {
+            Cache::forget("game_total_counts_{$sport->value}");
+        } else {
+            Cache::forget("game_total_counts_all");
+            foreach (LeagueSport::cases() as $sportCase) {
+                Cache::forget("game_total_counts_{$sportCase->value}");
+            }
+        }
+    }
+
+
+    /**
+     * return statistic for count by sport.
+     * [
+     *      'football' => 50,
+     *      'basketball' => 30,
+     *      'tennis' => 20,
+     *      ... other sports
+     * ]
+     */
+    public static function getLiveCount()
+    {
+        $cacheKey = "all_live_game_counts";
+        $cacheDuration = now()->addMinutes(5); // Cache for 5 minutes
+        return Cache::remember($cacheKey, $cacheDuration, function () {
+            return static::query()
+                ->where('active', true)
+                ->where(function ($query) {
+                    $query->where('endTime', '>', now())
+                        ->orWhere('endTime', null);
+                })
+                ->where('closed', false)
+                ->count();
+        });
+    }
+
+    public static function clearLiveCount()
+    {
+        Cache::forget("all_live_game_counts");
+    }
+
+    /**
+     * clear cached methods
+     */
+    public static function clearCache()
+    {
+        static::clearActiveCountsCache();
+        static::clearCountsCache();
+        static::clearLiveCount();
     }
 }

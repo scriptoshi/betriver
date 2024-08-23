@@ -5,10 +5,13 @@ namespace App\Models;
 use App\Enums\BetMode;
 use App\Enums\GoalCount;
 use App\Enums\Halfs;
+use App\Enums\StakeStatus;
+use App\Enums\StakeType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Bet extends Model
@@ -65,6 +68,24 @@ class Bet extends Model
     }
 
     /**
+     * Get the odds this model Owns.
+     *
+     */
+    public function trades(): HasMany
+    {
+        return $this->hasMany(Trade::class, 'bet_id', 'id');
+    }
+
+    /**
+     * Get the odds this model Owns.
+     *
+     */
+    public function last_trade(): HasOne
+    {
+        return $this->trades()->one()->ofMany('created_at');
+    }
+
+    /**
 
      * Get the stakes this model Owns.
      *
@@ -75,7 +96,35 @@ class Bet extends Model
     }
 
     /**
+     * Get the unmatched back stakes this model Owns.
+     *
+     */
+    public function backs(): HasMany
+    {
+        return $this->hasMany(Stake::class, 'bet_id', 'id')
+            ->where('type', StakeType::BACK)
+            ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value]);
+    }
 
+
+
+    /**
+     * Get the unmatched lay stakes this model Owns.
+     *
+     */
+    public function lays(): HasMany
+    {
+        return $this->hasMany(Stake::class, 'bet_id', 'id')
+            ->where('type', StakeType::LAY)
+            ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value]);
+    }
+
+
+
+
+
+
+    /**
      * Get the tickets this model Belongs To.
      *
      */
@@ -83,6 +132,10 @@ class Bet extends Model
     {
         return $this->belongsToMany(Ticket::class, 'wagers', 'bet_id', 'ticket_id')->withPivot(['winner'])->withTimestamps();
     }
+
+
+
+
 
     /**
 
@@ -102,5 +155,11 @@ class Bet extends Model
     public function winGames(): BelongsToMany
     {
         return $this->belongsToMany(Game::class, 'bet_game', 'bet_id', 'game_id');
+    }
+
+
+    public function won(Game $game)
+    {
+        $this->market->manager()->won($game, $this);
     }
 }

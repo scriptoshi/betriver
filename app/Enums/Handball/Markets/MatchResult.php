@@ -67,6 +67,7 @@ enum MatchResult: string implements BetMarket
                     'slug' => Str::slug(LeagueSport::HANDBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
                     'name' => $case->name(),
+                    'is_default' => $case == self::FULL_TIME,
                 ]
             );
 

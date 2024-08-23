@@ -90,6 +90,7 @@ enum AFLMatchResult: string implements BetMarket
                     'slug' => Str::slug(LeagueSport::AFL->value . '-' . $case->name()),
                     'description' => $case->name(),
                     'name' => self::formatMarketName($case->name()),
+                    'is_default' => $case == self::FULL_TIME,
                     'sport' => LeagueSport::AFL,
                     'type' => EnumsMarket::AFL_MATCH_RESULT //'AFLMatchResult',
                 ]

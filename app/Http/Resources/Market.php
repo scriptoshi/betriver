@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 namespace App\Http\Resources;
 
@@ -28,6 +25,7 @@ class Market extends JsonResource
             'sport' => $this->sport,
             'oddsId' => $this->oddsId,
             'active' => $this->active,
+            'is_default' => $this->active,
             'bookie_active' => $this->bookie_active,
             'bets' => Bet::collection($this->whenLoaded('bets')),
             'games' => Game::collection($this->whenLoaded('games')),

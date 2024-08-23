@@ -2,7 +2,9 @@
 
 namespace App\Enums\Basketball;
 
-enum GameStatus: string
+use App\Contracts\GameStatus as ContractsGameStatus;
+
+enum GameStatus: string implements ContractsGameStatus
 {
     case NotStarted = 'NS';
     case Quarter1 = 'Q1';
@@ -20,7 +22,7 @@ enum GameStatus: string
     case Awarded = 'AWD';
     case Abandoned = 'ABD';
 
-    function description()
+    function description(): string
     {
         return match ($this) {
             GameStatus::NotStarted => 'Game Not Started',
@@ -41,7 +43,7 @@ enum GameStatus: string
         };
     }
 
-    function gameState()
+    function gameState(): string
     {
         return match ($this) {
             GameStatus::NotStarted => 'scheduled',
@@ -57,7 +59,7 @@ enum GameStatus: string
         };
     }
 
-    function statusText()
+    function statusText(): string
     {
         return match ($this) {
             GameStatus::NotStarted => 'Not Started',
@@ -88,6 +90,27 @@ enum GameStatus: string
             GameStatus::Suspended,
             GameStatus::Awarded,
             GameStatus::Abandoned => true,
+            default => false
+        };
+    }
+
+    public function cancelled(): bool
+    {
+        return match ($this) {
+            GameStatus::Postponed,
+            GameStatus::Cancelled,
+            GameStatus::Suspended,
+            GameStatus::Abandoned => true,
+            default => false
+        };
+    }
+
+    public function finished(): bool
+    {
+        return match ($this) {
+            GameStatus::Finished,
+            GameStatus::AfterOverTime,
+            GameStatus::Awarded => true,
             default => false
         };
     }

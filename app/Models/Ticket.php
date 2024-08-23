@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StakeType;
 use App\Enums\TicketStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -34,6 +35,7 @@ class Ticket extends Model
     protected function casts()
     {
         return [
+            'type' => StakeType::class,
             'status' => TicketStatus::class,
             'won' => 'boolean',
             'is_withdrawn' => 'boolean'
@@ -52,6 +54,7 @@ class Ticket extends Model
         'payout',
         'total_odds',
         'status',
+        'type',
         'won',
         'is_withdrawn'
     ];

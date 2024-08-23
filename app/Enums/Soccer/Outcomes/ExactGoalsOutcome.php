@@ -2,15 +2,15 @@
 
 namespace App\Enums\Soccer\Outcomes;
 
-enum ExactGoalsOutcome: int
+enum ExactGoalsOutcome: string
 {
-    case ZERO = 0;
-    case ONE = 1;
-    case TWO = 2;
-    case THREE = 3;
+    case ZERO = '0';
+    case ONE = '1';
+    case TWO = '2';
+    case THREE = '3';
     case THREE_PLUS = 'more_3';
-    case FOUR = 4;
-    case FIVE = 5;
+    case FOUR = '4';
+    case FIVE = '5';
     case SIX_PLUS = 'more_6';
 
     public function name(): string

@@ -76,7 +76,7 @@ class Team extends Model
      */
     public function odds(): MorphMany
     {
-        return $this->morphMany(Odd::class, 'oddable');
+        return $this->morphMany(Odd::class, 'game');
     }
 
     /**

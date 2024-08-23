@@ -2,11 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Afl\GameStatus;
 use App\Enums\LeagueSport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Game as GameResource;
 use App\Models\Game;
+use App\Models\Market;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class GamesController extends Controller
@@ -15,65 +19,69 @@ class GamesController extends Controller
      * Display a listing of the resource.
      * @return \Illuminate\View\View
      */
-    public function index(Request $request)
+    public function index(Request $request, LeagueSport $sport = null, string $region = null, $country = null)
     {
+
         $keyword = $request->get('search');
         $perPage = 25;
-        $query  = Game::query()->with(['scores', 'league', 'homeTeam', 'awayTeam', 'markets', 'stakes', 'trades', 'tickets', 'wagers', 'odds', 'winBets']);
-        if (!empty($keyword)) {
-            $query->where('league_id', 'LIKE', "%$keyword%")
-                ->orWhere('home_team_id', 'LIKE', "%$keyword%")
-                ->orWhere('away_team_id', 'LIKE', "%$keyword%")
-                ->orWhere('name', 'LIKE', "%$keyword%")
-                ->orWhere('startTime', 'LIKE', "%$keyword%")
-                ->orWhere('endTime', 'LIKE', "%$keyword%")
-                ->orWhere('status', 'LIKE', "%$keyword%")
-                ->orWhere('sport', 'LIKE', "%$keyword%");
+        $game_result = Market::query()
+            ->where('is_default', true);
+        $query  = Game::query()
+            ->with(['scores', 'league', 'homeTeam', 'awayTeam']);
+        $query->with([
+            'lays' => function (Builder $q) {
+                $q->whereHas('market', fn($q) => $q->where('is_default', true))
+                    ->select(
+                        'odds as price',
+                        'game_id',
+                        'bet_id',
+                        DB::raw('sum(amount) as amount')
+                    )
+                    ->groupBy(['bet_id', 'odds',  'game_id'])
+                    ->oldest('latest')
+                    ->limit(3);
+            },
+            'backs' => function (Builder $q) {
+                $q->whereHas('market', fn($q) => $q->where('is_default', true))
+                    ->select(
+                        'odds as price',
+                        'bet_id',
+                        'game_id',
+                        DB::raw('sum(amount) as amount')
+                    )
+                    ->groupBy(['bet_id', 'odds', 'game_id'])
+                    ->oldest('price')
+                    ->limit(3)
+                ;
+            },
+        ]);
+        if (!empty($sport)) {
+            $query->where('sport', $sport);
         }
+        if (!empty($keyword)) {
+            $query->where('name', 'LIKE', "%$keyword%");
+        }
+        if ($region)
+            match ($region) {
+                'live' => $query->live(),
+                'today' => $query->today(),
+                'tommorrow' => $query->tommorrow(),
+                'week' => $query->thisWeek(),
+                'next-weeks' => $query->nextWeek(),
+                'region' => $query->where('country',  $country),
+                default => $query->whereHas('league', fn($q) => $q->where('slug', $region))
+            };
         $gamesItems = $query->latest()->paginate($perPage);
         $games = GameResource::collection($gamesItems);
-        return Inertia::render('AdminGames/Index', compact('games'));
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     * @return \Illuminate\View\View
-     */
-    public function create()
-    {
-        return Inertia::render('AdminGames/Create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function store(Request $request)
-    {
-        $request->validate([
-            'league_id' => ['required', 'integer', 'exists:leagues,id'],
-            'home_team_id' => ['required', 'integer', 'exists:teams,id'],
-            'away_team_id' => ['required', 'integer', 'exists:teams,id'],
-            'name' => ['required', 'string'],
-            'startTime' => ['required', 'datetime'],
-            'endTime' => ['required', 'datetime'],
-            'status' => ['required', 'string'],
-            'sport' => ['required', 'string', new Enum(LeagueSport::class)],
+        return Inertia::render('Games/Index', [
+            'games' => $games,
+            'sport' => $sport,
+            'region' => $region,
+            'country' => $country,
         ]);
-        $game = new Game;
-        $game->league_id = $request->league_id;
-        $game->home_team_id = $request->home_team_id;
-        $game->away_team_id = $request->away_team_id;
-        $game->name = $request->name;
-        $game->startTime = $request->startTime;
-        $game->endTime = $request->endTime;
-        $game->status = $request->status;
-        $game->sport = $request->sport;
-        $game->save();
-
-        return redirect()->route('games.index')->with('success', 'Game added!');
     }
+
+
 
     /**
      * Display the specified resource.
@@ -82,83 +90,77 @@ class GamesController extends Controller
      */
     public function show(Request $request, Game $game)
     {
-        $game->load(['scores', 'league', 'homeTeam', 'awayTeam', 'markets', 'stakes', 'trades', 'tickets', 'wagers', 'odds', 'winBets']);
+        $game->load([
+            'scores',
+            'league',
+            'homeTeam',
+            'awayTeam',
+            'stakes' => fn($q) => $q->where('user_id', $request->user()->id ?? null),
+            'stakes' => fn($q) => $q->where('user_id', $request->user()->id ?? null),
+            'tickets.wagers' => fn($q) => $q->where('user_id', $request->user()->id ?? null),
+            'odds',
+        ]);
+
+        $markets = Market::query()
+            ->where('sport', $game->sport)
+            ->where('active', true)
+            ->has('bets')
+            ->withExists('odds as has_odds')
+            ->with(['bets' => function (Builder $query) use ($game) {
+                $query->withCount([
+                    'lays' => fn($q) => $q->where('game_id', $game->id),
+                    'backs' => fn($q) => $q->where('game_id', $game->id)
+                ]);
+                $query->withSum(['lays' => fn($q) => $q->where('game_id', $game->id)], 'amount');
+                $query->withSum(['backs' => fn($q) => $q->where('game_id', $game->id)], 'amount');
+                $query->with([
+                    'lays' => function (Builder $q) use ($game) {
+                        $q->where('game_id', $game->id)
+                            ->select(
+                                'odds as price',
+                                'game_id',
+                                'bet_id',
+                                DB::raw('sum(amount) as amount')
+                            )
+                            ->groupBy(['odds', 'bet_id', 'game_id'])
+                            ->oldest('latest')
+                            ->limit(3);
+                    },
+                    'backs' => function (Builder $q) use ($game) {
+                        $q->where('game_id', $game->id)
+                            ->select(
+                                'odds as price',
+                                'bet_id',
+                                'game_id',
+                                DB::raw('sum(amount) as amount')
+                            )
+                            ->groupBy(['odds', 'bet_id', 'game_id'])
+                            ->oldest('price')
+                            ->limit(3)
+                        ;
+                    },
+                    'last_trade' => fn($q) => $q->where('game_id', $game->id),
+                    // graph data
+                    'trades' => function (Builder $q) use ($game) {
+                        $q->where('game_id', $game->id)
+                            ->select(
+                                DB::raw('AVG(odds) as probability'),
+                                DB::raw('SUM(amount) as volume'),
+                                'created_at as date',
+                                'game_id',
+                            )
+                            ->groupBy(['game_id', DB::raw('DATE(created_at)'), DB::raw('HOUR(created_at)')])
+                            ->oldest('price')
+                            ->limit(3)
+                        ;
+                    }
+                ]);
+            }])
+            ->get();
+
+
         return Inertia::render('AdminGames/Show', [
             'game' => new GameResource($game)
         ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     * @param  int  $id
-     * @return \Illuminate\View\View
-     */
-    public function edit(Request $request, Game $game)
-    {
-        $game->load(['scores', 'league', 'homeTeam', 'awayTeam', 'markets', 'stakes', 'trades', 'tickets', 'wagers', 'odds', 'winBets']);
-        return Inertia::render('AdminGames/Edit', [
-            'game' => new GameResource($game)
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function update(Request $request, Game $game)
-    {
-        $request->validate([
-            'league_id' => ['required', 'integer', 'exists:leagues,id'],
-            'home_team_id' => ['required', 'integer', 'exists:teams,id'],
-            'away_team_id' => ['required', 'integer', 'exists:teams,id'],
-            'name' => ['required', 'string'],
-            'startTime' => ['required', 'datetime'],
-            'endTime' => ['required', 'datetime'],
-            'status' => ['required', 'string'],
-            'sport' => ['required', 'string', new Enum(LeagueSport::class)],
-        ]);
-
-        $game->league_id = $request->league_id;
-        $game->home_team_id = $request->home_team_id;
-        $game->away_team_id = $request->away_team_id;
-        $game->name = $request->name;
-        $game->startTime = $request->startTime;
-        $game->endTime = $request->endTime;
-        $game->status = $request->status;
-        $game->sport = $request->sport;
-        $game->save();
-        return back()->with('success', 'Game updated!');
-    }
-
-    /**
-     * toggle status of  the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function toggle(Request $request, Game $game)
-    {
-        $game->active = !$game->active;
-        $game->save();
-        return back()->with('success', $game->active ? __(' :name Game Enabled !', ['name' => $game->name]) : __(' :name  Game Disabled!', ['name' => $game->name]));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function destroy(Request $request, Game $game)
-    {
-        $game->delete();
-        return redirect()->route('games.index')->with('success', 'Game deleted!');
     }
 }

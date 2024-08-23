@@ -1,15 +1,12 @@
 <?php
-/** dev:
-    *Stephen Isaac:  ofuzak@gmail.com.
-    *Skype: ofuzak
- */
+
 namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
 class Account extends JsonResource
 {
-    
+
     /**
      * Transform the resource into an array.
      *
@@ -19,10 +16,10 @@ class Account extends JsonResource
     public function toArray($request)
     {
         return [
-			'accountable'=>$this->accountable,
-			'type'=>$this->type,
-			'amount'=>$this->amount,
-			'accountable'=> new ($this->whenLoaded('accountable')),
-		];
+            'accountable' => $this->accountable,
+            'type' => $this->type,
+            'amount' => $this->amount,
+            'accountable' => new ($this->whenLoaded('accountable')),
+        ];
     }
 }

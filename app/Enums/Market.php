@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use App\Contracts\BetMarket;
 use App\Enums\Soccer\Markets\AsianHandicap;
 use App\Enums\Soccer\Markets\BothTeamsToScore;
 use App\Enums\Soccer\Markets\CorrectScore;
@@ -85,6 +86,13 @@ use App\Enums\Hockey\Markets\TeamGoals as HockeyTeamGoals;
 use App\Enums\Hockey\Markets\TeamToScore as HockeyTeamToScore;
 use App\Enums\Hockey\Markets\WinningMargin as HockeyWinningMargin;
 use App\Enums\Hockey\Markets\WinToNil as HockeyWinToNil;
+use App\Enums\MMA\Markets\MMAFightDuration;
+use App\Enums\MMA\Markets\MMAHandicapOverUnder;
+use App\Enums\MMA\Markets\MMAMatchResult;
+use App\Enums\MMA\Markets\MMAOverUnder;
+use App\Enums\MMA\Markets\MMARoundBetting;
+use App\Enums\MMA\Markets\MMAVictoryMethod;
+use App\Enums\Races\Markets\Winner;
 use App\Enums\Rugby\Markets\RugbyAsianHandicap;
 use App\Enums\Rugby\Markets\RugbyDoubleChance;
 use App\Enums\Rugby\Markets\RugbyExactGoals;
@@ -198,7 +206,11 @@ enum Market: string
     case HOCKEY_WINNING_MARGIN = HockeyWinningMargin::class;
     case HOCKEY_WIN_TO_NIL = HockeyWinToNil::class;
         //mma
-        //case MMA_FIGHT_RESULT = FightResult::class;
+    case MMA_MATCH_RESULT = MMAMatchResult::class;
+    case MMA_OVER_UNDER = MMAOverUnder::class;
+    case MMA_FIGHT_DURATION = MMAFightDuration::class;
+    case MMA_ROUND_BETTING = MMARoundBetting::class;
+    case MMA_VICTORY_METHOD = MMAVictoryMethod::class;
         // Rugby
     case RUGBY_MATCH_RESULT = RugbyMatchResult::class;
     case RUGBY_ASIAN_HANDICAP = RugbyAsianHandicap::class;
@@ -221,11 +233,18 @@ enum Market: string
     case VOLLEYBALL_ASIAN_HANDICAP = VolleyballAsianHandicap::class;
     case VOLLEYBALL_BOTH_TEAMS_TO_SCORE = VolleyballBothTeamsToScore::class;
     case VOLLEYBALL_TEAM_TO_SCORE = VolleyballTeamToScore::class;
+        // Races
+    case RACING_WINNER = Winner::class;
 
 
     public function initialize(): Collection
     {
         return  collect($this->value::cases());
+    }
+
+    public function make($from): BetMarket
+    {
+        return  $this->value::from($from);
     }
 
     public static function seedGroupOne()
@@ -341,6 +360,14 @@ enum Market: string
             static::VOLLEYBALL_ASIAN_HANDICAP,
             static::VOLLEYBALL_BOTH_TEAMS_TO_SCORE,
             static::VOLLEYBALL_TEAM_TO_SCORE,
+
+            //MMA
+            static::MMA_MATCH_RESULT,
+            static::MMA_OVER_UNDER,
+            static::MMA_FIGHT_DURATION,
+            static::MMA_ROUND_BETTING,
+            static::MMA_VICTORY_METHOD,
+            static::RACING_WINNER,
         ];
     }
 }

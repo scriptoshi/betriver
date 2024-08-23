@@ -1,5 +1,5 @@
 <script setup>
-	import { ref } from "vue";
+	import { computed, ref } from "vue";
 
 	import { Head, Link, router, useForm } from "@inertiajs/vue3";
 	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
@@ -11,6 +11,7 @@
 	} from "oh-vue-icons/icons";
 
 	import ConfirmationModal from "@/Components/ConfirmationModal.vue";
+	import Flag from "@/Components/Flag";
 	import Loading from "@/Components/Loading.vue";
 	import Multiselect from "@/Components/Multiselect/Multiselect.vue";
 	import NoItems from "@/Components/NoItems.vue";
@@ -19,14 +20,17 @@
 	import SearchInput from "@/Components/SearchInput.vue";
 	import Switch from "@/Components/Switch.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
+	import { countries } from "@/constants/countries";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
+	import ApiGamesLoader from "@/Pages/Admin/Games/ApiGamesLoader.vue";
 
-	defineProps({
+	const props = defineProps({
 		games: Object,
 		statuses: Object,
 		sport: String,
 		title: String,
 		league: String,
+		leagues: Array,
 	});
 
 	const params = useUrlSearchParams("history");
@@ -44,14 +48,34 @@
 			},
 		);
 	};
+	const hasOdds = computed({
+		set: (val) => (params.odds = val ? 1 : null),
+		get: () => !!params.odds,
+	});
+	const hasScores = computed({
+		set: (val) => (params.scores = val ? 1 : null),
+		get: () => !!params.scores,
+	});
 	debouncedWatch(
-		[search, () => params.status, () => params.lid],
-		([search, status, lid]) => {
+		[
+			search,
+			() => params.status,
+			() => params.lid,
+			() => params.country,
+			() => params.odds,
+			() => params.scores,
+		],
+		([search, status, lid, country, odds, scores]) => {
 			router.get(
-				window.route("admin.games.index"),
+				window.route("admin.games.index", {
+					sport: props.sport.toLowerCase(),
+				}),
 				{
 					...(search ? { search } : {}),
 					...(status ? { status } : {}),
+					...(country ? { country } : {}),
+					...(odds ? { odds } : {}),
+					...(scores ? { scores } : {}),
 					...(lid ? { lid } : {}),
 				},
 				{
@@ -96,6 +120,9 @@
 						</div>
 						<div
 							class="flex flex-col lg:flex-row lg:items-center gap-3">
+							<SearchInput
+								class="lg:max-w-[220px] w-full"
+								v-model="search" />
 							<PrimaryButton
 								link
 								primary
@@ -109,6 +136,9 @@
 							</PrimaryButton>
 						</div>
 					</div>
+					<ApiGamesLoader
+						v-if="!['ALL', 'Racing'].includes(sport)"
+						:sport="sport" />
 					<div class="card border-0 card-border">
 						<div class="card-body px-0 card-gutterless h-full">
 							<div
@@ -129,7 +159,33 @@
 										</a>
 									</span>
 								</span>
-								<div class="lg:max-w-[284px] w-full">
+								<div class="lg:max-w-[220px] w-full">
+									<Multiselect
+										class="md"
+										:options="leagues"
+										valueProp="value"
+										label="label"
+										:placeholder="$t('Filter by League')"
+										v-model="params.lid"
+										searchable
+										closeOnSelect>
+										<template #caret="{ isOpen }">
+											<VueIcon
+												:class="{
+													'rotate-180': isOpen,
+												}"
+												class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+												:icon="HiSolidChevronDown" />
+										</template>
+										<template #clear="{ clear }">
+											<VueIcon
+												@click="clear"
+												class="mr-1 relative z-10 opacity-60 w-5 h-5"
+												:icon="HiSolidX" />
+										</template>
+									</Multiselect>
+								</div>
+								<div class="lg:max-w-[220px] w-full">
 									<Multiselect
 										class="md"
 										:options="statuses"
@@ -155,10 +211,39 @@
 										</template>
 									</Multiselect>
 								</div>
-								<SearchInput
-									class="lg:max-w-[284px] w-full"
-									v-model="search" />
+								<div class="lg:max-w-[220px] w-full">
+									<Multiselect
+										:options="countries"
+										valueProp="value"
+										label="label"
+										:placeholder="$t('Select a Country')"
+										v-model="params.country"
+										searchable
+										class="md"
+										closeOnSelect>
+										<template #caret="{ isOpen }">
+											<VueIcon
+												:class="{
+													'rotate-180': isOpen,
+												}"
+												class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+												:icon="HiSolidChevronDown" />
+										</template>
+										<template #clear="{ clear }">
+											<a
+												href="#"
+												class="p-0.5 relative z-10 opacity-60 flex-shrink-0 flex-grow-0"
+												@click.prevent="clear">
+												<VueIcon
+													@click="clear"
+													class="mr-1 w-4 h-4"
+													:icon="HiSolidX" />
+											</a>
+										</template>
+									</Multiselect>
+								</div>
 							</div>
+
 							<NoItems
 								v-if="games.data.length == 0"
 								class="border-t dark:border-gray-600">
@@ -179,18 +264,22 @@
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Odds") }}
+													<Switch v-model="hasOdds">
+														{{ "Odds" }}
+													</Switch>
 												</th>
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Scores") }}
+													<Switch v-model="hasScores">
+														{{ $t("Scores") }}
+													</Switch>
 												</th>
 
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Start time") }}
+													{{ $t("Start") }}
 												</th>
 												<th
 													scope="col"
@@ -233,59 +322,117 @@
 																" />
 														</div>
 														<div>
-															<p>
+															<p
+																v-tippy="
+																	game.name
+																"
+																class="max-w-[220px] cursor-pointer truncate text-ellipsis">
 																{{ game.name }}
 															</p>
-															<p
-																class="text-xs font-semibold">
-																{{ game.sport }}
-																|
-																<a
-																	href="#"
-																	v-tippy="
-																		$t(
-																			'Filter by League',
-																		)
-																	"
-																	@click.prevent="
-																		params.lid =
-																			game.league_id
-																	"
-																	class="text-sky-500 hover:text-sky-600 dark:hover:text-sky-400">
-																	{{
+															<div
+																class="flex items-center">
+																<Flag
+																	class="mr-2 w-4 h-auto"
+																	v-if="
 																		game
 																			.league
-																			.name
+																			.country &&
+																		game
+																			.league
+																			.country
+																			.length ==
+																			2
+																	"
+																	:iso="
+																		game
+																			.league
+																			.country
+																	" />
+																<p
+																	class="text-xs font-semibold">
+																	{{
+																		game.sport
 																	}}
-																</a>
-															</p>
+																	|
+																	<a
+																		href="#"
+																		v-tippy="
+																			$t(
+																				'Filter by League',
+																			)
+																		"
+																		@click.prevent="
+																			params.lid =
+																				game.league_id
+																		"
+																		class="text-sky-500 hover:text-sky-600 dark:hover:text-sky-400">
+																		<div
+																			class="max-w-[150px] inline-flex truncate text-ellipsis">
+																			{{
+																				game
+																					.league
+																					.name
+																			}}
+																		</div>
+																	</a>
+																</p>
+															</div>
 														</div>
 													</div>
 												</td>
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													<Link
-														class="text-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
-														:href="
-															route(
-																'admin.odds.index',
-																game.uuid,
-															)
-														">
-														Manage Odds
-													</Link>
+													<div
+														class="flex items-center space-x-2">
+														<Link
+															v-tippy="
+																game.has_odds
+																	? $t(
+																			'Manage Game Odds',
+																	  )
+																	: $t(
+																			'Create Game Odds',
+																	  )
+															"
+															:class="
+																game.has_odds
+																	? 'text-green-500 hover:text-green-600 dark:hover:text-green-400'
+																	: 'text-amber-500 hover:text-amber-600 dark:hover:text-amber-400'
+															"
+															:href="
+																route(
+																	'admin.odds.index',
+																	game.uuid,
+																)
+															">
+															Odds
+														</Link>
+													</div>
 												</td>
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
 													<Link
-														class="text-amber-500 hover:text-amber-600 dark:hover:text-amber-400"
+														v-tippy="
+															game.has_scores
+																? $t(
+																		'Manage Game Scores',
+																  )
+																: $t(
+																		'Provide Game Scores',
+																  )
+														"
+														:class="
+															game.has_scores
+																? 'text-green-500 hover:text-green-600 dark:hover:text-green-400'
+																: 'text-amber-500 hover:text-amber-600 dark:hover:text-amber-400'
+														"
 														:href="
 															route(
 																'admin.scores.index',
 																game.uuid,
 															)
 														">
-														Manage Scores
+														Scores
 													</Link>
 												</td>
 

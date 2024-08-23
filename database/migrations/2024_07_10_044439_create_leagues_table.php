@@ -1,9 +1,6 @@
 <?php
 
-/** dev:
- *Stephen Isaac:  ofuzak@gmail.com.
- *Skype: ofuzak
- */
+
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -20,14 +17,20 @@ return new class extends Migration
     {
         Schema::create('leagues', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->string('leagueId')->nullable()->unique();
+            $table->string('leagueId')->nullable();
             $table->string('name')->nullable();
+            $table->string('slug')->unique();
             $table->string('sport');
             $table->string('description')->nullable();
             $table->string('image')->nullable();
             $table->string('country')->nullable();
             $table->string('season')->nullable();
+            $table->string('race_tag')->nullable();
+            $table->timestamp('season_ends_at')->nullable();
+            $table->boolean('has_odds')->default(false);
             $table->boolean('active')->default(true);
+            $table->boolean('menu')->default(false);
+            $table->unique(['leagueId', 'sport']);
             $table->timestamps();
             $table->softDeletes();
         });

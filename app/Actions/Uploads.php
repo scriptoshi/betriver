@@ -89,7 +89,7 @@ class Uploads
         $path_key = $key ? "{$key}_path" : 'path';
         $url = $request->input($uri_key);
         $hasPath = $request->filled($path_key);
-        $uploadable->uploads()->updateOrCreate([
+        return $uploadable->uploads()->updateOrCreate([
             'key' => $key
         ], [
             'url' => $url,

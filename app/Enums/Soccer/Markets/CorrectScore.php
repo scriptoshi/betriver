@@ -35,7 +35,7 @@ enum CorrectScore: string implements BetMarket
     public function name(): string
     {
         return match ($this) {
-            self::FIRSTHALF => "Correct Score - Full Time",
+            self::FULLTIME => "Correct Score - Full Time",
             self::FIRSTHALF => "Correct Score - First Half",
             self::SECONDHALF => "Correct Score - Second Half",
         };

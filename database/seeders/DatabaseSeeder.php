@@ -25,17 +25,14 @@ class DatabaseSeeder extends Seeder
             'refId' => Random::generate()
         ]);
         $this->call(SettingsTableSeeder::class);
-        $this->call(MarketsTableSeeder::class);
-        $this->call(BetsTableSeeder::class);
+        //$this->call(MarketsTableSeeder::class);
+        //$this->call(BetsTableSeeder::class);
         /**
          * Adjust these seeders to seed the markets afresh
          * using the Markets ENUM.  
          * Ensure to delete the MarketsTableSeeder and BetsTableSeeder above before
          */
-        //$this->call(MarketsOneTableSeeder::class); 
-        //$this->call(MarketsTwoTableSeeder::class);
-        $this->call(LeaguesTableSeeder::class);
-        $this->call(TeamsTableSeeder::class);
-        $this->call(GamesTableSeeder::class);
+        $this->call(MarketsOneTableSeeder::class);
+        $this->call(MarketsTwoTableSeeder::class);
     }
 }

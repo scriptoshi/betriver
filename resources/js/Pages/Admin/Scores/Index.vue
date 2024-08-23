@@ -5,6 +5,7 @@
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
+	import MmaResults from "@/Pages/Admin/Scores/MmaResults.vue";
 	import Score from "@/Pages/Admin/Scores/Score.vue";
 	defineProps({
 		scores: Object,
@@ -46,11 +47,17 @@
 							</PrimaryButton>
 						</div>
 					</div>
-					<Score
-						v-for="score in scores"
-						:key="score.type"
-						:score="score"
-						:game="game" />
+					<MmaResults
+						:game="game"
+						:scores="scores"
+						v-if="game.sport === 'mma'" />
+					<template v-else>
+						<Score
+							v-for="score in scores"
+							:key="score.type"
+							:score="score"
+							:game="game" />
+					</template>
 				</div>
 			</div>
 		</main>

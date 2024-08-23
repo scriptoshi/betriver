@@ -64,7 +64,7 @@ enum ExactGoals: string  implements BetMarket
             return $actualGoals >= 6;
         if ($outcome == ExactGoalsOutcome::THREE_PLUS)
             return $actualGoals >= 3;
-        return $actualGoals == $outcome->value;
+        return $actualGoals == (int) $outcome->value;
     }
 
     private function calculateGoals(Game $game): int

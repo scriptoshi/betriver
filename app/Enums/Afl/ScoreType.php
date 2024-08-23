@@ -136,4 +136,9 @@ enum ScoreType: string
             'psbehinds' => static::Q4_PSBEHINDS->value,
         };
     }
+
+    public  function getScore($score)
+    {
+        dd($score);
+    }
 }
