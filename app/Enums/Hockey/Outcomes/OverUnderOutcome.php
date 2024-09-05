@@ -2,10 +2,12 @@
 
 namespace App\Enums\Hockey\Outcomes;
 
+use App\Traits\Overunders;
 use Illuminate\Support\Str;
 
 enum OverUnderOutcome: string
 {
+    use Overunders;
     case OVER_05 = 'over_0.5';
     case UNDER_05 = 'under_0.5';
     case OVER_15 = 'over_1.5';
@@ -32,5 +34,14 @@ enum OverUnderOutcome: string
     public function name(): string
     {
         return str_replace('_', ' ', Str::title($this->value));
+    }
+
+    public static function getGroups(): array
+    {
+
+        return collect(self::cases())
+            ->filter(fn(OverUnderOutcome $case) => str($case->value)->startsWith('over_'))
+            ->map(fn(OverUnderOutcome $case) => $case->threshold())
+            ->all();
     }
 }

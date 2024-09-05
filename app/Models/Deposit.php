@@ -86,4 +86,15 @@ class Deposit extends Model
     {
         return $this->morphOne(Transaction::class, 'transactable');
     }
+
+
+    /**
+
+     * process the deposit.
+     *
+     */
+    public function process()
+    {
+        return $this->gateway->driver()->deposit($this);
+    }
 }

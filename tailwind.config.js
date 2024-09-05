@@ -8,9 +8,9 @@ export default {
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
-        './resources/js/**/*.vue',
+        './resources/js/**/*.{js,ts,tsx,vue}',
     ],
-
+    prefix: "",
     theme: {
         extend: {
             colors: () => {
@@ -36,10 +36,30 @@ export default {
                         850: "#202022",  // New mid-range color
                         900: "#18181b",
                         950: "#09090b"
+                    }, zinc: {
+                        50: "#fafafa",
+                        100: "#f4f4f5",
+                        150: "#ececed",  // New mid-range color
+                        200: "#e4e4e7",
+                        250: "#dcdcdf",  // New mid-range color
+                        300: "#d4d4d8",
+                        350: "#bbbbc1",  // New mid-range color
+                        400: "#a1a1aa",
+                        450: "#8c8c94",  // New mid-range color
+                        500: "#71717a",
+                        550: "#63636b",  // New mid-range color
+                        600: "#52525b",
+                        650: "#494951",  // New mid-range color
+                        700: "#3f3f46",
+                        750: "#353538",  // New mid-range color
+                        800: "#27272a",
+                        850: "#202022",  // New mid-range color
+                        900: "#18181b",
+                        950: "#09090b"
                     },
                     primary: "#BFBFBF",
                     secondary: "#F000B9",
-                    info: colors.amber["500"],
+                    info: colors.sky["500"],
                     success: colors.green["500"],
                     warning: "#ff9800",
                     error: "#ff5724",
@@ -63,7 +83,21 @@ export default {
             }),
             transitionProperty: {
                 'spacing': 'margin, padding',
-            }
+            },
+            keyframes: {
+                "accordion-down": {
+                    from: { height: 0 },
+                    to: { height: "var(--radix-accordion-content-height)" },
+                },
+                "accordion-up": {
+                    from: { height: "var(--radix-accordion-content-height)" },
+                    to: { height: 0 },
+                },
+            },
+            animation: {
+                "accordion-down": "accordion-down 0.2s ease-out",
+                "accordion-up": "accordion-up 0.2s ease-out",
+            },
         }
     },
 
@@ -90,6 +124,6 @@ export default {
         placeholderOpacity: false,
         ringOpacity: true,
     },
-    darkMode: "class",
+    darkMode: ["class"],
     mode: "jit",
 };

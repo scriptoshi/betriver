@@ -1,15 +1,20 @@
 <script setup>
+	import { ref } from "vue";
+
+	import { Head, router, useForm } from "@inertiajs/vue3";
+	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+	import { HiSolidCheck, HiSolidX } from "oh-vue-icons/icons";
+
+	import AdminTableLink from "@/Components/AdminTableLink.vue";
 	import ConfirmationModal from "@/Components/ConfirmationModal.vue";
-	import Loading from "@/Components/Loading.vue";
+	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import Pagination from "@/Components/Pagination.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import SearchInput from "@/Components/SearchInput.vue";
+	import { Badge } from "@/Components/ui/badge";
 	import VueIcon from "@/Components/VueIcon.vue";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
-	import { Head, Link, router, useForm } from "@inertiajs/vue3";
-	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
-	import { HiPencil, HiTrash } from "oh-vue-icons/icons";
-	import { ref } from "vue";
+
 	defineProps({
 		deposits: Object,
 		title: { required: false, type: String },
@@ -17,19 +22,32 @@
 
 	const params = useUrlSearchParams("history");
 	const search = ref(params.search ?? "");
-	const deleteDepositForm = useForm({});
-	const depositBeingDeleted = ref(null);
+	const failDepositForm = useForm({});
+	const completeDepositForm = useForm({});
+	const depositBeingFailed = ref(null);
+	const depositBeingCompleted = ref(null);
 
-	const deleteDeposit = () => {
-		deleteDepositForm.delete(
-			window.route(
-				"admin.deposits.destroy",
-				depositBeingDeleted.value?.id,
-			),
+	const failDeposit = () => {
+		failDepositForm.delete(
+			window.route("admin.deposits.fail", {
+				deposit: depositBeingFailed.value?.uuid,
+			}),
 			{
 				preserveScroll: true,
 				preserveState: true,
-				onSuccess: () => (depositBeingDeleted.value = null),
+				onSuccess: () => (depositBeingFailed.value = null),
+			},
+		);
+	};
+	const completeDeposit = () => {
+		completeDepositForm.put(
+			window.route("admin.deposits.complete", {
+				deposit: depositBeingCompleted.value?.uuid,
+			}),
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onSuccess: () => (depositBeingCompleted.value = null),
 			},
 		);
 	};
@@ -49,22 +67,6 @@
 			maxWait: 700,
 		},
 	);
-
-	const toggle = (deposit) => {
-		deposit.busy = true;
-		router.put(
-			window.route("admin.deposits.toggle", deposit.id),
-			{},
-			{
-				preserveScroll: true,
-				preserveState: true,
-				onFinish: () => {
-					deposit.busy = false;
-					depositBeingDeleted.value = null;
-				},
-			},
-		);
-	};
 </script>
 <template>
 	<Head :title="title ?? 'Deposits'" />
@@ -77,22 +79,18 @@
 						class="lg:flex items-center justify-between mb-4 gap-3">
 						<div class="mb-4 lg:mb-0">
 							<h3 class="h3">
-								{{ $t("Accepted Deposits") }}
+								{{ $t("Deposits Log") }}
 							</h3>
-							<p>{{ $t("Available Deposits") }}</p>
+							<p>
+								{{
+									$t(
+										"This is a log of all executed deposits on the system",
+									)
+								}}
+							</p>
 						</div>
 						<div
-							class="flex flex-col lg:flex-row lg:items-center gap-3">
-							<button
-								type="button"
-								@click="updateDeposits"
-								class="focus:outline-none text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:ring-emerald-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800">
-								<Loading
-									v-if="loading"
-									class="w-4 h-4 -ml-2 mr-2 inline-block" />
-								{{ $t("Check for New Deposits") }}
-							</button>
-						</div>
+							class="flex flex-col lg:flex-row lg:items-center gap-3"></div>
 					</div>
 					<div class="card border-0 card-border">
 						<div class="card-body px-0 card-gutterless h-full">
@@ -111,19 +109,12 @@
 										role="table">
 										<thead>
 											<tr role="row">
-												<th role="columnheader">
-													{{ $t("Deposit") }}
-												</th>
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("User Id") }}
+													{{ $t("UID") }}
 												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Uuid") }}
-												</th>
+
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -132,33 +123,9 @@
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Remoteid") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("From") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Gross Amount") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Fees") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 													{{ $t("Amount") }}
 												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Data") }}
-												</th>
+
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -174,70 +141,152 @@
 												role="row">
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.user_id }}
+													<div>
+														<div>
+															<a
+																@click="
+																	search =
+																		deposit
+																			.user
+																			.email
+																"
+																class="underline"
+																href="#">
+																{{
+																	deposit.uid
+																}}
+															</a>
+														</div>
+														<a
+															target="_blank"
+															class="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300"
+															:href="
+																route(
+																	'admin.users.show',
+																	deposit.user
+																		.id,
+																)
+															">
+															{{
+																deposit.user
+																	.email
+															}}
+														</a>
+													</div>
+												</td>
+												<td
+													class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-300">
+													<div
+														class="flex items-center space-x-3">
+														<img
+															class="w-6 h-6 rounded-full"
+															:src="
+																deposit.gateway
+																	.logo
+															" />
+														<div>
+															<span>
+																{{
+																	deposit
+																		.gateway
+																		.name
+																}}
+															</span>
+															<div
+																class="text-xs text-gray-400">
+																{{
+																	deposit.remoteId
+																}}
+															</div>
+														</div>
+													</div>
 												</td>
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.uuid }}
+													<div>
+														<MoneyFormat
+															:amount="
+																deposit.amount
+															" />
+														<div
+															class="text-xs text-gray-400">
+															fees:
+															<MoneyFormat
+																:amount="
+																	deposit.fees
+																" />
+														</div>
+													</div>
 												</td>
+
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.gateway }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.remoteId }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.from }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.gross_amount }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.fees }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.amount }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.data }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ deposit.status }}
+													<Badge
+														variant="outline"
+														class="uppercase font-semibold font-inter"
+														:class="{
+															'border-gray-400 dark:border-gray-650 text-gray-600 dark:text-gray-400':
+																[
+																	'review',
+																	'pending',
+																	'processing',
+																].includes(
+																	deposit.status,
+																),
+															'dark:border-green-400 border-green-600 text-green-600 dark:text-green-400':
+																[
+																	'approved',
+																	'complete',
+																].includes(
+																	deposit.status,
+																),
+															'dark:border-red-400 border-red-600 text-red-600 dark:text-red-400':
+																[
+																	'rejected',
+																	'failed',
+																	'reversed',
+																].includes(
+																	deposit.status,
+																),
+														}">
+														{{ deposit.status }}
+													</Badge>
 												</td>
 												<td role="cell">
 													<div
-														class="flex justify-end text-lg">
-														<Link
-															:href="
-																route(
-																	'admin.deposits.edit',
-																	deposit.id,
+														class="flex justify-end space-x-3 text-lg">
+														<AdminTableLink
+															href="#"
+															class="hover:text-green-500"
+															v-tippy="
+																$t(
+																	'Force Complete',
 																)
 															"
-															class="cursor-pointer p-2 hover:text-blue-600">
-															<VueIcon
-																:icon="HiPencil"
-																class="w-4 h-4" />
-														</Link>
-														<a
-															href="#"
 															@click.prevent="
-																depositBeingDeleted =
+																depositBeingCompleted =
 																	deposit
-															"
-															class="cursor-pointer p-2 hover:text-red-500">
+															">
 															<VueIcon
-																:icon="HiTrash"
+																:icon="
+																	HiSolidCheck
+																"
 																class="w-4 h-4" />
-														</a>
+														</AdminTableLink>
+														<AdminTableLink
+															href="#"
+															v-tippy="
+																$t('Force Fail')
+															"
+															class="hover:text-red-500"
+															@click.prevent="
+																depositBeingFailed =
+																	deposit
+															">
+															<VueIcon
+																:icon="HiSolidX"
+																class="w-4 h-4" />
+														</AdminTableLink>
 													</div>
 												</td>
 											</tr>
@@ -252,12 +301,12 @@
 			</div>
 		</main>
 		<ConfirmationModal
-			:show="depositBeingDeleted"
-			@close="depositBeingDeleted = null">
+			:show="depositBeingFailed"
+			@close="depositBeingFailed = null">
 			<template #title>
 				{{
-					$t("Are you sure about deleting {deposit} ?", {
-						deposit: depositBeingDeleted.name,
+					$t("Are you sure about force failing #{deposit} ?", {
+						deposit: depositBeingFailed.uid,
 					})
 				}}
 			</template>
@@ -266,12 +315,16 @@
 				<p>
 					{{
 						$t(
-							"This Action will remove the deposit from the database and cannot be undone",
+							"This Action will override any status to failed. It will not undo any side effects eg Balance update",
 						)
 					}}
 				</p>
 				<p>
-					{{ $t("Its Recommended to Disable the deposit Instead") }}
+					{{
+						$t(
+							"Its Recommended to find and attempt to reverse deposit transaction instead under transactions",
+						)
+					}}
 				</p>
 			</template>
 
@@ -279,26 +332,56 @@
 				<PrimaryButton
 					primary
 					class="uppercase text-xs font-semibold"
-					@click="depositBeingDeleted = null">
+					@click="depositBeingFailed = null">
 					{{ $t("Cancel") }}
-				</PrimaryButton>
-
-				<PrimaryButton
-					secondary
-					class="ml-2 uppercase text-xs font-semibold"
-					v-if="depositBeingDeleted.active"
-					@click="toggle(depositBeingDeleted)">
-					<Loading v-if="depositBeingDeleted.busy" />
-					{{ $t("Disable") }}
 				</PrimaryButton>
 
 				<PrimaryButton
 					error
 					class="ml-2 uppercase text-xs font-semibold"
-					@click="deleteDeposit"
-					:class="{ 'opacity-25': deleteDepositForm.processing }"
-					:disabled="deleteDepositForm.processing">
-					{{ $t("Delete") }}
+					@click="failDeposit"
+					:class="{ 'opacity-25': failDepositForm.processing }"
+					:disabled="failDepositForm.processing">
+					{{ $t("Force fail") }}
+				</PrimaryButton>
+			</template>
+		</ConfirmationModal>
+
+		<ConfirmationModal
+			:show="depositBeingCompleted"
+			@close="depositBeingCompleted = null">
+			<template #title>
+				{{
+					$t("Are you sure about force completing  #{deposit} ?", {
+						deposit: depositBeingCompleted.uid,
+					})
+				}}
+			</template>
+
+			<template #content>
+				<p>
+					{{
+						$t(
+							"This action will mark the deposit as complete and execute a balance update transaction, regardless of current state of the deposit",
+						)
+					}}
+				</p>
+			</template>
+
+			<template #footer>
+				<PrimaryButton
+					secondary
+					class="uppercase text-xs font-semibold"
+					@click="depositBeingCompleted = null">
+					{{ $t("Cancel") }}
+				</PrimaryButton>
+
+				<PrimaryButton
+					class="ml-2 uppercase text-xs font-semibold"
+					@click="completeDeposit"
+					:class="{ 'opacity-25': completeDepositForm.processing }"
+					:disabled="completeDepositForm.processing">
+					{{ $t("Force complete") }}
 				</PrimaryButton>
 			</template>
 		</ConfirmationModal>

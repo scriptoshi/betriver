@@ -82,7 +82,7 @@ class Bet extends Model
      */
     public function last_trade(): HasOne
     {
-        return $this->trades()->one()->ofMany('created_at');
+        return $this->hasOne(Trade::class)->latest();
     }
 
     /**

@@ -54,6 +54,7 @@ class Market extends Model
         'slug',
         'description',
         'segment',
+        'sequence',
         'oddsId',
         'description',
         'sport',
@@ -82,6 +83,15 @@ class Market extends Model
     {
         return $this->hasMany(Trade::class, 'market_id', 'id');
     }
+    /**
+
+     * Get the bets this model Owns.
+     *
+     */
+    public function stakes(): HasMany
+    {
+        return $this->hasMany(Stake::class, 'market_id', 'id');
+    }
 
     /**
 
@@ -101,6 +111,16 @@ class Market extends Model
     public function games(): BelongsToMany
     {
         return $this->belongsToMany(Game::class, 'game_market', 'market_id', 'game_id');
+    }
+
+    /**
+
+     * Get the games this model Belongs To.
+     *
+     */
+    public function gameMarkets(): HasMany
+    {
+        return $this->hasMany(GameMarket::class);
     }
 
     /**

@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\ConnectionsController;
+use App\Http\Controllers\DepositsController;
 use App\Http\Controllers\FavouritesController;
 use App\Http\Controllers\GamesController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\S3Controller;
 use Illuminate\Foundation\Application;
@@ -13,21 +15,22 @@ use App\Http\Controllers\SportsController;
 use App\Http\Controllers\LeaguesController;
 use App\Http\Controllers\MarketsController;
 use App\Http\Controllers\OddsController;
+use App\Http\Controllers\PersonalsController;
 use App\Http\Controllers\StakesController;
 use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\TicketsController;
 use App\Http\Controllers\TradesController;
 use App\Http\Controllers\TransactionsController;
+use App\Http\Controllers\UsersController;
 use App\Http\Controllers\WagersController;
+use App\Http\Controllers\WhitelistsController;
+use App\Http\Controllers\WithdrawsController;
+use App\Http\Middleware\OnlyTimedOut;
+use App\Http\Middleware\Timeout;
+use App\Http\Resources\Personal;
+use Illuminate\Foundation\Http\Middleware\ValidateCsrfToken;
 
-Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::controller(S3Controller::class)
     ->group(function () {
         Route::post('sign/{disk?}/{folder?}', 'sign')->name('s3.sign');
@@ -43,6 +46,13 @@ Route::get('/privacy', function () {
 Route::get('/terms', function () {
     return Inertia::render('TermsOfService', ['terms' => settings('pages.terms')]);
 })->name('terms');
+
+Route::get('/timeout', function () {
+    $user = Auth::user();
+    return Inertia::render('TimeOut', ['personal' => new Personal($user->personal)]);
+})->middleware(['auth', OnlyTimedOut::class])
+    ->withoutMiddleware(Timeout::class)
+    ->name('timeout');
 
 
 Route::middleware('auth')->group(function () {
@@ -77,7 +87,7 @@ Route::name('sports.')->controller(GamesController::class)->group(function () {
     Route::get('/sport/watchlist', 'watchlist')->name('watchlist');
     Route::get('/sport/in-play', 'inPlay')->name('inplay');
     Route::get('/sports/{sport?}/{region?}/{country?}', 'index')->name('index');
-    Route::get('/sport/{game}', 'show')->name('show');
+    Route::get('/sport/{game}/{slug?}', 'show')->name('show');
 });
 #sports
 
@@ -147,18 +157,6 @@ Route::name('trades')->controller(TradesController::class)->group(function () {
 
 
 
-#transactions
-Route::name('transactions')->controller(TransactionsController::class)->group(function () {
-    Route::get('/transactions', 'index')->name('index');
-    Route::get('/transactions/create', 'create')->name('create');
-    Route::post('/transactions/store', 'store')->name('store');
-    Route::get('/transactions/{transaction}/show', 'show')->name('show');
-    Route::get('/transactions/{transaction}/edit', 'edit')->name('edit');
-    Route::put('/transactions/{transaction}', 'update')->name('update');
-    Route::put('/transactions/toggle/{transaction}', 'toggle')->name('toggle');
-    Route::delete('/transactions/{transaction}', 'destroy')->name('destroy');
-});
-#transactions
 
 
 #accounts
@@ -190,16 +188,20 @@ Route::name('commissions')->controller(CommissionsController::class)->group(func
 
 
 #deposits
-Route::name('deposits')->controller(DepositsController::class)->group(function () {
-    Route::get('/deposits', 'index')->name('index');
-    Route::get('/deposits/create', 'create')->name('create');
-    Route::post('/deposits/store', 'store')->name('store');
-    Route::get('/deposits/{deposit}/show', 'show')->name('show');
-    Route::get('/deposits/{deposit}/edit', 'edit')->name('edit');
-    Route::put('/deposits/{deposit}', 'update')->name('update');
-    Route::put('/deposits/toggle/{deposit}', 'toggle')->name('toggle');
-    Route::delete('/deposits/{deposit}', 'destroy')->name('destroy');
-});
+Route::name('deposits.')
+    ->middleware('auth')
+    ->controller(DepositsController::class)
+    ->group(function () {
+        Route::get('/deposits/create', 'create')->name('create');
+        Route::post('/deposits/store', 'store')->name('store');
+        Route::get('/deposit/{deposit:uuid}', 'show')->name('show');
+        Route::put('/deposits/{deposit}', 'update')->name('update');
+        Route::any('/deposits/cancel/{deposit}', 'cancel')->name('cancel');
+        Route::any('/deposits/return/{deposit}', 'gatewayReturn')->name('return');
+        Route::any('/webhooks/deposits/{provider}/{deposit}', 'webhooks')
+            ->withoutMiddleware(['auth', ValidateCsrfToken::class])
+            ->name('webhooks');
+    });
 #deposits
 
 
@@ -218,16 +220,16 @@ Route::name('payouts')->controller(PayoutsController::class)->group(function () 
 
 
 #withdraws
-Route::name('withdraws')->controller(WithdrawsController::class)->group(function () {
-    Route::get('/withdraws', 'index')->name('index');
-    Route::get('/withdraws/create', 'create')->name('create');
-    Route::post('/withdraws/store', 'store')->name('store');
-    Route::get('/withdraws/{withdraw}/show', 'show')->name('show');
-    Route::get('/withdraws/{withdraw}/edit', 'edit')->name('edit');
-    Route::put('/withdraws/{withdraw}', 'update')->name('update');
-    Route::put('/withdraws/toggle/{withdraw}', 'toggle')->name('toggle');
-    Route::delete('/withdraws/{withdraw}', 'destroy')->name('destroy');
-});
+Route::name('withdraws.')
+    ->middleware('auth')
+    ->controller(WithdrawsController::class)
+    ->group(function () {
+        Route::get('/withdraws/create', 'create')->name('create');
+        Route::post('/withdraws/store', 'store')->name('store');
+        Route::get('/withdraw/{withdraw:uuid}', 'show')->name('show');
+        Route::put('/withdraws/{withdraw}', 'confirm')->name('confirm');
+        Route::delete('/withdraws/{withdraw}/cancel', 'cancel')->name('cancel');
+    });
 #withdraws
 
 #connections
@@ -252,3 +254,71 @@ Route::name('favourites.')
         Route::delete('/favourites/{favourite}', 'destroy')->name('destroy');
     });
 #favourites
+
+
+
+#transactions
+Route::name('accounts.')
+    ->prefix('account')
+    ->controller(UsersController::class)
+    ->middleware('auth')
+    ->group(function () {
+        Route::get('/statement', 'statement')->name('statement');
+        Route::get('/verify', 'verify')->name('verify');
+        Route::get('/settings', 'settings')->name('settings');
+        Route::get('/settings/alerts', 'alerts')->name('alerts');
+        Route::get('/settings/limits', 'limits')->name('limits');
+        Route::get('/commission', 'commission')->name('commission');
+        Route::get('/referrals', 'referrals')->name('referrals');
+        Route::get('/promotions', 'promotions')->name('promotions');
+        Route::post('/feedback', 'feedback')->name('feedback');
+        Route::post('/optin', 'optin')->name('optin');
+        Route::put('/verify/address', 'verifyAddress')->name('verify.address');
+        Route::put('/verify/identity', 'verifyIdentity')->name('verify.identity');
+        Route::put('/settings/personal', 'updatePersonal')->name('personal');
+        Route::put('/settings/gross-limits', 'updateGrossLimits')->name('gross.limits');
+    });
+
+#transactions
+
+
+#personal
+Route::name('personal.')
+    ->prefix('personal')
+    ->controller(PersonalsController::class)
+    ->middleware('auth')
+    ->group(function () {
+        Route::put('/personal', 'updatePersonal')->name('personal');
+        Route::put('/personal/limit-deposits', 'limitDeposit')->name('limit.deposit');
+        Route::put('/personal/limit-loss', 'limitLoss')->name('limit.loss');
+        Route::put('/personal/limit-stake', 'limitStake')->name('limit.stake');
+        Route::put('/personal/timeout', 'timeout')->name('timeout');
+        Route::put('/personal/alerts', 'alerts')->name('alerts');
+    });
+#personal
+
+
+#currencies
+Route::name('currencies')->controller(CurrenciesController::class)->group(function () {
+    Route::get('/currencies', 'index')->name('index');
+    Route::get('/currencies/create', 'create')->name('create');
+    Route::post('/currencies/store', 'store')->name('store');
+    Route::get('/currencies/{currency}/show', 'show')->name('show');
+    Route::get('/currencies/{currency}/edit', 'edit')->name('edit');
+    Route::put('/currencies/{currency}', 'update')->name('update');
+    Route::put('/currencies/toggle/{currency}', 'toggle')->name('toggle');
+    Route::delete('/currencies/{currency}', 'destroy')->name('destroy');
+});
+#currencies
+#whitelists
+Route::name('whitelists.')
+    ->middleware('auth')
+    ->controller(WhitelistsController::class)
+    ->group(function () {
+        Route::get('/whitelists', 'index')->name('index');
+        Route::get('/whitelists/approve/{whitelist}/{approvalToken}', 'approve')->name('approve');
+        Route::get('/whitelists/remove/{whitelist}/{removalToken}', 'completeRemoval')->name('complete.removal');
+        Route::post('/whitelists/store', 'store')->name('store');
+        Route::delete('/whitelists/{whitelist:uuid}', 'initiateRemoval')->name('destroy');
+    });
+#whitelists

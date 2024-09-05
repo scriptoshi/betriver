@@ -1,0 +1,112 @@
+{
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:users,id"
+        },
+        {
+            "name": "proof_of_identity",
+            "type": "string|nullable",
+            "rules": "nullable|string"
+        },
+        {
+            "name": "proof_of_identity_type",
+            "type": "select|nullable",
+            "options": {
+                "idcard": "Identity Card",
+                "passport": "Passport",
+                "licence": "Drivers Licence"
+            },
+            "rules": "nullable|string"
+        },
+        {
+            "name": "proof_of_address",
+            "type": "string|nullable",
+            "rules": "nullable|string"
+        },
+        {
+            "name": "proof_of_address_type",
+            "type": "select|nullable",
+            "options": {
+                "utility_bill": "Utility Bill",
+                "bank_statement": "Bank Statement",
+                "other": "other"
+            },
+            "rules": "nullable|string"
+        },
+        {
+            "name": "bet_emails",
+            "type": "select|nullable|default:'summary'",
+            "options": {
+                "summary": "Just email me one summary a day",
+                "settle": "Email me when a market I bet on settles",
+                "none": "Please don't email me about settled bets"
+            },
+            "rules": "required|string"
+        },
+        {
+            "name": "mailing_list",
+            "type": "boolean|default:true",
+            "rules": "required|boolean"
+        },
+        {
+            "name": "confirm_bets",
+            "type": "boolean|default:true",
+            "rules": "required|boolean"
+        },
+        {
+            "name": "daily_gross_deposit",
+            "type": "decimal:10,2|nullable",
+            "rules": "nullable|numeric"
+        },
+        {
+            "name": "weekly_gross_deposit",
+            "type": "decimal:10,2|nullable",
+            "rules": "nullable|numeric"
+        },
+        {
+            "name": "monthly_gross_deposit",
+            "type": "decimal:10,2|nullable",
+            "rules": "nullable|numeric"
+        },
+        {
+            "name": "loss_limit_interval",
+            "type": "select|nullable",
+            "options": {
+                "daily": "Daily",
+                "weekly": "Weekly",
+                "monthly": "Monthly",
+                "yearly": "Yearly"
+            },
+            "rules": "nullable|string"
+        },
+        {
+            "name": "loss_limit",
+            "type": "decimal:10,2|nullable",
+            "rules": "nullable|numeric"
+        },
+        {
+            "name": "stake_limit",
+            "type": "decimal:10,2|nullable",
+            "rules": "nullable|numeric"
+        },
+        {
+            "name": "time_out_at",
+            "type": "timestamp|nullable",
+            "rules": "nullable|numeric"
+        },
+        {
+            "name": "dob",
+            "type": "timestamp|nullable",
+            "rules": "nullable|numeric"
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        }
+    ]
+}

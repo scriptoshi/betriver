@@ -2,8 +2,11 @@
 
 namespace App\Enums\Handball\Outcomes;
 
+use App\Traits\Handicaps;
+
 enum HandicapOutcome: string
 {
+    use Handicaps;
     case HOME_MINUS_85 = 'home_-8.5';
     case AWAY_PLUS_85 = 'away_+8.5';
     case HOME_MINUS_75 = 'home_-7.5';
@@ -45,8 +48,6 @@ enum HandicapOutcome: string
     {
         $homeHandicap = -$value;
         $awayHandicap = $value;
-        $homeCase = 'HOME_MINUS_' . str_replace('.', '', abs($homeHandicap));
-        $awayCase = 'AWAY_PLUS_' . str_replace('.', '', $awayHandicap);
         return [
             self::from("home_{$homeHandicap}"),
             self::from("away_{$awayHandicap}"),

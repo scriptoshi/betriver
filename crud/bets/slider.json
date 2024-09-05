@@ -1,0 +1,35 @@
+{
+    "fields": [
+        {
+            "name": "title",
+            "type": "string",
+            "rules": "required|string"
+        },
+        {
+            "name": "description",
+            "type": "string",
+            "rules": "required|string"
+        },
+        {
+            "name": "url",
+            "type": "string",
+            "rules": "required|string"
+        },
+        {
+            "name": "button",
+            "type": "string",
+            "rules": "required|string"
+        },
+        {
+            "name": "image",
+            "type": "string",
+            "rules": "required|string"
+        },
+        {
+            "name": "active",
+            "type": "boolean",
+            "rules": "required|boolean"
+        }
+    ],
+    "relationships": []
+}

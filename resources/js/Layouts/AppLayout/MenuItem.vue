@@ -114,7 +114,7 @@
 							v-else
 							:class="
 								route().current(sub.route, sub.params)
-									? 'bg-gray-300 text-gray-900 dark:text-white'
+									? 'bg-gray-300 dark:bg-gray-750 text-gray-900 dark:text-white'
 									: ' text-gray-600 hover:text-gray-700 dark:hover:text-white dark:text-gray-300'
 							"
 							class="items-center h-8 text-sm gap-x-2 cursor-pointer flex font-semibold pl-10 pr-6 whitespace-nowrap w-full hover:bg-emerald-200/50 dark:hover:bg-emerald-700/30 transition-colors">
@@ -142,3 +142,5 @@
 		</template>
 	</div>
 </template>
+<style>
+</style>

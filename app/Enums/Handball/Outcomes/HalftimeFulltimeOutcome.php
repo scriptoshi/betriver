@@ -17,8 +17,8 @@ enum HalftimeFulltimeOutcome: string
     public function name(): string
     {
         $parts = explode('_', $this->value);
-        $halftime = ucfirst($parts[0]);
-        $fulltime = ucfirst($parts[1]);
+        $halftime =  formatName(ucfirst($parts[0]));
+        $fulltime = formatName(ucfirst($parts[1]));
         return "{$halftime}/{$fulltime}";
     }
 

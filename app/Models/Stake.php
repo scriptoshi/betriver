@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-
+use App\Enums\LeagueSport;
 use App\Enums\StakeStatus;
 use App\Enums\StakeType;
 use Illuminate\Database\Eloquent\Model;
@@ -43,7 +43,8 @@ class Stake extends Model
             'is_withdrawn' => 'boolean',
             'allow_partial' => 'boolean',
             'is_trade_out' => 'boolean',
-            'is_traded_out' => 'boolean'
+            'is_traded_out' => 'boolean',
+            'sport' => LeagueSport::class
         ];
     }
 
@@ -70,6 +71,7 @@ class Stake extends Model
         'odds',
         'type',
         'status',
+        'sport',
         'won',
         'is_withdrawn',
         'allow_partial',

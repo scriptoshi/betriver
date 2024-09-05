@@ -7,8 +7,10 @@
 		RadioGroupLabel,
 		RadioGroupOption,
 	} from "@headlessui/vue";
+
+	import Flag from "./Flag";
 	const props = defineProps({
-		modelValue: [String, Boolean],
+		modelValue: [String, Boolean, Number],
 		options: Array,
 		label: String,
 		grid: Number,
@@ -50,25 +52,29 @@
 							? 'border-transparent'
 							: 'border-gray-300 dark:border-gray-600',
 						active ? 'ring-1 ring-emerald-500' : '',
-						'relative bg-white dark:bg-gray-900 border rounded-md shadow-sm px-4 py-2 flex cursor-pointer focus:outline-none',
+						'relative bg-white dark:bg-gray-850 border rounded shadow-sm px-4 py-2 flex cursor-pointer focus:outline-none',
 					]">
 					<div class="flex-1 flex">
-						<slot name="img" :img="img">
+						<slot v-if="option.img" name="img" :img="option.img">
+							<Flag
+								v-if="option.img.length == 3"
+								:iso="option.img"
+								class="w-7 h-7 mr-3 rounded-full" />
 							<img
-								v-if="option.img"
+								v-else-if="option.img"
 								:src="option.img"
-								class="w-7 h-7 mr-3" />
+								class="w-7 h-7 mr-3 rounded-full" />
 						</slot>
 
 						<div class="flex flex-col">
 							<RadioGroupLabel
 								as="span"
-								class="block text-sm font-medium text-gray-900 dark:text-gray-300 dark:text-gray-200">
-								{{ option.title }}
+								class="block text-sm font-semibold text-gray-900 dark:text-gray-300 dark:text-gray-200">
+								{{ option.title ?? option.label }}
 							</RadioGroupLabel>
 							<RadioGroupDescription
 								as="span"
-								class="flex items-center text-sm text-gray-500 dark:text-gray-400">
+								class="flex items-center text-xs text-gray-500 dark:text-gray-400">
 								{{ option.subtitle }}
 							</RadioGroupDescription>
 						</div>
@@ -95,7 +101,7 @@
 							checked
 								? 'border-emerald-600 dark:border-emerald-400'
 								: 'border-transparent',
-							'absolute -inset-px rounded-sm pointer-events-none',
+							'absolute -inset-px rounded pointer-events-none',
 						]"
 						aria-hidden="true" />
 				</div>

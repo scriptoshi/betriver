@@ -5,7 +5,7 @@
 	import axios from "axios";
 	import { HiChevronRight, HiSearch, HiSolidX } from "oh-vue-icons/icons";
 
-	import EventCard from "@/Components/EventCard.vue";
+	import EventCard from "@/Components/Cards/EventCard.vue";
 	import FormInput from "@/Components/FormInput.vue";
 	import Loading from "@/Components/Loading.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";

@@ -28,8 +28,8 @@ enum RugbyWinningMargin: string implements BetMarket
     public function outcomes(): array
     {
         return match ($this) {
-            self::HOME_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn ($outcome) => $outcome->team() === 'home'),
-            self::AWAY_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn ($outcome) => $outcome->team() === 'away'),
+            self::HOME_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn($outcome) => $outcome->team() === 'home'),
+            self::AWAY_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn($outcome) => $outcome->team() === 'away'),
         };
     }
 
@@ -80,9 +80,9 @@ enum RugbyWinningMargin: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
-                    ['result' => $outcome->value, 'sport' => LeagueSport::RUGBY]
+                    ['name' => $outcome->name(), 'sport' => LeagueSport::RUGBY]
                 );
             }
         }

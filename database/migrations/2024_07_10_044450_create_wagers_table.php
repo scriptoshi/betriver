@@ -19,9 +19,9 @@ return new class extends Migration
             $table->foreignId('bet_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('game_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('odd_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->string('scoreType');
+            $table->string('sport');
             $table->decimal('odds', 6, 2)->default();
-            $table->boolean('winner')->default(false);
+            $table->boolean('won')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

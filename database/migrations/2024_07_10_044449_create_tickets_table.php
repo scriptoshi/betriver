@@ -29,8 +29,8 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             // ensure positive decimal values
-            $table->check('payout > 0', 'tickets_payout_positive');
-            $table->check('amount > 0', 'tickets_amount_positive');
+            $table->check('payout >= 0', 'tickets_payout_positive');
+            $table->check('amount >= 0', 'tickets_amount_positive');
         });
     }
 

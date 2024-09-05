@@ -2,8 +2,11 @@
 
 namespace App\Enums\Basketball\Outcomes;
 
+use App\Traits\Overunders;
+
 enum OverUnderOutcome: string
 {
+    use Overunders;
     case OVER_180 = 'over_180';
     case UNDER_180 = 'under_180';
     case OVER_185 = 'over_185';

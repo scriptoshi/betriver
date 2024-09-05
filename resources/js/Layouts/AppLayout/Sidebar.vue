@@ -45,7 +45,7 @@
 		<CollapseTransition dimension="width">
 			<div
 				v-show="expanded"
-				class="h-[calc(100vh-4rem)] overflow-y-auto max-w-[242px] scrollbar-thin scrollbar-track-transparent scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-thumb-rounded-lg">
+				class="h-[calc(100vh-4rem)] overflow-y-auto max-w-[242px] scrollbar-thin scrollbar-track-transparent dark:scrollbar-track-transparent scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 scrollbar-thumb-rounded-lg">
 				<nav class="pb-8 mb-8">
 					<div>
 						<ul class="gap-y-2 grid">

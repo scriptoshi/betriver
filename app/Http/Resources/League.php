@@ -21,6 +21,7 @@ class League extends JsonResource
             'id' => $this->id,
             'leagueId' => $this->leagueId,
             'name' => $this->name,
+            'slug' => $this->slug,
             'sport' => $this->sport,
             'race_tag' => $this->race_tag,
             'race_tag_name' => $this->race_tag?->name(),

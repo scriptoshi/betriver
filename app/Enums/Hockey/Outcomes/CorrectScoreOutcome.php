@@ -39,6 +39,6 @@ enum CorrectScoreOutcome: string
         if ($this === self::ANY_OTHER) {
             return "Any Other Score";
         }
-        return str_replace('_', '-', $this->value);
+        return str_replace('_', '-',  formatName($this->value));
     }
 }

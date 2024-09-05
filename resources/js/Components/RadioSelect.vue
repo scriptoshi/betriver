@@ -14,7 +14,7 @@
 		grid: Number,
 	});
 	const classes = computed(() => {
-		if ((props.grid ?? props.options.length) <= 2) return "gap-2";
+		if ((props.grid ?? props.options.length) < 2) return "gap-2";
 		if ((props.grid ?? props.options.length) === 2)
 			return "sm:grid-cols-2 gap-3";
 		if ((props.grid ?? props.options.length) === 3)
@@ -25,7 +25,7 @@
 			return "sm:grid-cols-5 gap-3";
 		if ((props.grid ?? props.options.length) === 6)
 			return "sm:grid-cols-6 gap-3";
-		return "sm:grid-cols-4";
+		return "sm:grid-cols-4 gap-3";
 	});
 	const emit = defineEmits(["update:modelValue"]);
 	const updateModelValue = (mv) => emit("update:modelValue", mv);
@@ -48,8 +48,8 @@
 							? 'ring-2 dark:ring-0 ring-offset-2 dark:ring-offset-0 ring-transparent dark:ring-transparent'
 							: '',
 						checked
-							? 'border-amber-600 dark:border-amber-400 border-2 text-amber-600  dark:text-amber-400 hover:ring-transparent dark:transparent'
-							: 'bg-white border dark:bg-gray-800 border-gray-200 dark:border-2 dark:border-gray-500 text-gray-900 hover:bg-gray-50 ',
+							? 'border-amber-600 dark:border-amber-400 border text-amber-600  dark:text-amber-400 hover:ring-transparent dark:transparent'
+							: 'bg-white border dark:bg-gray-800 border-gray-200 dark:border dark:border-gray-500 text-gray-900 hover:bg-gray-50 ',
 						'border rounded-[3px] p-2 flex items-center justify-center text-xs font-semibold uppercase sm:flex-1 transition-colors duration-500',
 					]">
 					<RadioGroupLabel

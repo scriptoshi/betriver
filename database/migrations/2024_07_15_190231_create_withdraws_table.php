@@ -19,12 +19,14 @@ return new class extends Migration
             $table->uuid('uuid')->unique();
             $table->string('gateway')->default('Wallet');
             $table->string('remoteId')->nullable();
+            $table->string('batchId')->nullable();
             $table->string('to')->nullable();
             $table->decimal('gross_amount', 10, 2);
             $table->decimal('fees', 10, 2);
             $table->decimal('amount', 10, 2);
             $table->string('currency');
-            $table->decimal('gateway_currency');
+            $table->decimal('gateway_amount', 24, 16)->nullable();
+            $table->string('gateway_currency');
             $table->json('data')->nullable();
             $table->string('status')->default();
             $table->timestamps();

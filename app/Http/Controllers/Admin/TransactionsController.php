@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\DepositStatus;
+use App\Enums\StakeStatus;
 use App\Enums\TransactionAction;
 use App\Enums\TransactionGateway;
 use App\Enums\TransactionStatus;
 use App\Enums\TransactionType;
+use App\Enums\WithdrawStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Transaction as TransactionResource;
 use App\Models\Transaction;
+use DB;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -24,132 +29,90 @@ class TransactionsController extends Controller
         $perPage = 25;
         $query  = Transaction::query()->with(['user']);
         if (!empty($keyword)) {
-            $query->where('user_id', 'LIKE', "%$keyword%")
-                ->orWhere('gateway', 'LIKE', "%$keyword%")
-                ->orWhere('remoteId', 'LIKE', "%$keyword%")
-                ->orWhere('from', 'LIKE', "%$keyword%")
-                ->orWhere('to', 'LIKE', "%$keyword%")
-                ->orWhere('txid', 'LIKE', "%$keyword%")
+            $query->orWhereHas('user', function (Builder $query) use ($keyword) {
+                $query->where('email', 'LIKE', "%$keyword%")
+                    ->orWhere('name', 'LIKE', "%$keyword%");
+            })
+                ->orWhere('uuid', 'LIKE', "%$keyword%")
                 ->orWhere('description', 'LIKE', "%$keyword%")
                 ->orWhere('amount', 'LIKE', "%$keyword%")
-                ->orWhere('balance_before', 'LIKE', "%$keyword%")
-                ->orWhere('data', 'LIKE', "%$keyword%")
-                ->orWhere('action', 'LIKE', "%$keyword%")
-                ->orWhere('type', 'LIKE', "%$keyword%")
-                ->orWhere('status', 'LIKE', "%$keyword%")
-                ->orWhere('internal', 'LIKE', "%$keyword%");
+                ->orWhere('type', 'LIKE', "%$keyword%");
         }
         $transactionsItems = $query->latest()->paginate($perPage);
         $transactions = TransactionResource::collection($transactionsItems);
-        return Inertia::render('AdminTransactions/Index', compact('transactions'));
+        return Inertia::render('Admin/Transactions/Index', compact('transactions'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return \Illuminate\View\View
-     */
-    public function create()
-    {
-        return Inertia::render('AdminTransactions/Create');
-    }
 
     /**
-     * Store a newly created resource in storage.
-     * @param \Illuminate\Http\Request $request
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function store(Request $request)
-    {
-
-        $transaction = new Transaction;
-        $transaction->user_id = $request->user_id;
-        $transaction->gateway = $request->gateway;
-        $transaction->remoteId = $request->remoteId;
-        $transaction->from = $request->from;
-        $transaction->to = $request->to;
-        $transaction->txid = $request->txid;
-        $transaction->description = $request->description;
-        $transaction->amount = $request->amount;
-        $transaction->balance_before = $request->balance_before;
-        $transaction->data = $request->data;
-        $transaction->action = $request->action;
-        $transaction->type = $request->type;
-        $transaction->status = $request->status;
-        $transaction->internal = $request->internal;
-        $transaction->save();
-
-        return redirect()->route('transactions.index')->with('success', 'Transaction added!');
-    }
-
-    /**
-     * Display the specified resource.
-     * @param  int  $id
-     * @return \Illuminate\View\View
-     */
-    public function show(Request $request, Transaction $transaction)
-    {
-        $transaction->load(['user']);
-        return Inertia::render('AdminTransactions/Show', [
-            'transaction' => new TransactionResource($transaction)
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     * @param  int  $id
-     * @return \Illuminate\View\View
-     */
-    public function edit(Request $request, Transaction $transaction)
-    {
-        $transaction->load(['user']);
-        return Inertia::render('AdminTransactions/Edit', [
-            'transaction' => new TransactionResource($transaction)
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
+     * Revert a transaction and update related models.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
+     * This function reverses the effects of a given transaction by creating an opposite
+     * transaction and updating the user's balance. It also handles specific logic based
+     * on the transaction type.
      *
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @param Transaction $transaction the transaction to revert
+     * @return bool Returns true if the reversion was successful, false otherwise
+     * @throws ModelNotFoundException If the transaction is not found
+     * @throws \Exception If there's an error during the reversion process
      */
-    public function update(Request $request, Transaction $transaction)
+    function reverse(Request $request, Transaction $transaction)
     {
+        DB::beginTransaction();
 
+        try {
 
-        $transaction->user_id = $request->user_id;
-        $transaction->gateway = $request->gateway;
-        $transaction->remoteId = $request->remoteId;
-        $transaction->from = $request->from;
-        $transaction->to = $request->to;
-        $transaction->txid = $request->txid;
-        $transaction->description = $request->description;
-        $transaction->amount = $request->amount;
-        $transaction->balance_before = $request->balance_before;
-        $transaction->data = $request->data;
-        $transaction->action = $request->action;
-        $transaction->type = $request->type;
-        $transaction->status = $request->status;
-        $transaction->internal = $request->internal;
-        $transaction->save();
-        return back()->with('success', 'Transaction updated!');
-    }
+            $user = $transaction->user;
+            // Create a new opposite transaction
+            $revertedTransaction = new Transaction();
+            $revertedTransaction->user_id = $user->id;
+            $revertedTransaction->transactable_type = $transaction->transactable_type;
+            $revertedTransaction->transactable_id = $transaction->transactable_id;
+            $revertedTransaction->description = "Revert: " . $transaction->description;
+            $revertedTransaction->amount = $transaction->amount;
+            $revertedTransaction->balance_before = $user->balance;
+            $revertedTransaction->action = $transaction->action === TransactionAction::CREDIT
+                ? TransactionAction::DEBIT
+                : TransactionAction::CREDIT;
+            $revertedTransaction->type = TransactionType::REVERSED;
 
-    /**
-     * toggle status of  the specified resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     * @param  int  $id
-     *
-     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
-     */
-    public function toggle(Request $request, Transaction $transaction)
-    {
-        $transaction->active = !$transaction->active;
-        $transaction->save();
-        return back()->with('success', $transaction->active ? __(' :name Transaction Enabled !', ['name' => $transaction->name]) : __(' :name  Transaction Disabled!', ['name' => $transaction->name]));
+            // Update user balance
+            if ($revertedTransaction->action === TransactionAction::CREDIT) {
+                $user->balance += $revertedTransaction->amount;
+            } else {
+                $user->balance -= $revertedTransaction->amount;
+            }
+
+            // Handle specific logic based on transaction type
+            switch ($transaction->type) {
+                case TransactionType::DEPOSIT:
+                    // Update deposit status or handle deposit-specific logic
+                    $deposit = $transaction->transactable;
+                    $deposit->status = DepositStatus::REVERSED;
+                    $deposit->save();
+                    break;
+                case TransactionType::WITHDRAW:
+                    // Update withdraw status or handle withdraw-specific logic
+                    $withdraw = $transaction->transactable;
+                    $withdraw->status = WithdrawStatus::REVERSED;
+                    $withdraw->save();
+                    break;
+                case TransactionType::BET:
+                    // Handle bet-specific logic, e.g., updating stake status
+                    $stake = $transaction->transactable;
+                    $stake->status = 'cancelled';
+                    $stake->save();
+                    break;
+                    // I should Add more cases for other transaction types as needed
+            }
+            $user->save();
+            $revertedTransaction->save();
+            DB::commit();
+            return back();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', "Error reverting transaction: " . $e->getMessage());
+        }
     }
 
     /**
@@ -162,6 +125,6 @@ class TransactionsController extends Controller
     public function destroy(Request $request, Transaction $transaction)
     {
         $transaction->delete();
-        return redirect()->route('transactions.index')->with('success', 'Transaction deleted!');
+        return back()->with('success', 'Transaction deleted!');
     }
 }

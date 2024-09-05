@@ -28,6 +28,7 @@ class GamesController extends Controller
         $status = $request->get('status');
         $lid = $request->get('lid');
         $country = $request->get('country');
+        $day = $request->get('day');
         $odds = $request->get('odds');
         $scores = $request->get('scores');
         $perPage = 25;
@@ -63,7 +64,41 @@ class GamesController extends Controller
         if ($sport && $sport != 'all') {
             $query->where('sport', $sport);
         }
-
+        if ($day) {
+            switch ($day) {
+                case 'today':
+                    $query->whereDate('startTime', today());
+                    break;
+                case 'tomorrow':
+                    $query->whereDate('startTime', today()->addDay());
+                    break;
+                case '2-days':
+                case '3-days':
+                case '4-days':
+                case '5-days':
+                case '6-days':
+                    $daysToAdd = (int) substr($day, 0, 1);
+                    $query->whereDate('startTime', today()->addDays($daysToAdd));
+                    break;
+                case '1-week':
+                    $query->whereDate('startTime', today()->addWeek());
+                    break;
+                case 'yesterday':
+                    $query->whereDate('startTime', today()->subDay());
+                    break;
+                case '2-days-ago':
+                case '3-days-ago':
+                case '4-days-ago':
+                case '5-days-ago':
+                case '6-days-ago':
+                    $daysToSubtract = substr($day, 0, 1);
+                    $query->whereDate('startTime', (int)today()->subDays($daysToSubtract));
+                    break;
+                case '1-week-ago':
+                    $query->whereDate('startTime', today()->subWeek());
+                    break;
+            }
+        }
         $gamesItems = $query->oldest('startTime')->paginate($perPage)->withQueryString();
         $games = GameResource::collection($gamesItems);
 

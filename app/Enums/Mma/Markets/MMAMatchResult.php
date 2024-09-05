@@ -29,7 +29,7 @@ enum MMAMatchResult: string implements BetMarket
     public function outcomes(): array
     {
         return match ($this) {
-            self::THREE_WAY => [MMAMatchResultOutcome::HOME, MMAMatchResultOutcome::AWAY, MMAMatchResultOutcome::DRAW],
+            self::THREE_WAY => [MMAMatchResultOutcome::HOME, MMAMatchResultOutcome::DRAW, MMAMatchResultOutcome::AWAY],
             self::HOME_AWAY => [MMAMatchResultOutcome::HOME, MMAMatchResultOutcome::AWAY],
         };
     }

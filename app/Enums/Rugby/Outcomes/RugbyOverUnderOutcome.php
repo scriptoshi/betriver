@@ -2,10 +2,12 @@
 
 namespace App\Enums\Rugby\Outcomes;
 
+use App\Traits\Overunders;
 use Illuminate\Support\Str;
 
 enum RugbyOverUnderOutcome: string
 {
+    use Overunders;
     case OVER_35_5 = 'over_35.5';
     case UNDER_35_5 = 'under_35.5';
     case OVER_40_5 = 'over_40.5';

@@ -2,28 +2,33 @@
 
 namespace App\Gateways\Payment\Drivers;
 
+use Illuminate\Support\Facades\Http;
 use App\Enums\DepositStatus;
 use App\Enums\WithdrawStatus;
 use App\Gateways\Payment\Contracts\Provider;
 use Inertia\Inertia;
 use App\Gateways\Payment\Actions\DepositTx;
+use App\Models\Currency;
 use App\Models\Deposit;
 use App\Models\Withdraw;
+use App\Support\Rate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\ValidationException;
 use Ixudra\Curl\Facades\Curl;
+use Illuminate\Support\Facades\Log;
+use Str;
 
 class Paypal implements Provider
 {
-    public static $baseUrl = 'https://api-m.sandbox.paypal.com/';
+    public static $baseUrl = 'https://api-m.sandbox.paypal.com';
+    public static $sandboxUrl = 'https://api-m.sandbox.paypal.com';
     public $name = 'paypal';
     public function __construct(
         public ?string $client_id = null,
         public ?string $client_secret = null
-    ) {
-    }
+    ) {}
 
     /**
      * Get the name of the gateway
@@ -32,6 +37,8 @@ class Paypal implements Provider
     {
         return $this->name;
     }
+
+
 
     /**
      * get the confguration for the gateway
@@ -43,10 +50,13 @@ class Paypal implements Provider
             settings()->set('paypal.name', 'Paypal');
             settings()->set('paypal.logo', "https://www.paypalobjects.com/webstatic/icon/pp144.png");
             settings()->set('paypal.enable_withdraw', 'true');
+            settings()->set('paypal.auto_approve_withdraw_address', 'true');
             settings()->set('paypal.enable_deposit', 'true');
-            settings()->set('paypal.currencies', 'USD,EUR');
             settings()->set('paypal.client_id', null);
             settings()->set('paypal.client_secret', null);
+            settings()->set('paypal.webhook_id', null);
+            settings()->set('paypal.max_withdraw_limit', 10);
+            settings()->set('paypal.min_withdraw_limit', 5000);
             $config = settings()->for('paypal');
         }
         return $config;
@@ -57,16 +67,41 @@ class Paypal implements Provider
         settings()->set('paypal.name', $request->name);
         settings()->set('paypal.logo', $request->logo);
         settings()->set('paypal.enable_withdraw', $request->boolean('enable_withdraw') ? 'true' : 'false');
+        settings()->set('paypal.auto_approve_withdraw_address', $request->boolean('auto_approve_withdraw_address') ? 'true' : 'false');
         settings()->set('paypal.enable_deposit', $request->boolean('enable_deposit') ? 'true' : 'false');
-        settings()->set('paypal.currencies', $request->currencies);
         settings()->set('paypal.client_id', $request->client_id);
-        settings()->set('paypal.client_secret', $request->client_id);
+        settings()->set('paypal.client_secret', $request->client_secret);
+        settings()->set('paypal.webhook_id', $request->webhook_id);
+        settings()->set('paypal.max_withdraw_limit', $request->max_withdraw_limit);
+        settings()->set('paypal.min_withdraw_limit', $request->min_withdraw_limit);
         return settings()->for($this->name);
+    }
+
+    /**
+     * update currencies supported by gateway
+     */
+    public function updateCurrencies()
+    {
+        $rates = Rate::symbols();
+        collect(['USD' => 'US Dollar', 'EUR' => 'Euro'])
+            ->each(function ($name, $symbol) use ($rates) {
+                Currency::query()->updateOrCreate([
+                    "code" => $symbol,
+                    'gateway' => $this->name,
+                ], [
+                    "name" =>  $name,
+                    "logo_url" => $symbol,
+                    'rate' => $rates[$symbol] ?? null,
+                    "precision" => 2
+                ]);
+            });
     }
 
 
     public static function url($path)
     {
+        if (config('app.sandbox'))
+            return static::$sandboxUrl . $path;
         return static::$baseUrl . $path;
     }
     /**
@@ -76,23 +111,24 @@ class Paypal implements Provider
      */
     public function deposit(Deposit $deposit)
     {
-        $accessToken = static::accessToken();
+        $accessToken = $this->accessToken();
         if (!$accessToken) throw ValidationException::withMessages(['gateway' => ['Paypal gateway is currently offline']]);
+
         $response = Curl::to(static::url('/v2/checkout/orders'))
             ->withBearer($accessToken)
             ->asJson()
             ->withData([
                 "intent" => "CAPTURE",
                 "application_context" => [
-                    "return_url" => route('deposits.successfull', ['deposit' => $deposit->uuid]),
-                    "cancel_url" => route('deposits.cancelled', ['deposit' => $deposit->uuid]),
+                    "return_url" => route('deposits.return', $deposit),
+                    "cancel_url" => route('deposits.cancel', $deposit),
                 ],
                 "purchase_units" => [
                     [
                         "reference_id" => $deposit->uuid,
                         "amount" => [
                             "currency_code" =>  $deposit->gateway_currency,
-                            "value" => $deposit->gross_amount
+                            "value" => $deposit->gateway_amount
                         ]
                     ]
                 ]
@@ -101,8 +137,9 @@ class Paypal implements Provider
         if (!isset($response->id)) throw ValidationException::withMessages(['gateway' => ['Paypal create tx failed. Contact admin']]);
         $deposit->remoteId = $response->id;
         $deposit->data = $response;
+        $deposit->status = DepositStatus::PROCESSING;
         $deposit->save();
-        foreach ($deposit->links as $link) {
+        foreach ($response->links as $link) {
             if ($link->rel == 'approve') {
                 return Inertia::location($link->href);
             }
@@ -115,91 +152,231 @@ class Paypal implements Provider
         /**
          * cache token fro 6 hours
          */
-        return Cache::remember('paypal_access_token', 21600, fn () => $this->loadToken());
+        return   Cache::remember('__paypal_access_token', 21600, fn() => $this->loadToken());
     }
+
+
 
     private function loadToken()
     {
-        $response =  Curl::to(static::url('/v1/oauth2/token'))
-            ->withOption(CURLOPT_HTTPAUTH, CURLAUTH_ANY)
-            ->withOption(CURLOPT_USERPWD, "{$this->client_id}:{$this->client_secret}")
-            ->withData([
+        $clientId = $this->client_id;
+        $clientSecret = $this->client_secret;
+        $response = Http::withBasicAuth($clientId, $clientSecret)
+            ->asForm()
+            ->post(static::url('/v1/oauth2/token'), [
                 'grant_type' => 'client_credentials',
-            ])
-            ->post();
-        return $response?->access_token;;
-    }
+            ]);
 
-    public function webhook(Request $request, string $type = 'deposit')
-    {
-        // Verify the webhook signature
-        $webhookId = config('services.paypal.webhook_id'); // Store this in your configuration
-        $requestBody = $request->getContent();
-        $signatureVerification = $this->verifyWebhookSignature($webhookId, $requestBody, $request->header('PAYPAL-TRANSMISSION-ID'), $request->header('PAYPAL-TRANSMISSION-TIME'), $request->header('PAYPAL-TRANSMISSION-SIG'), $request->header('PAYPAL-CERT-URL'), $request->header('PAYPAL-AUTH-ALGO'));
-        if ($signatureVerification->verification_status === 'SUCCESS') {
-            // The webhook is verified, process it
-            $eventType = $request->input('event_type');
-            $resourceId = $request->input('resource.id');
-            $resourceStatus = $request->input('resource.status');
-            $amount = $request->input('resource.amount.total');
-            $currency = $request->input('resource.amount.currency');
-            if ($type === 'deposit' && $eventType === 'PAYMENT.CAPTURE.COMPLETED') {
-                $deposit = Deposit::where('remoteId', $resourceId)->first();
-                if ($deposit) {
-                    $deposit->status = DepositStatus::COMPLETE;
-                    $deposit->save();
-                    if ($deposit->auto_approve) {
-                        app(DepositTx::class)->create($deposit);
-                    }
-                    // You might want to trigger any post-deposit actions here
-                }
-            } elseif ($type === 'withdraw' && $eventType === 'PAYOUT.ITEM.COMPLETED') {
-                $withdraw = Withdraw::where('remoteId', $resourceId)->first();
-                if ($withdraw) {
-                    $withdraw->status = WithdrawStatus::COMPLETE;
-                    $withdraw->save();
-                    // You might want to trigger any post-withdrawal actions here
-                }
-            }
-            // Log the successful webhook
-            \Log::info('PayPal Webhook Verified', [
-                'type' => $type,
-                'event_type' => $eventType,
-                'resource_id' => $resourceId,
-                'status' => $resourceStatus,
-                'amount' => $amount,
-                'currency' => $currency
-            ]);
-        } else {
-            // Webhook invalid, log for manual investigation
-            \Log::warning('Invalid PayPal Webhook', [
-                'type' => $type,
-                'request_body' => $requestBody
-            ]);
+        if ($response->successful()) {
+            return $response->json()['access_token'];
         }
 
-        return response('OK', 200);
+        throw new \Exception('Unable to retrieve PayPal access token: ' . $response->body());
     }
 
-    private function verifyWebhookSignature($webhookId, $requestBody, $transmissionId, $transmissionTime, $transmissionSig, $certUrl, $authAlgo)
+
+    public static function failDeposit(Deposit $deposit, string $error)
     {
-        $accessToken = $this->accessToken();
-        $response = Curl::to(static::url('/v1/notifications/verify-webhook-signature'))
-            ->withBearer($accessToken)
-            ->withData([
-                'webhook_id' => $webhookId,
-                'transmission_id' => $transmissionId,
-                'transmission_time' => $transmissionTime,
-                'transmission_sig' => $transmissionSig,
-                'cert_url' => $certUrl,
-                'auth_algo' => $authAlgo,
-                'webhook_event' => json_decode($requestBody, true)
-            ])
-            ->asJson()
-            ->post();
-
-        return $response;
+        $deposit->status = DepositStatus::FAILED;
+        $deposit->gateway_error = $error;
+        $deposit->save();
+        return redirect()->route('deposits.show', $deposit)->with('error', $error);
     }
+
+    public function returned(Request $request, Deposit $deposit)
+    {
+        $orderID = $request->query('token');
+        $accessToken = $this->accessToken();
+        // override
+        $deposit =  Deposit::where('remoteId', $orderID)->first();
+        // attempt to capture
+
+        $response = Http::withToken($accessToken)
+            ->withHeaders([
+                'Content-Type' => 'application/json'
+            ])
+            ->withBody('', 'application/json')  // Empty body as a string
+            ->post(static::url("/v2/checkout/orders/{$orderID}/capture"));
+        if ($response->successful()) {
+            $orderDetails = $response->json();
+            if ($orderDetails['status'] === 'COMPLETED') {
+                // Payment is successful
+                $this->updateOrderStatus($orderID, DepositStatus::COMPLETE);
+                return redirect()->route('deposits.show', $deposit)->with('success', 'Deposit completed successfully.');
+            } else {
+                // Payment not completed
+                return static::failDeposit($deposit, __('Payment not completed.'));
+            }
+        } else {
+            // Payment capture failed
+            return static::failDeposit($deposit, __('Payment capture failed.'));
+        }
+    }
+
+
+
+
+    /**
+     * Handle incomming webhooks from paypal
+     */
+    public function webhook(Request $request, string $type = 'deposit')
+    {
+        $webhookData = $request->all();
+        // Log the webhook for debugging purposes
+        Log::info('PayPal Webhook Received:', $webhookData);
+        // Validate the webhook signature (optional but recommended)
+        if (!$this->validateWebhook($request)) {
+            return response('Invalid signature', 400);
+        }
+
+        // Handle different event types
+        switch ($webhookData['event_type']) {
+            case 'CHECKOUT.ORDER.APPROVED':
+                $this->handleOrderApproved($webhookData);
+                break;
+
+            case 'PAYMENT.CAPTURE.COMPLETED':
+                $this->handlePaymentCompleted($webhookData);
+                break;
+
+            case 'PAYMENT.CAPTURE.DENIED':
+                $this->handlePaymentDenied($webhookData);
+                break;
+
+            case 'PAYMENT.CAPTURE.PENDING':
+                $this->handlePaymentPending($webhookData);
+                break;
+
+            case 'PAYMENT.CAPTURE.REFUNDED':
+                $this->handlePaymentRefunded($webhookData);
+                break;
+
+            case 'PAYMENT.CAPTURE.REVERSED':
+                $this->handlePaymentReversed($webhookData);
+                break;
+                // I should add more cases as needed
+            default:
+                Log::info('Unhandled event type: ' . $webhookData['event_type']);
+                break;
+        }
+
+        // Respond to PayPal to acknowledge receipt of the webhook
+        return response('Webhook received', 200);
+    }
+
+    protected function handleOrderApproved($webhookData)
+    {
+        $orderId = $webhookData['resource']['id'];
+        // Capture the payment using the order ID
+        $this->captureOrder($orderId);
+    }
+
+    protected function handlePaymentCompleted($webhookData)
+    {
+        $orderId = $webhookData['resource']['supplementary_data']['related_ids']['order_id'];
+        // Update your database to reflect the payment completion
+        $this->updateOrderStatus($orderId, DepositStatus::COMPLETE);
+    }
+
+    protected function handlePaymentDenied($webhookData)
+    {
+        $orderId = $webhookData['resource']['supplementary_data']['related_ids']['order_id'];
+        // Update your database to reflect the payment denial
+        $this->updateOrderStatus($orderId, DepositStatus::FAILED);
+    }
+
+    protected function handlePaymentPending($webhookData)
+    {
+        $orderId = $webhookData['resource']['supplementary_data']['related_ids']['order_id'];
+        // Update your database to reflect the pending status
+        $this->updateOrderStatus($orderId, DepositStatus::PENDING);
+    }
+
+    protected function handlePaymentRefunded($webhookData)
+    {
+        $refundId = $webhookData['resource']['id'];
+        $orderId = $webhookData['resource']['supplementary_data']['related_ids']['order_id'];
+        // Update your database to reflect the refund
+        $this->updateOrderStatus($orderId, DepositStatus::REFUNDED);
+    }
+
+    protected function handlePaymentReversed($webhookData)
+    {
+        $reversalId = $webhookData['resource']['id'];
+        $orderId = $webhookData['resource']['supplementary_data']['related_ids']['order_id'];
+        // Update your database to reflect the reversal
+        $this->updateOrderStatus($orderId, DepositStatus::REVERSED);
+    }
+
+    // This function captures the order payment. 
+    protected function captureOrder($orderId)
+    {
+        $accessToken = $this->accessToken(); // Reuse the function to get access token
+        $response = Http::withToken($accessToken)
+            ->withHeaders([
+                'Content-Type' => 'application/json'
+            ])
+            ->withBody('', 'application/json')  // Empty body as a string
+            ->post(static::url("/v2/checkout/orders/{$orderId}/capture"));
+        if ($response->successful()) {
+            $orderDetails = $response->json();
+            if ($orderDetails['status'] === 'COMPLETED') {
+                // Payment captured successfully, update the order status
+                $this->updateOrderStatus($orderId, DepositStatus::COMPLETE);
+            } else {
+                // Handle other statuses if necessary
+                $this->updateOrderStatus($orderId, DepositStatus::FAILED, 'Order capture not completed. Order ID: ' . $orderId);
+                Log::warning('Order capture not completed. Order ID: ' . $orderId);
+            }
+        } else {
+            // Handle capture failure
+            $this->updateOrderStatus($orderId, DepositStatus::FAILED, 'Order capture failed. Order ID: ' . $orderId);
+            Log::error('Order capture failed. Order ID: ' . $orderId);
+        }
+    }
+
+    // This function updates the order status in database
+    protected function updateOrderStatus($orderId, DepositStatus $status, $message = null)
+    {
+        // Update  order status in the database
+        $deposit = Deposit::where('remoteId', $orderId)->first();
+        if (!$deposit) {
+            Log::error('No deposit found for orderID ' . $orderId);
+            return;
+        }
+        if ($deposit && $status != $deposit->status) {
+            $deposit->status = $status;
+            $deposit->gateway_error = $message;
+            $deposit->save();
+            if ($status ==  DepositStatus::COMPLETE) {
+                app(DepositTx::class)->create($deposit);
+            }
+        }
+    }
+
+    protected function validateWebhook(Request $request)
+    {
+        $headers = $request->headers->all();
+        $body = $request->getContent();
+
+        $webhookId = env('PAYPAL_WEBHOOK_ID');  // Retrieve your Webhook ID from PayPal
+        $signatureVerificationUrl = static::url('/v1/notifications/verify-webhook-signature');
+
+        $response = Http::withToken($this->accessToken())
+            ->post($signatureVerificationUrl, [
+                'transmission_id' => $headers['paypal-transmission-id'][0],
+                'transmission_time' => $headers['paypal-transmission-time'][0],
+                'cert_url' => $headers['paypal-cert-url'][0],
+                'auth_algo' => $headers['paypal-auth-algo'][0],
+                'transmission_sig' => $headers['paypal-transmission-sig'][0],
+                'webhook_id' => $webhookId,
+                'webhook_event' => json_decode($body, true),
+            ]);
+
+        return $response->successful() && $response->json()['verification_status'] === 'SUCCESS';
+    }
+
+
 
     /**
      * Send funds to PayPal users.
@@ -218,8 +395,8 @@ class Paypal implements Provider
             $batchItems[] = [
                 'recipient_type' => 'EMAIL',
                 'amount' => [
-                    'value' => $withdraw->amount,
-                    'currency' => $withdraw->fiat_currency
+                    'value' => $withdraw->gateway_amount,
+                    'currency' => $withdraw->gateway_currency
                 ],
                 'note' => 'Withdrawal from ' . config('app.name'),
                 'sender_item_id' => $withdraw->uuid,
@@ -231,12 +408,12 @@ class Paypal implements Provider
             \Log::info('No eligible withdrawals for batch processing');
             return;
         }
-
+        $batchId  = Str::random(32);
         $response = Curl::to(static::url('/v1/payments/payouts'))
             ->withBearer($accessToken)
             ->withData([
                 'sender_batch_header' => [
-                    'sender_batch_id' => 'Batch_' . uniqid(),
+                    'sender_batch_id' => $batchId,
                     'email_subject' => 'You have a payout!',
                     'email_message' => 'You have received a payout from ' . config('app.name')
                 ],
@@ -253,10 +430,10 @@ class Paypal implements Provider
                 $item = collect($response->items)->firstWhere('sender_item_id', $withdraw->uuid);
                 if ($item && $item->transaction_status === 'SUCCESS') {
                     $withdraw->remoteId = $item->payout_item_id;
-                    $withdraw->batch_id =  $batchId;
+                    $withdraw->batchId =  $batchId;
                     $withdraw->status = WithdrawStatus::COMPLETE;
                 } else {
-                    $withdraw->batch_id =  $batchId;
+                    $withdraw->batchId =  $batchId;
                     $withdraw->status = WithdrawStatus::PENDING;
                     $withdraw->gateway_error = $item->errors[0]->message ?? 'Unknown error';
                 }
@@ -271,6 +448,58 @@ class Paypal implements Provider
                 $withdraw->save();
             }
         }
+    }
+
+
+
+
+    /**
+     * Update the status of a withdraw (payout) at Paypal.
+     *
+     * @param Withdraw $withdraw the withdraw in our system
+     * @return bool Returns true if the update was successful, false otherwise
+     */
+    public function updateWithdrawStatus(Withdraw $withdraw): bool
+    {
+
+        $batchId = $withdraw->batchId;
+        $withdraws = Withdraw::query()->where('batchId', $batchId)->get();
+        $accessToken = $this->accessToken();
+        if (!$accessToken) {
+            \Log::error('Failed to obtain PayPal access token for payout status check');
+            return false;
+        }
+        $response = Curl::to(static::url("/v1/payments/payouts/$batchId"))
+            ->withBearer($accessToken)
+            ->asJson()
+            ->get();
+        if (isset($response->batch_header->batch_status)) {
+            foreach ($withdraws as $withdraw) {
+                $item = collect($response->items)->firstWhere('payout_item_id', $withdraw->remoteId);
+                if ($item) {
+                    switch ($item->transaction_status) {
+                        case 'SUCCESS':
+                            $withdraw->status = WithdrawStatus::COMPLETE;
+                            break;
+                        case 'FAILED':
+                        case 'RETURNED':
+                        case 'BLOCKED':
+                            $withdraw->status = WithdrawStatus::FAILED;
+                            $withdraw->gateway_error = $item->errors[0]->message ?? 'Payout failed';
+                            break;
+                        case 'PENDING':
+                        case 'UNCLAIMED':
+                            $withdraw->status = WithdrawStatus::PENDING;
+                            break;
+                    }
+                    $withdraw->save();
+                }
+            }
+        } else {
+            \Log::error('Failed to check PayPal payout status', ['response' => $response]);
+            return false;
+        }
+        return true;
     }
 
     /**

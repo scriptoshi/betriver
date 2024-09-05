@@ -1,4 +1,4 @@
-import { computed, reactive, shallowReactive } from "vue";
+import { computed, shallowReactive } from "vue";
 
 import { BookOpenIcon, HomeIcon, StarIcon } from "@heroicons/vue/24/solid";
 import { usePage } from "@inertiajs/vue3";
@@ -38,10 +38,12 @@ const logos = {
     Twitter,
     Racing
 };
-const toTitleCase = (str) => {
+export const toTitleCase = (str) => {
     if (str.length === 3) return str.toUpperCase();
     return str
+        .replace('_', ' ')
         .split('-')
+
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 };
@@ -70,7 +72,7 @@ export const useMenu = () => {
     const discordUrl = computed(() => usePage().props?.config?.discordUrl);
     const liveCount = computed(() => usePage().props?.liveCount);
     const { t } = useI18n();
-    const starrableMenus = reactive({
+    const starrableMenus = shallowReactive({
         home: {
             id: 'home',
             name: t("Home"),
@@ -92,7 +94,8 @@ export const useMenu = () => {
         if (menu.submenu.live > 0) submenu.push(makeMenu({ ...baseParams, region: 'live', count: menu.submenu.live }));
         if (menu.submenu.today > 0) submenu.push(makeMenu({ ...baseParams, region: 'today', count: menu.submenu.today }));
         if (menu.submenu.tomorrow > 0) submenu.push(makeMenu({ ...baseParams, region: 'tomorrow', count: menu.submenu.tomorrow }));
-        if (menu.submenu.this_week > 0) submenu.push(makeMenu({ ...baseParams, region: 'this_week', count: menu.submenu.this_week }));
+        if (menu.submenu.this_week > 0) submenu.push(makeMenu({ ...baseParams, region: 'this-week', count: menu.submenu.this_week }));
+        if (menu.submenu.next_week > 0) submenu.push(makeMenu({ ...baseParams, region: 'next-week', count: menu.submenu.next_week }));
         if (menu.submenu.ended > 0) submenu.push(makeMenu({ ...baseParams, region: 'ended', count: menu.submenu.ended }));
         if (Object.keys(menu.submenu.leagues).length > 0) {
             if (menu.sport === 'football') {

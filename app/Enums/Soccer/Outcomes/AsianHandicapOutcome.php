@@ -2,10 +2,13 @@
 
 namespace App\Enums\Soccer\Outcomes;
 
+use App\Traits\Handicaps;
 use Illuminate\Support\Str;
 
 enum AsianHandicapOutcome: string
 {
+    use Handicaps;
+
     case HOME_MINUS_25 = 'home_-2.5';
     case AWAY_PLUS_25 = 'away_+2.5';
     case HOME_MINUS_2 = 'home_-2';
@@ -38,23 +41,14 @@ enum AsianHandicapOutcome: string
         return (float) $handicap;
     }
 
+
+
     public function name(): string
     {
         $team = Str::ucfirst($this->team());
         $handicap = $this->handicapValue();
         $handicapStr = $handicap > 0 ? "+{$handicap}" : $handicap;
         return formatName("{$team} ({$handicapStr})");
-    }
-
-    public static function getHandicapGroup(float $value): array
-    {
-        $homeHandicap = $value;
-        $awayHandicap = -$value;
-
-        return [
-            self::from("home_{$homeHandicap}"),
-            self::from("away_{$awayHandicap}"),
-        ];
     }
 
     public function id()

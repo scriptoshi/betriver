@@ -2,10 +2,12 @@
 
 namespace App\Enums\Volleyball\Outcomes;
 
+use App\Traits\Overunders;
 use Illuminate\Support\Str;
 
 enum VolleyballOverUnderOutcome: string
 {
+    use Overunders;
     case OVER_3 = 'over_3';
     case UNDER_3 = 'under_3';
     case OVER_4 = 'over_4';

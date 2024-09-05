@@ -28,10 +28,10 @@ return new class extends Migration
             $table->decimal('fees', 10, 2);
             $table->decimal('amount', 10, 2);
             $table->string('amount_currency');
-            $table->decimal('gateway_amount', 10, 2);
-            $table->decimal('gateway_currency');
+            $table->decimal('gateway_amount', 10, 2)->nullable();
+            $table->string('gateway_currency');
             $table->json('data')->nullable();
-            $table->string('gateway_error', 3000)->default();
+            $table->string('gateway_error', 3000)->nullable();
             $table->string('status')->default();
             $table->timestamps();
             $table->softDeletes();

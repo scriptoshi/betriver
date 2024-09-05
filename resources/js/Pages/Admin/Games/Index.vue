@@ -59,19 +59,21 @@
 	debouncedWatch(
 		[
 			search,
+			() => params.day,
 			() => params.status,
 			() => params.lid,
 			() => params.country,
 			() => params.odds,
 			() => params.scores,
 		],
-		([search, status, lid, country, odds, scores]) => {
+		([search, day, status, lid, country, odds, scores]) => {
 			router.get(
 				window.route("admin.games.index", {
 					sport: props.sport.toLowerCase(),
 				}),
 				{
 					...(search ? { search } : {}),
+					...(day ? { day } : {}),
 					...(status ? { status } : {}),
 					...(country ? { country } : {}),
 					...(odds ? { odds } : {}),
@@ -104,6 +106,23 @@
 			},
 		);
 	};
+	const dateFilterOptions = [
+		{ label: "Today", value: "today" },
+		{ label: "Tomorrow", value: "tomorrow" },
+		{ label: "In 2 days", value: "2-days" },
+		{ label: "In 3 days", value: "3-days" },
+		{ label: "In 4 days", value: "4-days" },
+		{ label: "In 5 days", value: "5-days" },
+		{ label: "In 6 days", value: "6-days" },
+		{ label: "In 1 week", value: "1-week" },
+		{ label: "Yesterday", value: "yesterday" },
+		{ label: "2 days ago", value: "2-days-ago" },
+		{ label: "3 days ago", value: "3-days-ago" },
+		{ label: "4 days ago", value: "4-days-ago" },
+		{ label: "5 days ago", value: "5-days-ago" },
+		{ label: "6 days ago", value: "6-days-ago" },
+		{ label: "1 week ago", value: "1-week-ago" },
+	];
 </script>
 <template>
 	<Head :title="title ?? 'Games'" />
@@ -159,7 +178,32 @@
 										</a>
 									</span>
 								</span>
-								<div class="lg:max-w-[220px] w-full">
+								<div class="lg:max-w-[200px] w-full">
+									<Multiselect
+										class="md"
+										:options="dateFilterOptions"
+										valueProp="value"
+										label="label"
+										:placeholder="$t('Filter by Day')"
+										v-model="params.day"
+										closeOnSelect>
+										<template #caret="{ isOpen }">
+											<VueIcon
+												:class="{
+													'rotate-180': isOpen,
+												}"
+												class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+												:icon="HiSolidChevronDown" />
+										</template>
+										<template #clear="{ clear }">
+											<VueIcon
+												@click="clear"
+												class="mr-1 relative z-10 opacity-60 w-5 h-5"
+												:icon="HiSolidX" />
+										</template>
+									</Multiselect>
+								</div>
+								<div class="lg:max-w-[200px] w-full">
 									<Multiselect
 										class="md"
 										:options="leagues"
@@ -185,7 +229,7 @@
 										</template>
 									</Multiselect>
 								</div>
-								<div class="lg:max-w-[220px] w-full">
+								<div class="lg:max-w-[200px] w-full">
 									<Multiselect
 										class="md"
 										:options="statuses"
@@ -211,7 +255,7 @@
 										</template>
 									</Multiselect>
 								</div>
-								<div class="lg:max-w-[220px] w-full">
+								<div class="lg:max-w-[200px] w-full">
 									<Multiselect
 										:options="countries"
 										valueProp="value"
@@ -405,7 +449,7 @@
 																	game.uuid,
 																)
 															">
-															Odds
+															Odds & Markets
 														</Link>
 													</div>
 												</td>

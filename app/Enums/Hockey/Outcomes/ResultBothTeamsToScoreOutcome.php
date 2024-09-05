@@ -25,6 +25,6 @@ enum ResultBothTeamsToScoreOutcome: string
     {
         $result = ucfirst($this->result());
         $scored = $this->bothTeamsScored() ? 'Yes' : 'No';
-        return "{$result} & {$scored}";
+        return formatName("{$result} & {$scored}");
     }
 }

@@ -1,134 +1,85 @@
 <script setup>
-	import AppLayout from "@/Layouts/AppLayout.vue";
-	import PopularEvents from "@/Pages/Games/Show/PopularEvents.vue";
-	import Category from "@/Pages/Home/Category.vue";
-	import LargeMarketCard from "@/Pages/Home/LargeMarketCard.vue";
-	import TopMarket from "@/Pages/Home/TopMarket.vue";
-	import TopPromos from "@/Pages/Home/TopPromos.vue";
-	import FixtureCard from "@/Pages/Sports/Index/FixtureCard.vue";
-	defineProps({
-		games: Object,
-		sport: String,
-		country: String,
-		league: String,
-		leagues: Array,
+	import { computed } from "vue";
+
+	import { Head } from "@inertiajs/vue3";
+
+	import EventCard from "@/Components/Cards/EventCard.vue";
+	import GameRow from "@/Components/Cards/GameRow.vue";
+	import HomeEventCard from "@/Components/Cards/HomeEventCard.vue";
+	import HomePageCarousel from "@/Components/Carousel/HomePageCarousel.vue";
+	import AppLayout from "@/Layouts/FrontendLayout.vue";
+	import BettingSideBar from "@/Pages/Games/BettingSideBar.vue";
+	const props = defineProps({
 		popular: Array,
-		popularGames: Array,
-		liveGames: Array,
-		soonGames: Array,
+		slides: Array,
+		games: Array,
+		top: Array,
+		enableExchange: Boolean,
+		enableBookie: Boolean,
+		defaultMarket: Object,
 	});
-
-	const categories = [
-		{
-			name: "Bundesliga",
-			section: "Soccer",
-			id: "bundesliga",
-			image: "https://cdn.betn.io/cat/budesliga.jpg",
-			url: window.route("sports.index", {
-				sport: "soccer",
-				country: "this-week",
-				league: "bundesliga",
-			}),
-			events: `10+`,
-		},
-		{
-			name: "Premier League",
-			section: "Soccer",
-			id: "premier-league",
-			image: "https://cdn.betn.io/cat/premiere.jpg",
-			url: window.route("sports.index", {
-				sport: "soccer",
-				country: "this-week",
-				league: "premier-league",
-			}),
-			events: `20+`,
-		},
-		{
-			name: "Spanish Liga",
-			section: "Soccer",
-			id: "la-liga",
-			image: "https://cdn.betn.io/cat/liga.jpg",
-			url: window.route("sports.index", {
-				sport: "soccer",
-				country: "this-week",
-				league: "la-liga",
-			}),
-			events: `18+`,
-		},
-		{
-			name: "Championship",
-			section: "Soccer",
-			id: "championship",
-			image: "https://cdn.betn.io/cat/fa.jpg",
-			url: window.route("sports.index", {
-				sport: "soccer",
-				country: "this-week",
-				league: "championship",
-			}),
-			events: `6+`,
-		},
-	];
+	const multiples = false;
+	const showBookie = computed(() => {
+		if (!props.enableBookie) return false;
+		return multiples.value;
+	});
+	const showExchange = computed(() => {
+		if (!props.enableExchange) return false;
+		return !multiples.value;
+	});
 </script>
-<template>
-	<AppLayout>
-		<main class="h-full">
-			<div class="mt-8 container-fluid">
-				<section>
-					<div
-						class="grid relative grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 lg:gap-6">
-						<div class="lg:col-span-2">
-							<div class="w-full">
-								<TopPromos />
-							</div>
-							<h3 class="my-6">Starting Soon</h3>
-							<div class="grid gap-3 w-full">
-								<FixtureCard
-									v-for="game in games"
-									:key="game.id"
-									:game="game" />
-							</div>
-							<h3 class="my-6">Top Categories this week</h3>
-							<div class="grid grid-cols-4 mt-5 gap-3 w-full">
-								<Category
-									v-for="category in categories"
-									:key="category.id"
-									:category="category" />
-							</div>
-							<h3 class="my-6">Open markets</h3>
-							<div class="grid grid-cols-2 gap-3 w-full">
-								<template
-									v-for="(game, i) in soonGames"
-									:key="game.id">
-									<TopMarket v-if="i != 2" :game="game" />
-									<LargeMarketCard
-										v-if="i == 2"
-										:game="game"
-										class="row-span-2" />
-								</template>
-							</div>
-						</div>
-						<div
-							class="dark:bg-gray-800 h-[calc(100vh-40px)] bg-white/90 sticky top-16">
-							<template v-if="liveGames.length > 0">
-								<div
-									class="bg-gray-300/40 dark:bg-gray-700/40 text-gray-900 dark:text-white p-3 text-sm font-semibold">
-									{{ $t("Live Games") }}
-								</div>
-								<PopularEvents :games="liveGames" />
-								<div class="p-4 bg-gray-100 dark:bg-gray-900" />
-							</template>
 
-							<div
-								class="bg-gray-300/40 dark:bg-gray-700/40 text-gray-900 dark:text-white p-3 text-sm font-semibold">
-								{{ $t("Popular Games") }}
-							</div>
-							<PopularEvents
-								class="!mt-0"
-								:games="popularGames" />
-						</div>
-					</div>
-				</section>
+<template>
+	<Head title="Welcome" />
+	<AppLayout>
+		<div class="px-3">
+			<div class="pb-4 pt-3">
+				<HomePageCarousel :slides="slides" />
 			</div>
-		</main>
+			<div class="grid gap-3 mb-12">
+				<div>
+					<h3 class="text-gray-900 font-inter dark:text-white">
+						{{ $t("Top Football") }}
+					</h3>
+				</div>
+				<div class="grid gap-3">
+					<GameRow
+						v-for="game in games"
+						:key="game.slug"
+						:defaultMarketsCount="defaultMarketsCount"
+						:market="defaultMarket"
+						:showBookie="showBookie"
+						:showExchange="showExchange"
+						:game="game" />
+				</div>
+				<div>
+					<h3 class="text-gray-900 font-inter dark:text-white">
+						{{ $t("Top Markets") }}
+					</h3>
+				</div>
+				<div class="grid gap-4 sm:grid-cols-2">
+					<HomeEventCard
+						:game="topgame"
+                        :defaultMarket="defaultMarket"
+						v-for="topgame in top"
+						:key="topgame.id" />
+				</div>
+			</div>
+		</div>
+		<template #right-sidebar>
+			<div>
+				<BettingSideBar :multiples="multiples" />
+				<div
+					class="bg-gray-300 text-gray-900 dark:text-white dark:bg-gray-750 border-b border-gray-250 dark:border-gray-850 flex items-center px-2.5 uppercase font-inter text-sm tracking-[1px] font-bold h-12 box-border flex-shrink-0 flex-wrap m-0">
+					Top Events
+				</div>
+				<div class="grid">
+					<EventCard
+						v-for="game in popular"
+						:key="game.slug"
+						:game="game" />
+				</div>
+			</div>
+		</template>
 	</AppLayout>
 </template>

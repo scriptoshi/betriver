@@ -2,8 +2,11 @@
 
 namespace App\Enums\Handball\Outcomes;
 
+use App\Traits\Overunders;
+
 enum OverUnderOutcome: string
 {
+    use Overunders;
     case OVER_395 = 'over_39.5';
     case UNDER_395 = 'under_39.5';
     case OVER_405 = 'over_40.5';

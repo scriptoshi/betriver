@@ -2,10 +2,12 @@
 
 namespace App\Enums\Volleyball\Outcomes;
 
+use App\Traits\Handicaps;
 use Illuminate\Support\Str;
 
 enum VolleyballAsianHandicapOutcome: string
 {
+    use Handicaps;
     case HOME_MINUS_2_5 = 'home_-2.5';
     case AWAY_PLUS_2_5 = 'away_+2.5';
     case HOME_MINUS_1_5 = 'home_-1.5';
@@ -34,6 +36,6 @@ enum VolleyballAsianHandicapOutcome: string
         $team = ucfirst($this->team());
         $handicap = $this->handicapValue();
         $handicapStr = $handicap > 0 ? "+{$handicap}" : $handicap;
-        return "{$team} ({$handicapStr})";
+        return formatName("{$team} ({$handicapStr})");
     }
 }

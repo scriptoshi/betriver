@@ -21,7 +21,7 @@ enum WinningMarginOutcome: string
         $team = ucfirst($parts[0]);
         $margin = str_replace('-', ' to ', $parts[1]);
         $margin = str_replace('+', ' or more', $margin);
-        return "{$team} by {$margin}";
+        return formatName("{$team} by {$margin}");
     }
 
     public function team(): string

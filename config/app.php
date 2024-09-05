@@ -125,5 +125,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'sandbox' => env('SANDBOX', false)
+
 
 ];

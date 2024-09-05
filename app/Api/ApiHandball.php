@@ -32,7 +32,7 @@ class ApiHandball extends ApiSports
 
     public static function ended($status): bool
     {
-        return GameStatus::from(strtoupper($status))->ended();
+        return GameStatus::tryFrom(strtoupper($status))?->ended() ?? true;
     }
 
 

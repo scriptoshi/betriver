@@ -53,8 +53,10 @@ class Withdraw extends Model
         'uuid',
         'gateway',
         'remoteId',
+        'batchId',
         'to',
         'gross_amount',
+        'gateway_amount', // converted!
         'fees',
         'amount',
         'data',

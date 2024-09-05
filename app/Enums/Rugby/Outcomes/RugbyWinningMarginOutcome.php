@@ -35,7 +35,7 @@ enum RugbyWinningMarginOutcome: string
     {
         $team = ucfirst($this->team());
         $range = $this->range();
-        return "{$team} to win by {$range}";
+        return formatName("{$team} to win by {$range}");
     }
 
     public function minMargin(): int

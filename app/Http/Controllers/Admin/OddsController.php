@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Market as ResourcesMarket;
 use App\Http\Resources\Odd as OddResource;
 use App\Models\Bet;
+use App\Models\BookieGameMarket;
 use App\Models\Game;
 use App\Models\GameMarket;
 use App\Models\Market;
@@ -23,8 +24,14 @@ class OddsController extends Controller
     public function index(Request $request, Game $game)
     {
         $countMarkets = $game->markets()->count();
-        if ($countMarkets < 1) {
-            $marketIds = Market::where('sport', $game->sport)->pluck('id')->all();
+        $markets = Market::query()
+            ->where('sport', $game->sport)->count();
+        if ($countMarkets < $markets) {
+            $marketIds = Market::query()
+                ->where('sport', $game->sport)
+                ->where('active', true)
+                ->pluck('id')
+                ->all();
             $game->markets()->sync($marketIds);
         }
         $bets = Bet::where('sport', $game->sport)->get();
@@ -62,6 +69,7 @@ class OddsController extends Controller
                         'gm' => $market->pivot->id,
                         'busy' => false, // javascript use
                         'active' => boolval($market->pivot->active),
+                        'bookie_active' => boolval($market->pivot->bookie_active),
                         'name' =>  str($market->name)->replace(['{home}', '{away}'], [
                             $game->homeTeam->name,
                             $game->awayTeam->name,
@@ -107,8 +115,24 @@ class OddsController extends Controller
      */
     public function toggle(Request $request, GameMarket $gameMarket)
     {
+
         $gameMarket->active = !$gameMarket->active;
         $gameMarket->save();
-        return back()->with('success', $gameMarket->active ? __('Market Enabled !') : __('Market Disabled!'));
+        return back()->with('success', $gameMarket->active ? __('Market Enabled in Exchange !') : __('Market Disabled in Exchange!'));
+    }
+
+    /**s
+     * toggle status of market in bookie bets
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param  int  $id
+     *
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function toggleBookie(Request $request, GameMarket $gameMarket)
+    {
+        $gameMarket->bookie_active = !$gameMarket->bookie_active;
+        $gameMarket->save();
+        return back()->with('success', $gameMarket->bookie_active ? __('Market Enabled in sports book !') : __('Market Disabled in sports book!'));
     }
 }

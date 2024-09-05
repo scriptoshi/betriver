@@ -42,7 +42,7 @@ class ApiFootball extends ApiSports
 
     public static function ended($status): bool
     {
-        return GameStatus::from(strtoupper($status))->ended();
+        return GameStatus::tryFrom(strtoupper($status))?->ended() ?? true;
     }
 
 
@@ -260,7 +260,16 @@ class ApiFootball extends ApiSports
 
     protected static function saveScores(Game $game, $info)
     {
-
+        $game->status = $info->fixture->status->short;
+        $game->elapsed = intval($info->fixture->status->elapsed);
+        if (static::ended($game->status)) {
+            $game->endTime = now();
+            $game->closed = true;
+        }
+        if (GameStatus::from(strtoupper($info->fixture->status->short)) == GameStatus::Postponed) {
+            $game->save();
+            return;
+        }
         foreach ($info->score as $type => $score) {
             $game->scores()->updateOrCreate([
                 'type' => $type,
@@ -282,12 +291,6 @@ class ApiFootball extends ApiSports
             $game->win_team_id = $game->home_team_id;
         if (($game->teams->away->winner ?? null))
             $game->win_team_id = $game->away_team_id;
-        $game->status = $info->fixture->status->short;
-        $game->elapsed = intval($info->fixture->status->elapsed);
-        if (static::ended($game->status)) {
-            $game->endTime = now();
-            $game->closed = true;
-        }
         $game->save();
     }
 }

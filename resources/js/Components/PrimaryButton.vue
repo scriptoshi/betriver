@@ -20,7 +20,7 @@
 		if (props.default)
 			return "bg-gray-200 border-gray-200 text-gray-800 hover:bg-gray-200 focus:bg-gray-200 active:bg-gray-200/80 dark:bg-gray-500 dark:text-gray-50 dark:hover:bg-gray-400 dark:focus:bg-gray-400 dark:active:bg-gray-400/90";
 		if (props.primary)
-			return "bg-emerald-500 border-emerald-500 text-white hover:bg-emerald-600 focus:bg-emerald-600 active:bg-emerald-600/90";
+			return "bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 focus:bg-emerald-700 active:bg-emerald-700/90";
 		if (props.secondary)
 			return "text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100  dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700";
 		if (props.success)

@@ -17,7 +17,7 @@
 		help: String,
 		size: {
 			type: String,
-			default: "md",
+			default: "sm",
 		},
 	});
 	defineEmits(["update:modelValue"]);
@@ -131,7 +131,7 @@
 			]"
 			:type="type ? type : hide ? 'password' : 'text'"
 			:placeholder="placeholder" />
-		<p v-if="error" class="mt-2 text-sm text-red-600">
+		<p v-if="error" class="mt-2 text-sm text-red-600 dark:text-red-400">
 			{{ error }}
 		</p>
 		<p

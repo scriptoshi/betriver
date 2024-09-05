@@ -26,7 +26,7 @@ enum WinningMargin: string implements BetMarket
 
     public function outcomes(): array
     {
-        return array_filter(WinningMarginOutcome::cases(), fn ($outcome) => $outcome->team() === $this->value);
+        return array_filter(WinningMarginOutcome::cases(), fn($outcome) => $outcome->team() === $this->value);
     }
 
     public function name(): string
@@ -81,10 +81,10 @@ enum WinningMargin: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
                     [
-                        'result' => $outcome->value,
+                        'name' => $outcome->name(),
                         'sport' => LeagueSport::HANDBALL,
                     ]
                 );

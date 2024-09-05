@@ -1,0 +1,37 @@
+{
+    "fields": [
+        {
+            "name": "gateway",
+            "type": "string|nullable"
+        },
+        {
+            "name": "code",
+            "type": "string|nullable"
+        },
+        {
+            "name": "name",
+            "type": "string|nullable"
+        },
+        {
+            "name": "regex",
+            "type": "string|nullable"
+        },
+        {
+            "name": "logo_url",
+            "type": "string|nullable"
+        },
+        {
+            "name": "chain",
+            "type": "string|nullable"
+        },
+        {
+            "name": "contract",
+            "type": "string|nullable"
+        },
+        {
+            "name": "explorer",
+            "type": "string|nullable"
+        }
+    ],
+    "relationships": []
+}

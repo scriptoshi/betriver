@@ -1,14 +1,16 @@
 <?php
 
-use App\Http\Controllers\Admin\BetsController;
+
 use App\Http\Controllers\Admin\CommissionsController;
+use App\Http\Controllers\Admin\DepositsController;
+use App\Http\Controllers\Admin\FeedbackController;
 use App\Http\Controllers\Admin\GamesController;
 use App\Http\Controllers\Admin\LeaguesController;
 use App\Http\Controllers\Admin\MarketsController;
 use App\Http\Controllers\Admin\OddsController;
 use App\Http\Controllers\Admin\ScoresController;
 use App\Http\Controllers\Admin\SettingsController;
-use App\Http\Controllers\Admin\SlipsController;
+use App\Http\Controllers\Admin\SlidersController;
 use App\Http\Controllers\Admin\StakesController;
 use App\Http\Controllers\Admin\TeamsController;
 use App\Http\Controllers\Admin\TicketsController;
@@ -16,6 +18,8 @@ use App\Http\Controllers\Admin\TradesController;
 use App\Http\Controllers\Admin\TransactionsController;
 use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\WagersController;
+use App\Http\Controllers\Admin\WhitelistsController;
+use App\Http\Controllers\Admin\WithdrawsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -25,9 +29,15 @@ Route::get('/', function () {
 
 #users
 Route::name('users.')->controller(UsersController::class)->group(function () {
+    Route::get('/user/{user}', 'show')->name('show');
     Route::get('/users/{filter?}', 'index')->name('index');
     Route::put('/users/toggle/{user}', 'toggle')->name('toggle');
     Route::put('/users/ban/{user}', 'ban')->name('ban');
+    Route::put('/users/update/{user}', 'update')->name('update');
+    Route::put('/users/transact/{user}', 'transact')->name('transact');
+    Route::put('/users/level/{user}/{level}', 'level')->name('level');
+    Route::put('/users/verify/{user}', 'verify')->name('verify');
+    Route::delete('/users/twofactor/{user}', 'twofactor')->name('twofactor');
 });
 
 #commissions
@@ -102,7 +112,9 @@ Route::name('scores.')->controller(ScoresController::class)->group(function () {
 #markets
 Route::name('markets.')->controller(MarketsController::class)->group(function () {
     Route::get('/markets/{sport?}', 'index')->name('index');
-    Route::put('/markets/toggle/{market}', 'toggle')->name('toggle');
+    Route::post('/markets/reorder', 'reorder')->name('reorder');
+    Route::post('/markets/sequence', 'sequence')->name('sequence');
+    Route::post('/markets/toggle/{market}', 'toggle')->name('toggle');
     Route::put('/markets/toggle-bookie/{market}', 'toggleBookie')->name('toggle.bookie');
 });
 #markets
@@ -112,6 +124,7 @@ Route::name('markets.')->controller(MarketsController::class)->group(function ()
 Route::name('odds.')->controller(OddsController::class)->group(function () {
     Route::get('/odds/{game:uuid}', 'index')->name('index');
     Route::post('/odds/store', 'store')->name('store');
+    Route::put('/odds/toggle/bookie/{gameMarket}', 'toggleBookie')->name('toggle.bookie');
     Route::put('/odds/toggle/{gameMarket}', 'toggle')->name('toggle');
 });
 #odds
@@ -163,18 +176,31 @@ Route::name('trades.')->controller(TradesController::class)->group(function () {
     Route::delete('/trades/{trade}', 'destroy')->name('destroy');
 });
 #trades
+
 #transactions
 Route::name('transactions.')->controller(TransactionsController::class)->group(function () {
     Route::get('/transactions', 'index')->name('index');
-    Route::get('/transactions/create', 'create')->name('create');
-    Route::post('/transactions/store', 'store')->name('store');
-    Route::get('/transactions/{transaction}/show', 'show')->name('show');
-    Route::get('/transactions/{transaction}/edit', 'edit')->name('edit');
-    Route::put('/transactions/{transaction}', 'update')->name('update');
-    Route::put('/transactions/toggle/{transaction}', 'toggle')->name('toggle');
-    Route::delete('/transactions/{transaction}', 'destroy')->name('destroy');
+    Route::put('/transactions/{transaction:uuid}', 'reverse')->name('reverse');
+    Route::delete('/transactions/{transaction:uuid}', 'destroy')->name('destroy');
+});
+
+Route::name('deposits.')->controller(DepositsController::class)->group(function () {
+    Route::get('/deposits', 'index')->name('index');
+    Route::put('/deposits/{deposit:uuid}', 'complete')->name('complete');
+    Route::delete('/deposits/{deposit:uuid}', 'fail')->name('fail');
+});
+
+Route::name('withdraws.')->controller(WithdrawsController::class)->group(function () {
+    Route::get('/withdraws', 'index')->name('index');
+    Route::put('/withdraws/status/{withdraw:uuid}', 'status')->name('status');
+    Route::put('/withdraws/refresh/{withdraw:uuid}', 'refresh')->name('refresh');
+    Route::post('/withdraws/twofa/{withdraw:uuid}', 'twofa')->name('twofa');
+    Route::put('/withdraws/batch', 'batch')->name('batch');
+    Route::put('/withdraws/{withdraw:uuid}', 'complete')->name('complete');
+    Route::delete('/withdraws/{withdraw:uuid}', 'fail')->name('fail');
 });
 #transactions
+
 #settings
 Route::name('settings.')->controller(SettingsController::class)->group(function () {
     Route::get('/settings', 'index')->name('index');
@@ -184,6 +210,7 @@ Route::name('settings.')->controller(SettingsController::class)->group(function 
     Route::get('/settings/privacy-and-terms', 'privacyTerms')->name('privacy');
     Route::get('/settings/notifications', 'notifications')->name('notifications');
     Route::get('/settings/payments', 'payments')->name('payments');
+    Route::get('/settings/levels', 'levels')->name('levels');
     Route::get('/settings/create', 'create')->name('create');
     Route::post('/settings/store', 'store')->name('store');
     Route::post('/settings/social/store', 'storeSocial')->name('social.store');
@@ -194,6 +221,7 @@ Route::name('settings.')->controller(SettingsController::class)->group(function 
     Route::post('/settings/mail/store', 'storeMail')->name('mail.store');
     Route::post('/settings/sms/store', 'storeSMS')->name('sms.store');
     Route::post('/settings/messages/store', 'storeMessages')->name('messages.store');
+    Route::post('/settings/levels/store/{level}', 'storeLevels')->name('levels.store');
     Route::get('/settings/{setting}/show', 'show')->name('show');
     Route::get('/settings/{setting}/edit', 'edit')->name('edit');
     Route::put('/settings/{setting}', 'update')->name('update');
@@ -208,3 +236,34 @@ Route::name('sitemap.')->controller(SettingsController::class)->group(function (
     Route::delete('/sitemap/destroy', 'destroySitemap')->name('destroy');
 });
 #settings
+
+
+#feedback
+Route::name('feedback.')->controller(FeedbackController::class)->group(function () {
+    Route::get('/feedback', 'index')->name('index');
+    Route::delete('/feedback/{feedback}', 'destroy')->name('destroy');
+});
+#feedback
+
+Route::name('whitelists.')
+    ->middleware('auth')
+    ->controller(WhitelistsController::class)
+    ->group(function () {
+        Route::get('/whitelists', 'index')->name('index');
+        Route::get('/whitelists/download', 'download')->name('download');
+        Route::post('/whitelists/approve/{whitelist}', 'approve')->name('approve');
+        Route::post('/whitelists/mass/approve', 'massApprove')->name('mass.approve');
+        Route::post('/whitelists/mass/reject', 'massReject')->name('mass.reject');
+    });
+
+#sliders
+Route::name('sliders.')->controller(SlidersController::class)->group(function () {
+    Route::get('/sliders', 'index')->name('index');
+    Route::get('/sliders/create', 'create')->name('create');
+    Route::post('/sliders/store', 'store')->name('store');
+    Route::get('/sliders/{slider}/edit', 'edit')->name('edit');
+    Route::put('/sliders/{slider}', 'update')->name('update');
+    Route::put('/sliders/toggle/{slider}', 'toggle')->name('toggle');
+    Route::delete('/sliders/{slider}', 'destroy')->name('destroy');
+});
+#sliders

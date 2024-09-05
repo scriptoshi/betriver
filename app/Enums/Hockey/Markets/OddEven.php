@@ -77,10 +77,10 @@ enum OddEven: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
                     [
-                        'result' => $outcome->value,
+                        'name' => $outcome->name(),
                         'sport' => LeagueSport::HOCKEY
                     ]
                 );

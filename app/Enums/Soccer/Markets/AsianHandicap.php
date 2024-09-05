@@ -84,10 +84,12 @@ enum AsianHandicap: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
+                        'result' => $outcome->value
+                    ],
+                    [
                         'name' => $outcome->name(),
                         'sport' => LeagueSport::FOOTBALL
-                    ],
-                    ['result' => $outcome->value]
+                    ]
                 );
             }
         }

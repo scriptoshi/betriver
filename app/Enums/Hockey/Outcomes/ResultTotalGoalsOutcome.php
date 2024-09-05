@@ -34,6 +34,6 @@ enum ResultTotalGoalsOutcome: string
     {
         $result = ucfirst($this->result());
         $range = str_replace('_', ' ', ucfirst($this->goalRange()));
-        return "{$result} & {$range}";
+        return formatName("{$result} & {$range}");
     }
 }

@@ -2,11 +2,13 @@
 
 namespace App\Enums\Afl\Outcomes;
 
+use App\Traits\Overunders;
 use Illuminate\Support\Str;
 
 
 enum AFLOverUnderOutcome: string
 {
+    use Overunders;
     case OVER_145 = 'over_145';
     case UNDER_145 = 'under_145';
     case OVER_155 = 'over_155';

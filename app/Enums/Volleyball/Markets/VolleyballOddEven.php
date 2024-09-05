@@ -63,9 +63,12 @@ enum VolleyballOddEven: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
-                    ['result' => $outcome->value, 'sport' => LeagueSport::VOLLEYBALL]
+                    [
+                        'name' => $outcome->name(),
+                        'sport' => LeagueSport::VOLLEYBALL
+                    ]
                 );
             }
         }

@@ -34,6 +34,21 @@
 			},
 		);
 	};
+	const toggleBookie = (market) => {
+		console.log(market);
+		market.busy = true;
+		router.put(
+			window.route("admin.odds.toggle.bookie", { gameMarket: market.gm }),
+			{},
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onFinish: () => {
+					market.busy = false;
+				},
+			},
+		);
+	};
 </script>
 <template>
 	<Head :title="title ?? 'Odds'" />
@@ -74,19 +89,36 @@
 							:key="market.id"
 							:initiallyOpen="false">
 							<div
-								class="w-full flex justify-between pr-4 items-center">
+								class="w-full flex justify-between pr-4 flex-col sm:flex-row sm:items-center gap-5">
 								<h2 class="text-xl flex items-center font-bold">
 									<Loading class="mr-2" v-if="market.busy" />
 									{{ market.name }}
 								</h2>
-								<Switch
-									@update:modelValue="toggle(market)"
-									:modelValue="market.active">
-									<template v-if="market.active">
-										Market is Active
-									</template>
-									<template v-else>Disabled</template>
-								</Switch>
+								<div
+									class="flex flex-col sm:flex-row sm:items-center gap-5">
+									<Switch
+										@update:modelValue="
+											toggleBookie(market)
+										"
+										:modelValue="market.bookie_active">
+										<template v-if="market.bookie_active">
+											Active in sportsbook
+										</template>
+										<template v-else>
+											Disabled in sportsbook
+										</template>
+									</Switch>
+									<Switch
+										@update:modelValue="toggle(market)"
+										:modelValue="market.active">
+										<template v-if="market.active">
+											Active in Exchange
+										</template>
+										<template v-else>
+											Disabled in Exchange
+										</template>
+									</Switch>
+								</div>
 							</div>
 							<template #content>
 								<div class="grid sm:grid-cols-3 gap-5">

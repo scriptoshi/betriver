@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\LeagueSport;
 use App\Enums\ScoreType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,8 +34,9 @@ class Wager extends Model
     protected function casts()
     {
         return [
+            'sport' => LeagueSport::class,
             'scoreType' => ScoreType::class,
-            'winner' => 'boolean'
+            'won' => 'boolean'
         ];
     }
 
@@ -50,7 +52,8 @@ class Wager extends Model
         'odd_id',
         'scoreType',
         'odds',
-        'winner'
+        'won',
+        'sport'
     ];
 
 

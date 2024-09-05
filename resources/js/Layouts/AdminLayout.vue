@@ -8,6 +8,8 @@
 		CoBasketball,
 		FaCog,
 		HiSolidChevronRight,
+		MdMessageOutlined,
+		MdMiscellaneousservicesSharp,
 		MdSportsfootballOutlined,
 		MdSportsvolleyballOutlined,
 		MdWalletRound,
@@ -37,6 +39,7 @@
 			url: window.route("admin.settings.index"),
 			active:
 				window.route().current("admin.settings.*") ||
+				window.route().current("admin.sliders.*") ||
 				window.route().current("admin.commissions.*"),
 			icon: FaCog,
 			id: uid(),
@@ -98,6 +101,22 @@
 					active: window.route().current("admin.commissions.*"),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Levels and Commission",
+					url: window.route("admin.settings.levels"),
+					active: window.route().current("admin.settings.levels"),
+					value: "levels",
+					icon: MdMiscellaneousservicesSharp,
+					id: uid(),
+				},
+				{
+					text: "Homepage Carousel",
+					url: window.route("admin.sliders.index"),
+					active: window.route().current("admin.sliders.*"),
+					value: "slider",
+					icon: MdMiscellaneousservicesSharp,
 					id: uid(),
 				},
 			],
@@ -165,6 +184,50 @@
 					active: window
 						.route()
 						.current("admin.users.index", { filter: "balance" }),
+					value: "users.index",
+					id: uid(),
+				},
+				{
+					text: "Level One",
+					url: window.route("admin.users.index", {
+						filter: "level_one",
+					}),
+					active: window
+						.route()
+						.current("admin.users.index", { filter: "level_one" }),
+					value: "users.index",
+					id: uid(),
+				},
+				{
+					text: "Level Two",
+					url: window.route("admin.users.index", {
+						filter: "level-two",
+					}),
+					active: window
+						.route()
+						.current("admin.users.index", { filter: "level-two" }),
+					value: "users.index",
+					id: uid(),
+				},
+				{
+					text: "Level Three",
+					url: window.route("admin.users.index", {
+						filter: "level-three",
+					}),
+					active: window.route().current("admin.users.index", {
+						filter: "level-three",
+					}),
+					value: "users.index",
+					id: uid(),
+				},
+				{
+					text: "Level Optins",
+					url: window.route("admin.users.index", {
+						filter: "level-request",
+					}),
+					active: window.route().current("admin.users.index", {
+						filter: "level-request",
+					}),
 					value: "users.index",
 					id: uid(),
 				},
@@ -279,23 +342,41 @@
 			url: "#",
 			active:
 				window.route().current("admin.transactions.*") ||
-				window.route().current("admin.trades.*"),
+				window.route().current("admin.deposits.*") ||
+				window.route().current("admin.whitelists.*") ||
+				window.route().current("admin.withdraws.*"),
 			value: "frontend",
 			icon: MdWalletRound,
 			id: uid(),
 			submenu: [
 				{
-					text: "Deposits",
+					text: "All Transactions",
 					url: window.route("admin.transactions.index"),
 					active: window.route().current("admin.transactions.index"),
+					value: "transactions",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Deposits",
+					url: window.route("admin.deposits.index"),
+					active: window.route().current("admin.deposits.index"),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
 					text: "Withdrawals",
-					url: window.route("admin.transactions.index"),
-					active: window.route().current("admin.transactions.index"),
+					url: window.route("admin.withdraws.index"),
+					active: window.route().current("admin.withdraws.index"),
+					value: "slips",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Review Whitelists",
+					url: window.route("admin.whitelists.index"),
+					active: window.route().current("admin.whitelists.index"),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
@@ -481,19 +562,14 @@
 				}),
 			],
 		},
-
-		/*,
 		{
-			text: "Chains",
-			value: "chains",
-			url: window.route("admin.amms.index"),
-			active:
-				window.route().current("admin.amms.index") ||
-				window.route().current("admin.amms.create") ||
-				window.route().current("admin.amms.edit"),
-			icon: RiExchangeFill,
+			text: "Feedback",
+			url: window.route("admin.feedback.index"),
+			active: window.route().current("admin.feedback.index"),
+			value: "feedbacks",
+			icon: MdMessageOutlined,
 			id: uid(),
-		} */
+		},
 	]);
 
 	const showSidebar = ref(false);
@@ -509,7 +585,8 @@
 				class="fixed z-20 h-full top-0 left-0 pt-14 lg:flex flex-shrink-0 flex-col w-64 transition-width duration-75">
 				<div
 					class="relative flex-1 pl-3 flex flex-col min-h-0 border-r border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 pt-0">
-					<div class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
+					<div
+						class="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto scrollbar-thin dark:scrollbar-track-transparent scrollbar-track-transparent">
 						<div class="flex-1 dark:divide-gray-600 space-y-1">
 							<ul class="space-y-2 pb-16 pr-3">
 								<li v-for="menu in menus" :key="menu.id">

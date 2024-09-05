@@ -7,12 +7,15 @@ use App\Enums\WithdrawStatus;
 use App\Gateways\Payment\Contracts\Provider;
 use Inertia\Inertia;
 use App\Gateways\Payment\Actions\DepositTx;
+use App\Models\Currency;
 use App\Models\Deposit;
 use App\Models\Withdraw;
+use App\Support\Rate;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Ixudra\Curl\Facades\Curl;
+use Str;
 
 class Payeer implements Provider
 {
@@ -24,8 +27,7 @@ class Payeer implements Provider
         public ?string $accountNumber = null,
         public ?string $apiId = null,
         public ?string $apiSecret = null
-    ) {
-    }
+    ) {}
 
     /**
      * Get the name of the gateway
@@ -46,13 +48,15 @@ class Payeer implements Provider
             settings()->set('payeer.name', 'Payeer');
             settings()->set('payeer.logo', "https://payeer.com/static/icons/apple-touch-icon.png");
             settings()->set('payeer.enable_withdraw', 'true');
+            settings()->set('payeer.auto_approve_withdraw_address', 'true');
             settings()->set('payeer.enable_deposit', 'true');
-            settings()->set('payeer.currencies', 'USD,EUR');
             settings()->set('payeer.shop', null);
             settings()->set('payeer.merchant_key', null);
             settings()->set('payeer.accountNumber', null);
             settings()->set('payeer.apiId', null);
             settings()->set('payeer.apiSecret', null);
+            settings()->set('payeer.max_withdraw_limit', 0);
+            settings()->set('payeer.min_withdraw_limit', 15);
             $config = settings()->for('payeer');
         }
         return $config;
@@ -66,14 +70,37 @@ class Payeer implements Provider
         settings()->set('payeer.name', $request->name);
         settings()->set('payeer.logo', $request->logo);
         settings()->set('payeer.enable_withdraw', $request->boolean('enable_withdraw') ? 'true' : 'false');
+        settings()->set('payeer.auto_approve_withdraw_address', $request->boolean('auto_approve_withdraw_address') ? 'true' : 'false');
         settings()->set('payeer.enable_deposit', $request->boolean('enable_deposit') ? 'true' : 'false');
-        settings()->set('payeer.currencies', $request->currencies);
         settings()->set('payeer.shop', $request->shop);
         settings()->set('payeer.merchant_key', $request->merchant_key);
         settings()->set('payeer.accountNumber', $request->accountNumber);
         settings()->set('payeer.apiId', $request->apiId);
         settings()->set('payeer.apiSecret', $request->apiSecret);
+        settings()->set('payeer.max_withdraw_limit', $request->max_withdraw_limit);
+        settings()->set('payeer.min_withdraw_limit', $request->min_withdraw_limit);
         return settings()->for('payeer');
+    }
+
+
+    /**
+     * update currencies supported by gateway
+     */
+    public function updateCurrencies()
+    {
+        $rates = Rate::symbols();
+        collect(['USD' => 'US Dollar', 'EUR' => 'Euro'])
+            ->each(function ($name, $symbol) use ($rates) {
+                Currency::query()->updateOrCreate([
+                    "code" => $symbol,
+                    'gateway' => $this->name,
+                ], [
+                    "name" =>  $name,
+                    "logo_url" => $symbol,
+                    'rate' => $rates[$symbol],
+                    "precision" => 2
+                ]);
+            });
     }
 
     /**
@@ -83,10 +110,10 @@ class Payeer implements Provider
      */
     public function deposit(Deposit $deposit)
     {
-        $m_amount = number_format($deposit->gross_amount, 2, '.', '');
+        $m_amount = number_format($deposit->gateway_amount, 2, '.', '');
         $m_shop = $this->shop;
         $m_order_id = $deposit->uuid;
-        $m_curr = $deposit->amount_currency;
+        $m_curr = $deposit->gateway_currency;
         $m_desc = base64_encode('Topup Account balance');
         $urlParams = [
             'm_shop' => $m_shop,
@@ -107,19 +134,52 @@ class Payeer implements Provider
      */
     public function webhook(Request $request, string $type = 'deposit')
     {
-        if (!$this->verifyIpn($request)) return;
-        $deposit = Deposit::where('uuid', $request->m_orderid)->first();
-        if (
-            $request->m_amount < floatval(round($amount ?? 0, 2)) ||
-            $request->m_curr != $deposit->fiat_currency ||
-            $request->m_status != 'success'  ||
-            $deposit->status != DepositStatus::PROCESSING
-        ) return;
-        $deposit->status = DepositStatus::COMPLETE;
-        $deposit->save();
-        if ($deposit->auto_approve) {
-            app(DepositTx::class)->create($deposit);
+        $params = $request->all();
+        // Validate the presence of necessary parameters
+        if (!$this->validatePayeerParams($params)) {
+            return response('Invalid parameters', 400);
         }
+        // Verify the IPN signature
+        if (!$this->verifyPayeerSignature($params)) {
+            return response('Signature mismatch', 400);
+        }
+        $deposit = Deposit::where('uuid', $request->m_orderid)->first();
+        if ($deposit->status == DepositStatus::COMPLETE)
+            return response('IPN received', 200);
+        if (
+            $params['m_status'] === 'success' &&
+            $request->m_amount >= $deposit->gateway_amount &&
+            $params['m_curr'] == $deposit->gateway_currency
+        ) {
+            // Payment is successful, update the order status in your database
+            $deposit->status = DepositStatus::COMPLETE;
+            $deposit->gateway_error = null;
+            $deposit->save();
+            // Payment is successful, lets proceed to update users balance.
+            app(DepositTx::class)->create($deposit);
+        } else {
+            // Payment not successful, log or handle accordingly
+            $deposit->status = DepositStatus::FAILED;
+            $deposit->gateway_error = value(function () use ($params, $deposit) {
+                if ($params['m_status'] !== 'success') return __('Gateway status not successful');
+                if ($params['m_amount'] < $deposit->gateway_amount) return __('Low Deposit amount recieved. Contact admin');
+                return __('Deposit currency mismatch');
+            });
+            $deposit->save();
+        }
+
+        return response('IPN received', 200);
+    }
+
+    /**
+     * Update the status of a withdraw (payout) at CoinPayments.
+     *
+     * @param string $withdrawId The ID of the withdraw in our system
+     * @return bool Returns true if the update was successful, false otherwise
+     */
+    public function updateWithdrawStatus(Withdraw $withdraw): bool
+    {
+        return false;
     }
 
 
@@ -132,6 +192,7 @@ class Payeer implements Provider
     public function withdraw(Collection $withdraws)
     {
 
+        $batchId = Str::random(32);
         foreach ($withdraws as $withdraw) {
             if ($withdraw->status != WithdrawStatus::APPROVED) continue;
             $response = $this->call('transfer', [
@@ -142,6 +203,7 @@ class Payeer implements Provider
             ]);
             if ($response->success) {
                 $withdraw->remoteId = $response->historyId;
+                $withdraw->batchId = $batchId;
                 $withdraw->status = WithdrawStatus::COMPLETE;
                 $withdraw->save();
             }
@@ -173,28 +235,7 @@ class Payeer implements Provider
 
 
 
-    /**
-     * 
-     */
-    public function verifyIpn(Request $request)
-    {
-        if (!isset($request->m_operation_id) || !isset($request->m_sign))
-            return false;
-        $m_sign = strtoupper(hash('sha256', implode(":", [
-            $request->m_operation_id,
-            $request->m_operation_ps,
-            $request->m_operation_date,
-            $request->m_operation_pay_date,
-            $request->m_shop,
-            $request->m_orderid,
-            $request->m_amount,
-            $request->m_curr,
-            $request->m_desc,
-            $request->m_status,
-            $this->merchant_key,
-        ])));
-        return $request->m_sign == $m_sign;
-    }
+
 
 
     /**
@@ -234,5 +275,89 @@ class Payeer implements Provider
             throw ValidationException::withMessages(['withdrawal' => [$response->error]]);
         }
         return $response->content;
+    }
+
+
+    public static function failDeposit(Deposit $deposit, string $error)
+    {
+        $deposit->status = DepositStatus::FAILED;
+        $deposit->gateway_error = $error;
+        $deposit->save();
+        return redirect()->route('deposits.show', $deposit)->with('error', $error);
+    }
+    /**
+     * 
+     */
+
+    public function returned(Request $request, Deposit $deposit)
+    {
+        $params = $request->all();
+        // override url
+        $deposit = Deposit::where('uuid', $request->m_orderid)->first();
+        // Check that all necessary parameters are present
+        if (!$this->validatePayeerParams($params)) {
+            return static::failDeposit($deposit, __('Invalid payment parameters.'));
+        }
+        // Verify the payment signature
+        if (!$this->verifyPayeerSignature($params)) {
+            return static::failDeposit($deposit, __('Payment verification failed.'));
+        }
+        // Check the payment status
+        if ($params['m_status'] === 'success') {
+            $deposit->status = DepositStatus::COMPLETE;
+            $deposit->gateway_error = null;
+            $deposit->save();
+            // Payment is successful, lets proceed to update users balance.
+            app(DepositTx::class)->create($deposit);
+            return redirect()->route('payment.success')->with('success', __('Payment completed successfully.'));
+        } else {
+            // Payment not successful
+            return static::failDeposit($deposit, __('Payment not successful.'));
+        }
+    }
+
+    public function validatePayeerParams($params)
+    {
+        $requiredParams = [
+            'm_operation_id',
+            'm_operation_ps',
+            'm_operation_date',
+            'm_operation_pay_date',
+            'm_shop',
+            'm_orderid',
+            'm_amount',
+            'm_curr',
+            'm_desc',
+            'm_status',
+            'm_sign'
+        ];
+
+        foreach ($requiredParams as $param) {
+            if (!isset($params[$param])) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public function verifyPayeerSignature($params)
+    {
+        $secret_key =  $this->merchant_key;  // The secret key from Payeer
+        $signParams = [
+            $params['m_operation_id'],
+            $params['m_operation_ps'],
+            $params['m_operation_date'],
+            $params['m_operation_pay_date'],
+            $params['m_shop'],
+            $params['m_orderid'],
+            $params['m_amount'],
+            $params['m_curr'],
+            $params['m_desc'],
+            $params['m_status']
+        ];
+        // Create the hash to compare with m_sign
+        $sign = strtoupper(hash('sha256', implode(':', $signParams) . ':' . $secret_key));
+        return $sign === $params['m_sign'];
     }
 }

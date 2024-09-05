@@ -15,6 +15,12 @@ interface Provider
      */
 
     public function getName();
+
+    /**
+     * get the name (ID) of the gateway
+     */
+
+    public function updateCurrencies();
     /**
      * Handle deposit request.
      *
@@ -51,4 +57,22 @@ interface Provider
      * @return \Illuminate\Support\Collection
      */
     public function setConfig(Request $request): Collection;
+
+    /**
+     * Handle return after payment
+     *
+     * @param  \Illuminate\Http\Request $request
+     * 
+     * @return \Illuminate\Support\Collection
+     */
+    public function returned(Request $request, Deposit $deposit);
+
+
+    /**
+     * Update the status of a withdraw (payout) at provider.
+     *
+     * @param Withdraw $withdraw the withdraw in our system
+     * @return bool Returns true if the update was successful, false otherwise
+     */
+    public function updateWithdrawStatus(Withdraw $withdraw): bool;
 }

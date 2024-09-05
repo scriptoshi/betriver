@@ -2,10 +2,12 @@
 
 namespace App\Enums\Soccer\Outcomes;
 
+use App\Traits\Overunders;
 use Illuminate\Support\Str;
 
 enum GoalsOverUnderOutcome: string
 {
+    use Overunders;
     case OVER_05 = 'over_0.5';
     case UNDER_05 = 'under_0.5';
     case OVER_15 = 'over_1.5';

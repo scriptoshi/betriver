@@ -8,13 +8,19 @@
 	import Favourite from "@/Components/Favourite.vue";
 	import GameCount from "@/Components/GameCount.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
-	import DeepMenu from "@/Layouts/AppLayout/DeepMenu.vue";
+	import DeepMenu from "@/Layouts/FontendLayout/Sidebar/DeepMenu.vue";
 	const props = defineProps({
 		menu: Object,
 		active: Boolean,
 	});
 	const isOpen = ref(false);
-	onMounted(() => (isOpen.value = !!props.menu.active));
+	onMounted(() => (isOpen.value = !!props.active));
+	function currentRoute(route = [], params = {}) {
+		if (!route) return false;
+		if (typeof route === "string")
+			return window.route().current(route, params);
+		return route.filter((rt) => window.route().current(rt)).length > 0;
+	}
 </script>
 <template>
 	<div>
@@ -79,7 +85,7 @@
 					menu.active
 						? 'text-emerald-500 dark:text-emerald-400'
 						: ' text-gray-900 dark:text-gray-200',
-					{ 'bg-gray-300 dark:bg-gray-700': isOpen },
+					{ 'bg-gray-300 dark:bg-gray-750': isOpen },
 				]"
 				class="items-center group text-sm cursor-pointer flex font-semibold h-8 justify-between px-6 select-none hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-emerald-200/50 dark:hover:bg-emerald-700/50">
 				<span class="flex items-center">
@@ -108,13 +114,26 @@
 					<template v-for="sub in menu.submenu" :key="sub.id">
 						<DeepMenu
 							v-if="sub.deepMenu"
-							:active="route().current(sub.route, sub.params)"
-							:menu="sub" />
+							:active="
+								$page.props.sport && $page.props.country
+									? sub?.params?.sport ===
+											$page.props.sport &&
+									  sub?.params?.country ===
+											$page.props.country
+									: false
+							"
+							:menu="sub"
+							:country="
+								$page.props.country + '-' + sub?.params?.country
+							"
+							:sport="
+								sub?.params?.sport + '-' + $page.props.sport
+							" />
 						<div
 							v-else
 							:class="
 								route().current(sub.route, sub.params)
-									? 'bg-gray-300 text-gray-900 dark:text-white'
+									? 'bg-gray-300 dark:bg-gray-700 text-gray-900 dark:text-white'
 									: ' text-gray-600 hover:text-gray-700 dark:hover:text-white dark:text-gray-300'
 							"
 							class="items-center h-8 text-sm gap-x-2 cursor-pointer flex font-semibold pl-10 pr-6 whitespace-nowrap w-full hover:bg-emerald-200/50 dark:hover:bg-emerald-700/30 transition-colors">

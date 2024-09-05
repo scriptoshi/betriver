@@ -1,12 +1,13 @@
 <script setup>
+	import { Link, useForm } from "@inertiajs/vue3";
+	import { HiArrowSmLeft } from "oh-vue-icons/icons";
+
 	import FormInput from "@/Components/FormInput.vue";
 	import Loading from "@/Components/Loading.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
 	import { ucfirst } from "@/hooks";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
-	import { Link, useForm } from "@inertiajs/vue3";
-	import { HiArrowSmLeft } from "oh-vue-icons/icons";
 	const props = defineProps({
 		title: { required: false, type: String },
 		type: String,
@@ -89,7 +90,7 @@
 												of all the levels commission
 											</p>
 											<p>
-												Level #1 is the individual whom
+												Level #1 is the individual who
 												made the actual referral being
 												paid out.
 											</p>

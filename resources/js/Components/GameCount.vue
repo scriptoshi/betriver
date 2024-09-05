@@ -1,6 +1,6 @@
 <script setup>
 	defineProps({
-		count: Number,
+		count: [Number, String],
 		active: Boolean,
 	});
 </script>

@@ -17,7 +17,7 @@ enum ResultTotalGoalsOutcome: string
         $result = ucfirst($parts[0]);
         $overUnder = ucfirst($parts[1]);
         $goals = $parts[2] . '.' . $parts[3];
-        return "{$result} & {$overUnder} {$goals}";
+        return formatName("{$result} & {$overUnder} {$goals}");
     }
 
     public function result(): string

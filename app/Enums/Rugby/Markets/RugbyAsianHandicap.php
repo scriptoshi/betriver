@@ -85,9 +85,9 @@ enum RugbyAsianHandicap: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
-                    ['result' => $outcome->value, 'sport' => LeagueSport::RUGBY]
+                    ['name' => $outcome->name(), 'sport' => LeagueSport::RUGBY]
                 );
             }
         }

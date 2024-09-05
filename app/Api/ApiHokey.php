@@ -30,7 +30,7 @@ class ApiHokey extends ApiSports
 
     public static function ended($status): bool
     {
-        return GameStatus::from(strtoupper($status))->ended();
+        return GameStatus::tryFrom(strtoupper($status))?->ended() ?? true;
     }
 
 
@@ -73,5 +73,36 @@ class ApiHokey extends ApiSports
             }
             $game->save();
         }
+    }
+
+    protected static function saveScores(Game $game, $lg)
+    {
+
+        if ($game->status == GameStatus::Cancelled->value || $game->status == GameStatus::Postponed->value)
+            return;
+        $game->scores()->updateOrCreate([
+            'type' => 'total',
+        ], [
+            'home' => $lg->scores->home ?? null,
+            'away' => $lg->scores->away ?? null,
+        ]);
+        foreach ($lg->periods as $type => $score) {
+            [$home, $away] = is_null($score) ? [null, null] : explode('_', $score) + [null, null];
+            $game->scores()->updateOrCreate([
+                'type' => $type,
+            ], [
+                'home' => $home,
+                'away' => $away,
+            ]);
+        }
+        $game->status = isset($lg->status)
+            ? $lg->status->short
+            : $lg->game->status?->short;
+        $game->elapsed = intval($lg->timer);
+        if (static::ended($game->status)) {
+            $game->endTime = now();
+            $game->closed = true;
+        }
+        $game->save();
     }
 }

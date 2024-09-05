@@ -82,9 +82,9 @@ enum GameResult: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => formatName($bet->value),
+                        'result' => $bet->value,
                     ],
-                    ['result' => $bet->value, 'sport' => LeagueSport::FOOTBALL]
+                    ['name' => formatName($bet->value), 'sport' => LeagueSport::FOOTBALL]
                 );
             }
         }

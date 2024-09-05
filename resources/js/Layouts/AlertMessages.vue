@@ -13,14 +13,14 @@
 	const info = computed(() => usePage().props.flash?.info);
 	setTimeout(() => {
 		show.value = false;
-	}, 10000);
+	}, 100000000000);
 	watch(
 		[error, success, message, info],
 		([error, success, message, info]) => {
 			if (error || success || message || info) {
 				setTimeout(() => {
 					show.value = false;
-				}, 10000);
+				}, 100000000);
 				show.value = true;
 			}
 		},
@@ -44,7 +44,7 @@
 	<section
 		@click="show = false"
 		v-if="success && show"
-		class="bg-green-500 text-white text-base py-2 px-4 flex justify-center text-center cursor-pointer sticky top-0 z-30">
+		class="bg-green-500 text-white text-base py-2 px-4 flex justify-center text-center cursor-pointer sticky top-0 z-[100]">
 		<a
 			class="md:flex md:items-center font-semibold text-white"
 			href="#"
@@ -56,7 +56,7 @@
 	<section
 		@click="show = false"
 		v-if="error && show"
-		class="bg-red-500 text-white text-base py-2 px-4 flex justify-center text-center cursor-pointer sticky top-0 z-30">
+		class="bg-red-500 text-white text-base py-2 px-4 flex justify-center text-center cursor-pointer sticky top-0 z-[100]">
 		<a
 			class="md:flex md:items-center font-semibold text-white"
 			href="#"
@@ -68,7 +68,7 @@
 	<section
 		@click="show = false"
 		v-if="info && show"
-		class="bg-sky-500 text-white text-base py-2 px-4 flex justify-center text-center cursor-pointer sticky top-0 z-30">
+		class="bg-sky-500 text-white text-base py-2 px-4 flex justify-center text-center cursor-pointer sticky top-0 z-[100]">
 		<a
 			class="md:flex md:items-center font-semibold text-white"
 			href="#"

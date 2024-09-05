@@ -99,9 +99,9 @@ enum AFLOverUnder: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
-                    ['result' => $outcome->value, 'sport' => LeagueSport::AFL]
+                    ['name' => $outcome->name(), 'sport' => LeagueSport::AFL]
                 );
             }
         }

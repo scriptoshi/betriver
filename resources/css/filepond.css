@@ -25,15 +25,15 @@
 }
 
 .filepond.nft-upload .filepond--panel-root {
-	@apply min-h-[256px] bg-transparent;
+	@apply min-h-[128px] bg-transparent;
 }
 
 .filepond.nft-upload .filepond--drop-label {
-	@apply min-h-[256px];
+	@apply min-h-[128px];
 }
 
 .filepond.nft-upload {
-	@apply min-h-[256px];
+	@apply min-h-[128px];
 }
 
 .filepond.fp-bg-filled .filepond--panel-root {
@@ -42,6 +42,9 @@
 
 .filepond--drop-label label {
 	@apply text-gray-600 dark:text-gray-100;
+}
+.filepond .filepond--credits {
+	@apply hidden;
 }
 
 .filepond.label-icon .filepond--drop-label label {

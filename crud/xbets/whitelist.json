@@ -1,0 +1,48 @@
+{
+    "fields": [
+        {
+            "name": "user_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:users,id"
+        },
+        {
+            "name": "currency_id",
+            "type": "foreignId|constrained|onUpdate:'cascade'|onDelete:'cascade'",
+            "rules": "required|integer|exists:currencies,id"
+        },
+        {
+            "name": "payout_address",
+            "type": "string",
+            "rules": "required|string"
+        },
+        {
+            "name": "approved",
+            "type": "boolean",
+            "rules": "required|boolean"
+        },
+        {
+            "name": "status",
+            "type": "select",
+            "options": {
+                "pending": "Pending",
+                "review": "Review",
+                "processing": "Processing",
+                "rejected": "Rejected",
+                "approved": "approved",
+                "cancelled": "Cancelled"
+            }
+        }
+    ],
+    "relationships": [
+        {
+            "name": "user",
+            "type": "belongsTo",
+            "class": "User|user_id|id"
+        },
+        {
+            "name": "currency",
+            "type": "belongsTo",
+            "class": "Currency|currency_id|id"
+        }
+    ]
+}

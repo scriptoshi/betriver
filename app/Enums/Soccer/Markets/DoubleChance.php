@@ -77,9 +77,9 @@ enum DoubleChance: string  implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $bet->name(),
+                        'result' => $bet->value,
                     ],
-                    ['result' => $bet->value, 'sport' => LeagueSport::FOOTBALL]
+                    ['name' => $bet->name(),  'sport' => LeagueSport::FOOTBALL]
                 );
             }
         }

@@ -79,7 +79,7 @@ trait HasProfilePhoto
      *
      * @return string
      */
-    protected function profilePhotoDisk()
+    function profilePhotoDisk()
     {
         return  settings('profile_photo_disk', 'public');
     }

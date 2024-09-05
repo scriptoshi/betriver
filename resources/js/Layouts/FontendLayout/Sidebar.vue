@@ -41,7 +41,13 @@
 				v-for="menu in menus"
 				:key="menu.id"
 				:menu="menu"
-				:active="menu.route ? currentRoute(menu.route) : false" />
+				:active="
+					menu.type === 'link'
+						? currentRoute(menu.route, menu.params)
+						: $page.props.sport
+						? menu?.params?.sport === $page.props.sport
+						: false
+				" />
 		</ul>
 	</div>
 </template>

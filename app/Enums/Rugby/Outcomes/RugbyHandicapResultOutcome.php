@@ -2,6 +2,7 @@
 
 namespace App\Enums\Rugby\Outcomes;
 
+use Google\Service\PolyService\Format;
 use Illuminate\Support\Str;
 
 enum RugbyHandicapResultOutcome: string
@@ -34,6 +35,6 @@ enum RugbyHandicapResultOutcome: string
         $result = Str::ucfirst($this->result());
         $handicap = $this->handicapValue();
         $handicapStr = $handicap > 0 ? "+{$handicap}" : $handicap;
-        return "{$result} ({$handicapStr})";
+        return formatName("{$result} ({$handicapStr})");
     }
 }

@@ -13,6 +13,7 @@ use App\Enums\StakeStatus;
 use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
 use App\Models\Bet;
+use App\Models\Game;
 use App\Support\TradeManager;
 use Exception;
 use Gate;
@@ -85,6 +86,7 @@ class StakesController extends Controller
             throw ValidationException::withMessages(['amount' => ['Low Balance']]);
         }
         $bet = Bet::find($request->bet_id);
+        $game = Game::find($request->game_id);
         $stake = new Stake();
         $stake->fill($request->only(['amount', 'odds', 'bet_id']));
         $stake->user_id = $request->user()->id;
@@ -93,6 +95,7 @@ class StakesController extends Controller
         $stake->market_id = $bet->market_id;
         $stake->uid = Random::generate();
         $stake->type =  $type;
+        $stake->sport =  $game->sport;
         $stake->status = StakeStatus::PENDING;
         $stake->unfilled = $request->amount;
         $stake->qty = $request->amount * $request->odds;
@@ -193,6 +196,7 @@ class StakesController extends Controller
             $newStake = new Stake();
             $newStake->fill([
                 'user_id' =>  $stake->user_id,
+                'uid' => Random::generate(),
                 'original_stake_id' => $stake->id,
                 'game_id' => $stake->game_id,
                 'bet_id' => $stake->bet_id,
@@ -201,6 +205,7 @@ class StakesController extends Controller
                 'amount' => $tradeOutAmount,
                 'odds' => $newOdds,
                 'type' => $stake->type === StakeType::BACK ? StakeType::LAY : StakeType::BACK,
+                'sport' =>  $stake->sport,
                 'is_trade_out' => true,
                 'status' => StakeStatus::PENDING,
                 'unfilled' => $tradeOutAmount,
@@ -236,7 +241,7 @@ class StakesController extends Controller
                     'amount' => $extraExposure,
                     'balance_before' => $user->balance + $extraExposure,
                     'action' => TransactionAction::CREDIT,
-                    'type' => TransactionType::TRADE_OUT_LIABILITY
+                    'type' => TransactionType::TRADE_OUT_EXPOSURE
                 ]);
             }
             // Attempt to match the new stake

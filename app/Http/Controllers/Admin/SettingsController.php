@@ -7,6 +7,8 @@ use App\Enums\MailDrivers;
 use App\Enums\SmsDrivers;
 use App\Gateways\Payment\Facades\Payment;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Currency as ResourcesCurrency;
+use App\Models\Currency;
 use App\Models\Setting;
 use App\Support\Site as Sitemap;
 use File;
@@ -24,11 +26,53 @@ class SettingsController extends Controller
      */
     public function site(Request $request)
     {
+        settings()->set('site.odds_spread', 0.2);
         $settings = settings()->for('site')->all();
         $settings['logo_uri'] = $settings['logo'];
         $zones = File::get(resource_path('js/constants/timezones.json'));
         $timezones = json_decode($zones);
         return Inertia::render('Admin/Settings/Site', compact('settings', 'timezones'));
+    }
+
+    /**
+     * Display site settings editing page
+     * @return \Illuminate\View\View
+     */
+    public function levels(Request $request)
+    {
+
+        return Inertia::render('Admin/Settings/Commission', [
+            'levelOne' => settings()->for('level_one'),
+            'levelTwo' => settings()->for('level_two'),
+            'levelThree' => settings()->for('level_three'),
+        ]);
+    }
+
+    /**
+     * Store social settings
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function storeLevels(Request $request, $level)
+    {
+
+        settings()->set("$level.name", $request->name);
+        settings()->set("$level.description", $request->description);
+        settings()->set("$level.limits", $request->limits);
+        settings()->set("$level.max_daily_deposit", $request->max_daily_deposit);
+        settings()->set("$level.max_monthly_deposit", $request->max_monthly_deposit);
+        settings()->set("$level.exchange_max_bet", $request->exchange_max_bet);
+        settings()->set("$level.exchange_min_bet", $request->exchange_min_bet);
+        settings()->set("$level.bookie_max_bet", $request->bookie_max_bet);
+        settings()->set("$level.bookie_min_bet", $request->bookie_min_bet);
+        settings()->set("$level.commission_profit", $request->commission_profit);
+        settings()->set("$level.commission_bet", $request->commission_bet);
+        settings()->set("$level.deposit_fees", $request->deposit_fees);
+        settings()->set("$level.withdraw_fees", $request->withdraw_fees);
+        settings()->set("$level.optin_fees", $request->optin_fees);
+
+        settings()->refresh();
+        return back()->with('success', __('Changes to :level Settings saved!', ['level' => str($level)->title()]));
     }
 
     /**
@@ -159,11 +203,30 @@ class SettingsController extends Controller
      */
     public function payments(Request $request)
     { // sitemap\
+
         return Inertia::render(
             'Admin/Settings/Payments',
-            ['gateways' => collect(Payment::gateways())->flatMap(function ($driver) {
-                return [$driver => Payment::driver($driver)->getConfig()];
-            })]
+            [
+                'gateways' => collect(Payment::gateways())->flatMap(function ($driver) {
+                    $gateway = Payment::driver($driver);
+                    $gateway->updateCurrencies();
+                    return [$driver => $gateway->getConfig()];
+                }),
+                'currencies' => Currency::all()->map(fn($cur) => [
+                    'code' => $cur->name,
+                    'label' => $cur->code,
+                    'gateway' => $cur->gateway,
+                    'value' => $cur->id,
+                    'img' => $cur->logo_url
+                ])->groupBy('gateway'),
+                'selected' => Currency::where('active', true)
+                    ->select(['id', 'gateway'])
+                    ->get()
+                    ->groupBy('gateway')
+                    ->mapWithKeys(function ($chosen, $gateway) {
+                        return [$gateway => $chosen->map(fn($curr) => $curr->id)->values()];
+                    }),
+            ]
         );
     }
 
@@ -174,6 +237,7 @@ class SettingsController extends Controller
      */
     public function store(Request $request)
     {
+
         $settings = $request->except(['group', 'logo_uri', 'logo_path', 'logo_upload']);
         $group = $request->input('group');
         foreach ($settings as $name => $val) {
@@ -190,6 +254,8 @@ class SettingsController extends Controller
             app(SettingsUploads::class)->upload($request, $setting, 'logo');
         }
         settings()->refresh();
+
+
         return back()->with('success', __('Changes to Settings saved!'));
     }
 
@@ -385,9 +451,23 @@ class SettingsController extends Controller
     public function storePayments(Request $request)
     {
         $gateways = implode(",", Payment::gateways());
-        $request->validate(['gateway' => ['required', 'string', "in:$gateways"]]);
+        $request->validate([
+            'gateway' => [
+                'required',
+                'string',
+                "in:$gateways"
+            ],
+            'currencies' => 'array'
+        ]);
         $gateway = $request->gateway;
         $settings = Payment::driver($gateway)->setConfig($request);
+        $currencies =  $request->currencies;
+        Currency::where('gateway', $request->gateway)->update([
+            'active' => false
+        ]);
+        Currency::where('gateway', $request->gateway)->whereIn('id', $currencies)->update([
+            'active' => true
+        ]);
         return back()->with('success', __('Changes to :gateway settings saved!', ['gateway' => $settings['name']]));
     }
 

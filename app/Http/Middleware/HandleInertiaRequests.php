@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Enums\LeagueSport;
+use App\Enums\StakeStatus;
 use App\Http\Resources\User;
 use App\Models\Game;
 use App\Models\League;
@@ -45,6 +46,7 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' =>  $user ? new User($user) : null,
             ],
+
             'isAdmin' => $user ? $user->isAdmin() : false,
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
@@ -52,6 +54,14 @@ class HandleInertiaRequests extends Middleware
                 'success' => fn() => $request->session()->get('success'),
                 'info' => fn() => $request->session()->get('info'),
             ],
+            'exposure' => function () use ($user) {
+                if (!$user) return  0;
+                return $user->stakes()->whereIn('status', StakeStatus::exposed())->sum('liability');
+            },
+            'potentialWinnings' => function () use ($user) {
+                if (!$user) return  0;
+                return $user->stakes()->whereIn('status', StakeStatus::exposed())->sum('payout');
+            },
             'appName' => settings('site.app_name'),
             'appLogo' => settings('site.logo'),
             'appDescription' => settings('site.description'),
@@ -65,6 +75,12 @@ class HandleInertiaRequests extends Middleware
             'enableFacebookLogin' => !!settings('facebook.client_id', null) && str(settings('facebook.enable'))->toBoolean(),
             'gdprTitle' => settings('pages.gdpr_notice'),
             'gdprText' => settings('pages.gdpr_terms'),
+            'enableKyc' => str(settings('site.enable_kyc'))->toBoolean(),
+            'currency' => [
+                'currency_code' => settings('site.currency_code'),
+                'currency_symbol' => settings('site.currency_symbol'),
+                'currency_display' => settings('site.currency_display'),
+            ],
             'sports' => collect(LeagueSport::cases())->map(fn(LeagueSport $l) => strlen($l->value) == 3 ? strtoupper($l->value) :  ucfirst($l->value)),
             'menus' => collect(LeagueSport::cases())->map(function (LeagueSport $sport) use ($activeCounts, $leagues, $footballLeagues) {
                 $leaguesMenu = match ($sport) {
@@ -80,6 +96,7 @@ class HandleInertiaRequests extends Middleware
                         'today' => $activeCounts[$sport->value]['today'] ?? 0,
                         'tomorrow' => $activeCounts[$sport->value]['tomorrow'] ?? 0,
                         'this_week' => $activeCounts[$sport->value]['this_week'] ?? 0,
+                        'next_week' => $activeCounts[$sport->value]['next_week'] ?? 0,
                         'ended' => $activeCounts[$sport->value]['ended'] ?? 0,
                         'leagues' => $leaguesMenu
                     ],

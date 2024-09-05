@@ -2,8 +2,11 @@
 
 namespace App\Enums\Baseball\Outcomes;
 
+use App\Traits\Overunders;
+
 enum OverUnderOutcome: string
 {
+    use Overunders;
     case OVER_6_5 = 'over_6.5';
     case UNDER_6_5 = 'under_6.5';
     case OVER_7_5 = 'over_7.5';

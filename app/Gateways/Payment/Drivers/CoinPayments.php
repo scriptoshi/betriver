@@ -6,16 +6,22 @@ use App\Enums\DepositStatus;
 use App\Enums\WithdrawStatus;
 use App\Gateways\Payment\Actions\DepositTx;
 use App\Gateways\Payment\Contracts\Provider;
+use App\Models\Currency;
 use App\Models\Deposit;
 use App\Models\Withdraw;
+use App\Support\Rate;
+use Cache;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Ixudra\Curl\Facades\Curl;
+use Log;
+use Str;
 
 class CoinPayments implements Provider
 {
 
     public static $endpoint = 'https://www.coinpayments.net/api.php';
+    public static $sandbox = 'https://www.coinpayments.net/api.php';
     public $name = 'coinpayments';
     public function __construct(
         public ?string $public_key = null,
@@ -23,6 +29,11 @@ class CoinPayments implements Provider
         public ?string $merchant_id = null,
         public ?string $ipn_secret = null
     ) {
+
+        $this->public_key = $this->public_key ?? settings('coinpayments.public_key');
+        $this->private_key =   $this->private_key ??  settings('coinpayments.private_key');
+        $this->merchant_id  =  $this->merchant_id ?? settings('coinpayments.merchant_id');
+        $this->ipn_secret = $this->ipn_secret ?? settings('coinpayments.ipn_secret');
     }
 
     public function getName()
@@ -37,12 +48,14 @@ class CoinPayments implements Provider
             settings()->set('coinpayments.name', 'Coin Payments');
             settings()->set('coinpayments.logo', "https://avatars.githubusercontent.com/u/6100871");
             settings()->set('coinpayments.enable_withdraw', 'true');
+            settings()->set('coinpayments.auto_approve_withdraw_address', 'true');
             settings()->set('coinpayments.enable_deposit', 'true');
-            settings()->set('coinpayments.currencies', 'BTC,USDT,USDC');
             settings()->set('coinpayments.public_key', null);
             settings()->set('coinpayments.private_key', null);
             settings()->set('coinpayments.merchant_id', null);
-            settings()->set('coinpayments.ipn_secret', null);
+            settings()->set('coinpayments.ipn_secret', Str::random(30));
+            settings()->set('coinpayments.max_withdraw_limit', 0);
+            settings()->set('coinpayments.min_withdraw_limit', 20);
             $config = settings()->for('coinpayments');
         }
         return $config;
@@ -53,14 +66,43 @@ class CoinPayments implements Provider
         settings()->set('coinpayments.name', $request->name);
         settings()->set('coinpayments.logo', $request->logo);
         settings()->set('coinpayments.enable_withdraw', $request->boolean('enable_withdraw') ? 'true' : 'false');
+        settings()->set('coinpayments.auto_approve_withdraw_address', $request->boolean('auto_approve_withdraw_address') ? 'true' : 'false');
         settings()->set('coinpayments.enable_deposit', $request->boolean('enable_deposit') ? 'true' : 'false');
-        settings()->set('coinpayments.currencies', $request->currencies);
         settings()->set('coinpayments.public_key', $request->public_key);
         settings()->set('coinpayments.private_key', $request->private_key);
         settings()->set('coinpayments.merchant_id', $request->merchant_id);
         settings()->set('coinpayments.ipn_secret', $request->ipn_secret);
-        settings()->set('coinpayments.apiSecret', $request->apiSecret);
+        settings()->set('coinpayments.max_withdraw_limit', $request->max_withdraw_limit);
+        settings()->set('coinpayments.min_withdraw_limit', $request->min_withdraw_limit);
         return settings()->for('coinpayments');
+    }
+
+    /**
+     * Get all the currencies supported by the gateway
+     */
+    public function updateCurrencies()
+    {
+        $accepted = Cache::remember('coinpayment-accepted-currencies', 60 * 60, function () {
+            return  $this->coinpayment('rates', ['accepted' => 1]);
+        });
+        collect($accepted->result)->each(function ($currency, $symbol) {
+            $rate = Rate::btcToUsd($currency->rate_btc, 16);
+            if (floatval($rate) == 0) return;
+            Currency::query()->updateOrCreate([
+                "code" => $symbol,
+                'gateway' => $this->name,
+            ], [
+                "symbol" => str($symbol)->before('.'),
+                "name" => $currency->name,
+                "regex" => null,
+                "logo_url" =>  $currency->image ?? null,
+                "chain" => $currency->chain ?? null,
+                'contract' => $currency->contract ?? null,
+                'explorer' => $currency->explorer ?? null,
+                'rate' => Rate::btcToUsd($currency->rate_btc, 16),
+                'precision' => 16
+            ]);
+        });
     }
 
 
@@ -71,13 +113,14 @@ class CoinPayments implements Provider
      */
     public function deposit(Deposit $deposit)
     {
+
         $response = $this->coinpayment('create_transaction', [
             'custom' => $deposit->uuid,
             'buyer_email' => $deposit->user->email,
             'amount' => $deposit->gross_amount, // usd
             'currency1' => $deposit->amount_currency, // usd
             'currency2' => $deposit->gateway_currency, // btc
-            'ipn_url' => route('webhooks.deposit', ['provider' => $this->name]),
+            'ipn_url' => route('deposits.webhooks', ['provider' => $this->name, 'deposit' => $deposit->id]),
         ]);
         if ($response->error != 'ok')
             return back()->with('error', __('Failed to inialize transaction api. :error', ['error' => $response->error]));
@@ -134,6 +177,7 @@ class CoinPayments implements Provider
         );
         if ($response->error != 'ok') return back()->with('error', __("Withdraw Failed: " . $response->error));
         $hasError = false;
+        $batchId = Str::random(32);
         foreach ($response->result as $id => $res) {
             if ($res->error != 'ok') {
                 Withdraw::where('id', $id)->update([
@@ -144,14 +188,81 @@ class CoinPayments implements Provider
                 continue;
             }
             Withdraw::where('id', $id)->update([
-                'status' => WithdrawStatus::COMPLETE,
+                'status' => WithdrawStatus::PROCESSING,
                 'remoteId' => $res->id,
+                'batchId' => $batchId,
                 'gateway_amount' => $res->amount
             ]);
         }
         if ($hasError) return back()->with('error', __("Some withdraws failed to process."));
         return back()->with('success', __("All withdraws processed successfully"));
     }
+
+
+    /**
+     * Update the status of a withdraw (payout) at CoinPayments.
+     *
+     * @param string $withdrawId The ID of the withdraw in our system
+     * @return bool Returns true if the update was successful, false otherwise
+     */
+    public function updateWithdrawStatus(Withdraw $withdraw): bool
+    {
+
+        if (!$withdraw->remoteId) {
+            Log::error("Withdraw {$withdraw->id} does not have a remote ID");
+            return false;
+        }
+
+        $response = $this->coinpayment('get_withdrawal_info', [
+            'id' => $withdraw->remoteId,
+        ]);
+
+        if (!$response || !isset($response->result)) {
+            Log::error("Failed to get withdrawal info from CoinPayments for withdraw {$withdraw->id}");
+            return false;
+        }
+
+        $result = $response->result;
+
+        $newStatus = $this->mapCoinPaymentsStatus($result->status);
+
+        if ($newStatus !== $withdraw->status) {
+            $withdraw->status = $newStatus;
+            $withdraw->data = array_merge($withdraw->data ?? [], ['coinpayments_status' => $result]);
+            $withdraw->save();
+
+            // You might want to trigger additional actions here based on the new status
+            // For example, if the status is now COMPLETE, you might want to credit the user's account
+        }
+
+        return true;
+    }
+
+    /**
+     * Map CoinPayments status to our WithdrawStatus enum.
+     *
+     * @param int $coinPaymentsStatus
+     * @return WithdrawStatus
+     */
+    private function mapCoinPaymentsStatus(int $coinPaymentsStatus): WithdrawStatus
+    {
+        return match ($coinPaymentsStatus) {
+            0 => WithdrawStatus::PENDING,
+            1 => WithdrawStatus::PROCESSING,
+            2 => WithdrawStatus::COMPLETE,
+            -1 => WithdrawStatus::CANCELLED,
+            default => WithdrawStatus::FAILED,
+        };
+    }
+
+
+    /**
+     * Make an API call to CoinPayments.
+     *
+     * @param string $command
+     * @param array $data
+     * @return object|null
+     */
 
     protected function coinpayment($cmd, $data = [])
     {
@@ -174,5 +285,10 @@ class CoinPayments implements Provider
         $content = $request->getContent();
         $hmac = hash_hmac("sha512", $content, trim($this->ipn_secret));
         return hash_equals($hmac, $request->server('HTTP_HMAC'));
+    }
+
+    public function returned(Request $request, Deposit $deposit)
+    {
+        return redirect()->route('deposits.show', $deposit->uuid);
     }
 }

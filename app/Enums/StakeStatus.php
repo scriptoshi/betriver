@@ -14,4 +14,13 @@ enum StakeStatus: string
     case REFUNDED = 'refunded';
     case TRADE_OUT = 'trade_out';
     case TRADED_OUT = 'traded_out';
+
+    public static function exposed()
+    {
+        return [
+            static::PARTIAL,
+            static::PENDING,
+            static::MATCHED
+        ];
+    }
 }

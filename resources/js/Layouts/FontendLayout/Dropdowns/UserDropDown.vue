@@ -5,7 +5,7 @@
 	import { Link as InertiaLink, useForm, usePage } from "@inertiajs/vue3";
 	import {
 		HiSolidChevronDown,
-		HiUser,
+		MdAccountcircleTwotone,
 		MdCreditcard,
 		MdExittoappRound,
 		MdGeneratingtokensOutlined,
@@ -17,6 +17,7 @@
 	import { useI18n } from "vue-i18n";
 
 	import CollapseTransition from "@/Components/CollapseTransition.vue";
+	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import RadioSelect from "@/Components/RadioSelect.vue";
 	import Switch from "@/Components/Switch.vue";
@@ -25,52 +26,41 @@
 	import LangPicker from "@/Layouts/FontendLayout/Dropdowns/Lang.vue";
 
 	const user = computed(() => usePage().props.auth.user);
-	const avatar = computed(
-		() =>
-			user.value?.avatar?.src ??
-			user.value?.profile_photo_url ??
-			user.value?.gravatar,
-	);
+	defineEmits(["feedbackModal"]);
 	const { t } = useI18n();
 	const userNavigation = [
 		{
 			name: t("Statement"),
-			href: "#",
+			href: window.route("accounts.statement"),
 			icon: RiFileList2Line,
 		},
-
 		{
-			name: t("Manage Payments"),
-			href: "#",
-			icon: MdCreditcard,
+			name: t("Payout Whitelist"),
+			href: window.route("whitelists.index"),
+			icon: MdGeneratingtokensOutlined,
+		},
+		{
+			name: t("Referral Earnings"),
+			href: window.route("accounts.referrals"),
+			icon: MdAccountcircleTwotone,
 		},
 
 		{
 			name: t("Settings"),
-			href: "#",
+			href: window.route("accounts.settings"),
 			icon: MdSettingsOutlined,
 			active: false,
 		},
 		{
 			name: t("Stats & Commissions"),
-			href: "#",
+			href: window.route("accounts.commission"),
 			icon: MdInsertchartoutlinedRound,
 			active: false,
 		},
 		{
-			name: t("Promotions"),
-			href: "#",
-			icon: MdGeneratingtokensOutlined,
-		},
-		{
-			name: t("Feedback"),
-			href: "#",
-			icon: MdMessageOutlined,
-		},
-		{
-			name: t("Logout"),
-			href: "#",
-			icon: MdExittoappRound,
+			name: t("KYC Verification"),
+			href: window.route("accounts.verify"),
+			icon: MdCreditcard,
 		},
 	];
 	const showOddsMenu = ref(false);
@@ -102,8 +92,10 @@
 					: 'bg-transparent text-gray-800 dark:text-gray-100'
 			"
 			class="h-full px-5 flex items-center hover:bg-gray-150 dark:hover:bg-gray-750">
-			<div class="flex items-center">
-				<VueIcon :icon="HiUser" class="w-7 h-7" />
+			<div class="flex items-center w-7">
+				<img
+					:src="user.profile_photo_url"
+					class="w-7 h-7 rounded-full" />
 			</div>
 			<div
 				class="font-inter ml-5 hidden md:flex flex-col text-start leading-3">
@@ -115,7 +107,9 @@
 					class="text-sm font-bold leading-3">
 					---
 				</h3>
-				<h3 v-else class="text-sm font-bold leading-3">$5.04</h3>
+				<h3 v-else class="text-sm font-bold leading-3">
+					<MoneyFormat :amount="user.balance" />
+				</h3>
 			</div>
 			<div class="hidden md:flex items-center">
 				<VueIcon class="w-5 h-5 ml-4" :icon="HiSolidChevronDown" />
@@ -137,27 +131,38 @@
 						<div class="flex items-center justify-between">
 							<h3
 								class="text-[11px] opacity-85 font-semibold uppercase">
-								Total Exposure
+								{{ $t("Total Exposure") }}
 							</h3>
 							<h3
 								class="text-xs text-gray-700 dark:text-gray-100 font-semibold">
-								$ 56.99
+								<MoneyFormat :amount="$page.props.exposure" />
 							</h3>
 						</div>
 						<div class="flex items-center justify-between">
 							<h3
 								class="text-[11px] opacity-85 font-semibold uppercase">
-								PONTENTIAL WINNINGS
+								{{ $t("PONTENTIAL WINNINGS") }}
 							</h3>
 							<h3
 								class="text-xs text-gray-700 dark:text-gray-100 font-semibold">
-								$ 56.99
+								<MoneyFormat
+									:amount="$page.props.potentialWinnings" />
 							</h3>
 						</div>
 					</div>
 					<div class="grid grid-cols-2 mt-3 gap-3">
-						<PrimaryButton class="w-full">DEPOSIT</PrimaryButton>
-						<PrimaryButton class="w-full">WITHDRAW</PrimaryButton>
+						<PrimaryButton
+							link
+							:href="route('deposits.create')"
+							class="w-full">
+							{{ $t("DEPOSIT") }}
+						</PrimaryButton>
+						<PrimaryButton
+							link
+							:href="route('withdraws.create')"
+							class="w-full">
+							{{ $t("WITHDRAW") }}
+						</PrimaryButton>
 					</div>
 				</div>
 
@@ -179,6 +184,41 @@
 								class="mr-3 h-6 w-6 text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-300"
 								aria-hidden="true" />
 							{{ item.name }}
+						</InertiaLink>
+					</MenuItem>
+					<MenuItem v-slot="{ active }">
+						<a
+							href="#"
+							@click="$emit('feedbackModal')"
+							:class="[
+								active
+									? 'bg-gray-100 dark:bg-gray-500 text-gray-900 dark:text-gray-100'
+									: 'text-gray-700 dark:text-gray-200 ',
+								'group flex items-center px-6 py-2.5 text-base hover:bg-emerald-gray-300 dark:hover:bg-gray-700',
+							]">
+							<VueIcon
+								:icon="MdMessageOutlined"
+								class="mr-3 h-6 w-6 text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-300"
+								aria-hidden="true" />
+							{{ $t("Feedback") }}
+						</a>
+					</MenuItem>
+					<MenuItem v-slot="{ active }">
+						<InertiaLink
+							:href="route('logout')"
+							method="post"
+							as="button"
+							:class="[
+								active
+									? 'bg-gray-100 dark:bg-gray-500 text-gray-900 dark:text-gray-100'
+									: 'text-gray-700 dark:text-gray-200 ',
+								'group w-full flex items-center px-6 py-2.5 text-base hover:bg-emerald-gray-300 dark:hover:bg-gray-700',
+							]">
+							<VueIcon
+								:icon="MdExittoappRound"
+								class="mr-3 h-6 w-6 text-emerald-600 dark:text-emerald-400 group-hover:text-emerald-600 dark:group-hover:text-emerald-300"
+								aria-hidden="true" />
+							{{ $t("Logout") }}
 						</InertiaLink>
 					</MenuItem>
 					<div>

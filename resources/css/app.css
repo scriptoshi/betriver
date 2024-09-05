@@ -23,6 +23,11 @@
 	}
 }
 @layer components {
+	body,
+	html,
+	#app {
+		@apply h-full text-gray-700 dark:text-gray-300;
+	}
 	p {
 		@apply text-gray-600 dark:text-gray-400;
 	}
@@ -36,7 +41,7 @@
 	}
 
 	.card {
-		@apply relative w-full rounded-md min-w-[1px] flex-col break-words bg-white text-slate-500 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:shadow-none print:border;
+		@apply relative w-full rounded-sm min-w-[1px] flex-col break-words bg-white text-slate-500 shadow-sm dark:bg-gray-800 dark:text-gray-200 dark:shadow-none print:border;
 	}
 
 	.card-body {
@@ -108,9 +113,7 @@
 	}
 
 	.btn {
-		@apply disabled:opacity-60 disabled:pointer-events-none inline-flex cursor-pointer items-center justify-center rounded-sm px-4 py-1.5
-   text-center tracking-wide outline-none transition-all duration-200
-   focus:outline-none;
+		@apply disabled:opacity-60 disabled:pointer-events-none inline-flex cursor-pointer items-center justify-center rounded-sm px-4 py-1.5 text-center tracking-wide outline-none transition-all duration-200 focus:outline-none;
 	}
 
 	.form-input,

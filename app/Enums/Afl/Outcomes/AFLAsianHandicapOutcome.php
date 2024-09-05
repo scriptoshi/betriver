@@ -2,10 +2,12 @@
 
 namespace App\Enums\Afl\Outcomes;
 
+use App\Traits\Handicaps;
 use Illuminate\Support\Str;
 
 enum AFLAsianHandicapOutcome: string
 {
+    use Handicaps;
     case HOME_MINUS_205 = 'home_-205';
     case AWAY_PLUS_205 = 'away_+205';
     case HOME_MINUS_155 = 'home_-155';

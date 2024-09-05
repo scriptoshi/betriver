@@ -95,9 +95,9 @@ enum MatchWinner: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
-                        'name' => $outcome->name(),
+                        'result' => $outcome->value,
                     ],
-                    ['result' => $outcome->value, 'sport' => LeagueSport::BASKETBALL]
+                    ['name' => $outcome->name(), 'sport' => LeagueSport::BASKETBALL]
                 );
             }
         }

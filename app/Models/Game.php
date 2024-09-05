@@ -9,10 +9,12 @@ use App\Enums\StakeStatus;
 use App\Enums\StakeType;
 use App\Traits\HasUuid;
 use Carbon\Carbon;
+use DB;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
@@ -159,8 +161,31 @@ class Game extends Model
     {
         return $this->belongsToMany(Market::class, 'game_market', 'game_id', 'market_id')
             ->withTimestamps()
-            ->withPivot(['active', 'id']);
+            ->withPivot(['bookie_active', 'active', 'id']);
     }
+
+    /**'active',
+
+     * Get the markets this model Belongs To.
+     *
+     */
+    public function activeMarkets(): BelongsToMany
+    {
+        return $this->markets()->wherePivot('active', true);
+    }
+
+
+    /**'active',
+
+     * Get the markets this model Belongs To.
+     *
+     */
+    public function activeBookieMarkets(): BelongsToMany
+    {
+        return $this->markets()->wherePivot('bookie_active', true);
+    }
+
+
 
     /**
 
@@ -178,9 +203,21 @@ class Game extends Model
      */
     public function backs(): HasMany
     {
-        return $this->hasMany(Stake::class, 'bet_id', 'id')
+        return $this->hasMany(Stake::class, 'game_id', 'id')
             ->where('type', StakeType::BACK)
             ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value]);
+    }
+
+    /**
+     * Get the unmatched back stakes this model Owns.
+     *
+     */
+    public function bestBack(): HasOne
+    {
+        return $this->hasOne(Stake::class, 'game_id', 'id')
+            ->where('type', StakeType::BACK)
+            ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value])
+            ->ofMany('odds', 'max');
     }
 
 
@@ -191,9 +228,21 @@ class Game extends Model
      */
     public function lays(): HasMany
     {
-        return $this->hasMany(Stake::class, 'bet_id', 'id')
+        return $this->hasMany(Stake::class, 'game_id', 'id')
             ->where('type', StakeType::LAY)
             ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value]);
+    }
+
+    /**
+     * Get the unmatched lay stakes this model Owns.
+     *
+     */
+    public function bestlay(): HasOne
+    {
+        return $this->hasOne(Stake::class, 'game_id', 'id')
+            ->where('type', StakeType::LAY)
+            ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value])
+            ->ofMany('odds', 'min');
     }
 
 
@@ -205,6 +254,29 @@ class Game extends Model
     public function trades(): HasMany
     {
         return $this->hasMany(Trade::class, 'game_id', 'id');
+    }
+
+    /**'
+     * Get the latest trade for each bet, 
+     * #TODO. Get a more laravel method to get it done. Too much MYSQL
+     */
+    public function lastTrades()
+    {
+
+        return $this->hasMany(Trade::class)
+            ->select('*')
+            ->whereIn('id', function ($q) {
+                $q->select(DB::raw('MAX(id) FROM messages GROUP BY author_id'));
+            });
+    }
+
+    /**
+     * Get the odds this model Owns.
+     *
+     */
+    public function last_trade(): HasOne
+    {
+        return $this->hasOne(Trade::class)->latest();
     }
 
     /**
@@ -263,9 +335,9 @@ class Game extends Model
      */
     public function scopeLive($query)
     {
-        return $query->where('active', true)
-            ->where(fn($q) => $q->where('endTime', null)->orWhere('closed', false))
+        return $query->where(fn($q) => $q->where('endTime', null)->orWhere('closed', false))
             ->where('startTime', '<=', now())
+            ->where('startTime', '>=', now()->subHours(5))
         ;
     }
 
@@ -299,7 +371,18 @@ class Game extends Model
      */
     public function scopeThisWeek($query)
     {
-        return $query->whereBetween('startTime', [Carbon::now()->startOfWeek(), Carbon::now()->endOfWeek()]);
+        return $query->whereBetween('startTime', [now()->startOfWeek(), now()->endOfWeek()]);
+    }
+
+    /**
+     * Scope a query to only include games in next 7 days.
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeInNext7Days($query)
+    {
+        return $query->whereBetween('startTime', [now(), now()->addWeek()]);
     }
 
     /**
@@ -310,8 +393,8 @@ class Game extends Model
      */
     public function scopeNextWeek($query)
     {
-        $nextWeekStart = Carbon::now()->addWeek()->startOfWeek();
-        $nextWeekEnd = Carbon::now()->addWeek()->endOfWeek();
+        $nextWeekStart = now()->addWeek()->startOfWeek();
+        $nextWeekEnd = now()->addWeek()->endOfWeek();
         return $query->whereBetween('startTime', [$nextWeekStart, $nextWeekEnd]);
     }
 
@@ -392,6 +475,7 @@ class Game extends Model
                 ->selectRaw('SUM(CASE WHEN DATE(startTime) = ? THEN 1 ELSE 0 END) as today', [now()->toDateString()])
                 ->selectRaw('SUM(CASE WHEN DATE(startTime) = ? THEN 1 ELSE 0 END) as tomorrow', [now()->addDay()->toDateString()])
                 ->selectRaw('SUM(CASE WHEN startTime BETWEEN ? AND ? THEN 1 ELSE 0 END) as this_week', [now()->startOfWeek(), now()->endOfWeek()])
+                ->selectRaw('SUM(CASE WHEN startTime BETWEEN ? AND ? THEN 1 ELSE 0 END) as next_week', [now()->addWeek()->startOfWeek(), now()->addWeek()->endOfWeek()])
                 ->selectRaw('SUM(CASE WHEN closed = 1 OR endTime <= ? THEN 1 ELSE 0 END) as ended', [now()])
                 ->groupBy('sport')
                 ->get()

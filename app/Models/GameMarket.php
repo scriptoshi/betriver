@@ -4,6 +4,7 @@ namespace App\Models;
 
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GameMarket extends Model
 {
@@ -31,7 +32,8 @@ class GameMarket extends Model
     protected function casts()
     {
         return [
-            'active' => 'boolean'
+            'active' => 'boolean',
+            'bookie_active' => 'boolean'
         ];
     }
 
@@ -41,6 +43,34 @@ class GameMarket extends Model
      * @var array
      */
     protected $fillable = [
-        'active'
+        'active',
+        'bookie_active',
+        'winning_bet_id',
+        'market_id',
+        'game_id',
     ];
+
+    /**
+     * Get the game the game_market belongsTo
+     */
+    public function game(): BelongsTo
+    {
+        return $this->belongsTo(Game::class);
+    }
+
+    /**
+     * Get the game the game_market belongsTo
+     */
+    public function market(): BelongsTo
+    {
+        return $this->belongsTo(Market::class);
+    }
+
+    /**
+     * Get the game the game_market belongsTo
+     */
+    public function winningBet(): BelongsTo
+    {
+        return $this->belongsTo(Bet::class, 'winning_bet_id', 'id');
+    }
 }

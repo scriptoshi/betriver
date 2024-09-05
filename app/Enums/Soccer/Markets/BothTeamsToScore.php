@@ -105,10 +105,12 @@ enum BothTeamsToScore: string implements BetMarket
                 Bet::updateOrCreate(
                     [
                         'market_id' => $market->id,
+                        'result' => $bet->value
+                    ],
+                    [
                         'name' => Str::ucfirst($bet->value),
                         'sport' => LeagueSport::FOOTBALL
-                    ],
-                    ['result' => $bet->value]
+                    ]
                 );
             }
         }

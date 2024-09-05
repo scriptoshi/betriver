@@ -48,7 +48,7 @@ class RegisteredUserController extends Controller
             'refId' => Random::generate(10),
             'referral' =>  $upline,
         ]);
-
+        $user->personal()->create([]);
         event(new Registered($user));
         Auth::login($user);
         return redirect(route('dashboard', absolute: false));

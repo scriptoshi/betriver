@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->string('segment');
             $table->string('sport');
+            $table->integer('sequence')->default(0);
             $table->string('oddsId')->nullable();
             $table->string('type')->nullable();
             $table->boolean('active')->default(true);

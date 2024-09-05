@@ -2,11 +2,13 @@
 
 namespace App\Enums\MMA\Outcomes;
 
+use App\Traits\Overunders;
 use Illuminate\Support\Str;
 
 enum MMAOverUnderOutcome: string
 {
 
+    use Overunders;
     case OVER_15 = 'over_1.5';
     case UNDER_15 = 'under_1.5';
     case OVER_25 = 'over_2.5';

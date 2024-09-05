@@ -28,8 +28,8 @@ enum HTFTDoubleOutcome: string
 
     public function name(): string
     {
-        $ht = ucfirst($this->halfTimeResult());
-        $ft = ucfirst($this->fullTimeResult());
+        $ht = formatName(ucfirst($this->halfTimeResult()));
+        $ft = formatName(ucfirst($this->fullTimeResult()));
         return "{$ht}/{$ft}";
     }
 }

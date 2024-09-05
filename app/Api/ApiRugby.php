@@ -32,7 +32,7 @@ class ApiRugby extends ApiSports
 
     public static function ended($status): bool
     {
-        return GameStatus::from(strtoupper($status))->ended();
+        return GameStatus::tryFrom(strtoupper($status))?->ended() ?? true;
     }
 
     /**
@@ -52,29 +52,34 @@ class ApiRugby extends ApiSports
         foreach ($response->response as $lg) {
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
-            $game->scores()->updateOrCreate([
-                'type' => ScoreType::TOTAL
-            ], [
-                'home' => $lg->scores->home,
-                'away' => $lg->scores->away,
-            ]);
-            foreach ($lg->periods as $type => $score) {
-                $game->scores()->updateOrCreate([
-                    'type' => $type,
-                ], [
-                    'home' => $score->home,
-                    'away' => $score->away,
-                ]);
-            }
-            $game->status = isset($lg->status)
-                ? $lg->status?->short
-                : $lg->game->status?->short;
-            $game->elapsed = intval($lg->time);
-            if (static::ended($game->status)) {
-                $game->endTime = now();
-                $game->closed = true;
-            }
-            $game->save();
+            static::saveScores($game, $lg);
         }
+    }
+
+    protected static function saveScores(Game $game, $lg)
+    {
+        $game->scores()->updateOrCreate([
+            'type' => ScoreType::TOTAL
+        ], [
+            'home' => $lg->scores->home,
+            'away' => $lg->scores->away,
+        ]);
+        foreach ($lg->periods as $type => $score) {
+            $game->scores()->updateOrCreate([
+                'type' => $type,
+            ], [
+                'home' => $score->home,
+                'away' => $score->away,
+            ]);
+        }
+        $game->status = isset($lg->status)
+            ? $lg->status?->short
+            : $lg->game->status?->short;
+        $game->elapsed = intval($lg->time);
+        if (static::ended($game->status)) {
+            $game->endTime = now();
+            $game->closed = true;
+        }
+        $game->save();
     }
 }

@@ -1,15 +1,19 @@
 <script setup>
+	import { ref } from "vue";
+
+	import { Head, router, useForm } from "@inertiajs/vue3";
+	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+	import { MinusCircle, PlusCircle } from "lucide-vue-next";
+	import { HiSolidExclamation, HiTrash } from "oh-vue-icons/icons";
+
+	import AdminTableLink from "@/Components/AdminTableLink.vue";
 	import ConfirmationModal from "@/Components/ConfirmationModal.vue";
-	import Loading from "@/Components/Loading.vue";
 	import Pagination from "@/Components/Pagination.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import SearchInput from "@/Components/SearchInput.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
-	import { Head, Link, router, useForm } from "@inertiajs/vue3";
-	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
-	import { HiPencil, HiTrash } from "oh-vue-icons/icons";
-	import { ref } from "vue";
+
 	defineProps({
 		transactions: Object,
 		title: { required: false, type: String },
@@ -18,18 +22,31 @@
 	const params = useUrlSearchParams("history");
 	const search = ref(params.search ?? "");
 	const deleteTransactionForm = useForm({});
+	const reverseTransactionForm = useForm({});
 	const transactionBeingDeleted = ref(null);
+	const transactionBeingReversed = ref(null);
 
 	const deleteTransaction = () => {
 		deleteTransactionForm.delete(
-			window.route(
-				"admin.transactions.destroy",
-				transactionBeingDeleted.value?.id,
-			),
+			window.route("admin.transactions.destroy", {
+				transaction: transactionBeingDeleted.value?.uuid,
+			}),
 			{
 				preserveScroll: true,
 				preserveState: true,
 				onSuccess: () => (transactionBeingDeleted.value = null),
+			},
+		);
+	};
+	const reverseTransaction = () => {
+		reverseTransactionForm.put(
+			window.route("admin.transactions.reverse", {
+				transaction: transactionBeingReversed.value?.uuid,
+			}),
+			{
+				preserveScroll: true,
+				preserveState: true,
+				onSuccess: () => (transactionBeingReversed.value = null),
 			},
 		);
 	};
@@ -49,22 +66,6 @@
 			maxWait: 700,
 		},
 	);
-
-	const toggle = (transaction) => {
-		transaction.busy = true;
-		router.put(
-			window.route("admin.transactions.toggle", transaction.id),
-			{},
-			{
-				preserveScroll: true,
-				preserveState: true,
-				onFinish: () => {
-					transaction.busy = false;
-					transactionBeingDeleted.value = null;
-				},
-			},
-		);
-	};
 </script>
 <template>
 	<Head :title="title ?? 'Transactions'" />
@@ -77,22 +78,18 @@
 						class="lg:flex items-center justify-between mb-4 gap-3">
 						<div class="mb-4 lg:mb-0">
 							<h3 class="h3">
-								{{ $t("Accepted Transactions") }}
+								{{ $t("Transactions Log") }}
 							</h3>
-							<p>{{ $t("Available Transactions") }}</p>
+							<p>
+								{{
+									$t(
+										"This is a log of all executed transactions on the system",
+									)
+								}}
+							</p>
 						</div>
 						<div
-							class="flex flex-col lg:flex-row lg:items-center gap-3">
-							<button
-								type="button"
-								@click="updateTransactions"
-								class="focus:outline-none text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:ring-emerald-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800">
-								<Loading
-									v-if="loading"
-									class="w-4 h-4 -ml-2 mr-2 inline-block" />
-								{{ $t("Check for New Transactions") }}
-							</button>
-						</div>
+							class="flex flex-col lg:flex-row lg:items-center gap-3"></div>
 					</div>
 					<div class="card border-0 card-border">
 						<div class="card-body px-0 card-gutterless h-full">
@@ -111,24 +108,12 @@
 										role="table">
 										<thead>
 											<tr role="row">
-												<th role="columnheader">
-													{{ $t("Transaction") }}
-												</th>
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("User Id") }}
+													{{ $t("UID") }}
 												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Transactable") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Uuid") }}
-												</th>
+
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -144,11 +129,7 @@
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
 													{{ $t("Balance Before") }}
 												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Action") }}
-												</th>
+
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -164,27 +145,65 @@
 												role="row">
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ transaction.user_id }}
+													<div>
+														<div>
+															<a
+																@click="
+																	search =
+																		transaction
+																			.user
+																			.email
+																"
+																class="underline"
+																href="#">
+																{{
+																	transaction.uid
+																}}
+															</a>
+														</div>
+														<a
+															target="_blank"
+															class="text-sky-600 dark:text-sky-400 hover:text-sky-700 dark:hover:text-sky-300"
+															:href="
+																route(
+																	'admin.users.show',
+																	transaction
+																		.user
+																		.id,
+																)
+															">
+															{{
+																transaction.user
+																	.email
+															}}
+														</a>
+													</div>
 												</td>
 												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{
-														transaction.transactable
-													}}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ transaction.uuid }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													class="px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-300">
 													{{
 														transaction.description
 													}}
 												</td>
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ transaction.amount }}
+													<div
+														class="flex items-center space-x-2">
+														<PlusCircle
+															class="w-4 h-4 text-green-600 dark:text-green-400"
+															v-if="
+																transaction.action ===
+																'credit'
+															" />
+														<MinusCircle
+															class="w-4 h-4 text-red-600 dark:text-red-400"
+															v-else />
+														<span>
+															{{
+																transaction.amount
+															}}
+														</span>
+													</div>
 												</td>
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
@@ -192,40 +211,41 @@
 														transaction.balance_before
 													}}
 												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ transaction.action }}
-												</td>
+
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
 													{{ transaction.type }}
 												</td>
 												<td role="cell">
 													<div
-														class="flex justify-end text-lg">
-														<Link
-															:href="
-																route(
-																	'admin.transactions.edit',
-																	transaction.id,
-																)
-															"
-															class="cursor-pointer p-2 hover:text-blue-600">
-															<VueIcon
-																:icon="HiPencil"
-																class="w-4 h-4" />
-														</Link>
-														<a
+														class="flex justify-end space-x-3 text-lg">
+														<AdminTableLink
 															href="#"
+															class="hover:text-yellow-500"
+															v-tippy="
+																$t('Reverse')
+															"
+															@click.prevent="
+																transactionBeingReversed =
+																	transaction
+															">
+															<VueIcon
+																:icon="
+																	HiSolidExclamation
+																"
+																class="w-4 h-4" />
+														</AdminTableLink>
+														<AdminTableLink
+															href="#"
+															class="hover:text-red-500"
 															@click.prevent="
 																transactionBeingDeleted =
 																	transaction
-															"
-															class="cursor-pointer p-2 hover:text-red-500">
+															">
 															<VueIcon
 																:icon="HiTrash"
 																class="w-4 h-4" />
-														</a>
+														</AdminTableLink>
 													</div>
 												</td>
 											</tr>
@@ -244,8 +264,8 @@
 			@close="transactionBeingDeleted = null">
 			<template #title>
 				{{
-					$t("Are you sure about deleting {transaction} ?", {
-						transaction: transactionBeingDeleted.name,
+					$t("Are you sure about deleting #{transaction} ?", {
+						transaction: transactionBeingDeleted.uid,
 					})
 				}}
 			</template>
@@ -254,13 +274,15 @@
 				<p>
 					{{
 						$t(
-							"This Action will remove the transaction from the database and cannot be undone",
+							"This Action will only remove the transaction from the database and cannot be undone",
 						)
 					}}
 				</p>
 				<p>
 					{{
-						$t("Its Recommended to Disable the transaction Instead")
+						$t(
+							"Its Recommended to attempt to reverse transaction Instead",
+						)
 					}}
 				</p>
 			</template>
@@ -274,21 +296,52 @@
 				</PrimaryButton>
 
 				<PrimaryButton
-					secondary
-					class="ml-2 uppercase text-xs font-semibold"
-					v-if="transactionBeingDeleted.active"
-					@click="toggle(transactionBeingDeleted)">
-					<Loading v-if="transactionBeingDeleted.busy" />
-					{{ $t("Disable") }}
-				</PrimaryButton>
-
-				<PrimaryButton
 					error
 					class="ml-2 uppercase text-xs font-semibold"
 					@click="deleteTransaction"
 					:class="{ 'opacity-25': deleteTransactionForm.processing }"
 					:disabled="deleteTransactionForm.processing">
 					{{ $t("Delete") }}
+				</PrimaryButton>
+			</template>
+		</ConfirmationModal>
+
+		<ConfirmationModal
+			:show="transactionBeingReversed"
+			@close="transactionBeingReversed = null">
+			<template #title>
+				{{
+					$t("Are you sure about reversing  #{transaction} ?", {
+						transaction: transactionBeingReversed.uid,
+					})
+				}}
+			</template>
+
+			<template #content>
+				<p>
+					{{
+						$t(
+							"Reversing the transaction will only affect the users balance and will not undo all side effects eg withdrawn balance!",
+						)
+					}}
+				</p>
+			</template>
+
+			<template #footer>
+				<PrimaryButton
+					secondary
+					class="uppercase text-xs font-semibold"
+					@click="transactionBeingReversed = null">
+					{{ $t("Cancel") }}
+				</PrimaryButton>
+
+				<PrimaryButton
+					primary
+					class="ml-2 uppercase text-xs font-semibold"
+					@click="reverseTransaction"
+					:class="{ 'opacity-25': reverseTransactionForm.processing }"
+					:disabled="reverseTransactionForm.processing">
+					{{ $t("Reverse") }}
 				</PrimaryButton>
 			</template>
 		</ConfirmationModal>

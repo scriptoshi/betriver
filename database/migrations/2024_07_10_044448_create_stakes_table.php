@@ -20,9 +20,9 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('bet_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('market_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('game_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('original_stake_id')->nullable()->constrained('stakes');
             $table->string('uid')->unique();
-            $table->string('scoreType');
             $table->decimal('amount', 10, 2)->default(0);
             $table->decimal('filled', 10, 2)->default(0);
             $table->decimal('unfilled', 10, 2)->default(0);
@@ -32,6 +32,7 @@ return new class extends Migration
             $table->decimal('profit_loss', 10, 2)->default(0);
             $table->decimal('odds', 6, 2)->default();
             $table->string('type');
+            $table->string('sport');
             $table->string('status')->default('pending');
             $table->boolean('won')->default(false);
             $table->boolean('is_withdrawn')->default(false);
@@ -41,11 +42,11 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             // ensure positive decimal values
-            $table->check('filled > 0', 'filled_positive');
-            $table->check('unfilled > 0', 'unfilled_positive');
-            $table->check('amount > 0', 'amount_positive');
-            $table->check('payout > 0', 'payout_positive');
-            $table->check('liability > 0', 'liability_positive');
+            $table->check('filled >= 0', 'filled_positive');
+            $table->check('unfilled >= 0', 'unfilled_positive');
+            $table->check('amount >= 0', 'amount_positive');
+            $table->check('payout >= 0', 'payout_positive');
+            $table->check('liability >= 0', 'liability_positive');
         });
     }
 
