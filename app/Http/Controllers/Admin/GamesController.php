@@ -64,6 +64,7 @@ class GamesController extends Controller
         if ($sport && $sport != 'all') {
             $query->where('sport', $sport);
         }
+
         if ($day) {
             switch ($day) {
                 case 'today':
@@ -317,7 +318,7 @@ class GamesController extends Controller
             'start' => ['integer', 'required'],
             'days' => ['integer', 'required', 'min:1'],
         ]);
-        $apiKey = settings('site.apifootball_api_key');
+        $apiKey = config('services.apifootball.apikey', settings('site.apifootball_api_key'));
         if (empty($apiKey)) throw ValidationException::withMessages(['start' => ['Missing api key']]);
         LeagueSport::from($request->sport)->api()::loadGames($request->start, $request->days);
         // cleare menu cache

@@ -136,14 +136,14 @@
 							<p class="text-sm" v-else-if="type == 'slip'">
 								{{
 									$t(
-										"Commission is paid to downline when exchange slip wins.",
+										"Commission is paid to upline when exchange slip wins.",
 									)
 								}}
 							</p>
 							<p class="text-sm" v-else>
 								{{
 									$t(
-										"Commission is paid to downline when bookie ticket wins",
+										"Commission is paid to upline when bookie ticket wins",
 									)
 								}}
 							</p>

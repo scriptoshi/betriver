@@ -22,10 +22,6 @@ class ApiMma extends ApiSports
         return "https://v1.mma.api-sports.io/$url";
     }
 
-    public static function apiKey()
-    {
-        return settings('site.apifootball_api_key');
-    }
 
     public static function scoreTypes(): array
     {

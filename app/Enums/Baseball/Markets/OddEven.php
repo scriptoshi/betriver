@@ -11,6 +11,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum OddEven: string implements BetMarket
 {
@@ -75,6 +76,7 @@ enum OddEven: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::BASEBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::BASEBALL,
                 ]

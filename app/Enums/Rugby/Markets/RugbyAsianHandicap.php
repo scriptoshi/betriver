@@ -3,6 +3,7 @@
 namespace App\Enums\Rugby\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -76,6 +77,7 @@ enum RugbyAsianHandicap: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::RUGBY->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::RUGBY_ASIAN_HANDICAP,
                     'sport' => LeagueSport::RUGBY

@@ -2,6 +2,7 @@
 
 namespace App\Enums\Handball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\Handball\Outcomes\ResultBothTeamsToScoreOutcome;
 use App\Enums\LeagueSport;
@@ -61,6 +62,7 @@ enum ResultBothTeamsToScore: string implements BetMarket
                 'slug' => Str::slug(self::FULL_TIME->name()),
                 'description' => self::FULL_TIME->name(),
                 'name' => self::FULL_TIME->name(),
+                'category' => MarketCategory::getCategory(self::class),
             ]
         );
 

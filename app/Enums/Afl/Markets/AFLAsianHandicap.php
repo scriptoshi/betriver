@@ -8,6 +8,7 @@ use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
 use App\Enums\Afl\Outcomes\AFLAsianHandicapOutcome;
 use App\Enums\Afl\ScoreType;
+use App\Enums\MarketCategory;
 use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
@@ -95,9 +96,10 @@ enum AFLAsianHandicap: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::AFL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::AFL_ASIAN_HANDICAP,
-                    'sport' => LeagueSport::AFL
+                    'sport' => LeagueSport::AFL,
                 ]
             );
             foreach (AFLAsianHandicapOutcome::cases() as $outcome) {

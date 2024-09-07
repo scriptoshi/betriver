@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Enums\MMA\Markets;
+namespace App\Enums\Mma\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
-use App\Enums\MMA\Outcomes\MMARoundBettingOutcome;
+use App\Enums\Mma\Outcomes\MMARoundBettingOutcome;
 
 use App\Models\Bet;
 use App\Models\Game;
@@ -63,6 +64,7 @@ enum MMARoundBetting: string implements BetMarket
                 [
                     'slug' => Str::slug($case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => formatName($case->name()),
                     'type' => EnumsMarket::MMA_ROUND_BETTING,
                 ]

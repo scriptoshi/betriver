@@ -15,6 +15,14 @@ use Illuminate\Database\Eloquent\Builder;
 class TradeManager
 {
 
+    public static function multiples(): bool
+    {
+        $multiples =  session('multiples', false);
+        $enableBookie = settings('site.enable_bookie');
+        if ($enableBookie) return $multiples;
+        return false;
+    }
+
     /**
      * Converts decimal odds to American odds.
      *

@@ -3,6 +3,7 @@
 namespace App\Enums\Rugby\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -79,6 +80,7 @@ enum RugbyWinBothHalves: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::RUGBY->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::RUGBY,
                     'type' => EnumsMarket::RUGBY_WIN_BOTH_HALVES

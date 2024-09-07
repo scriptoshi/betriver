@@ -1,10 +1,12 @@
 <script setup>
 	import { ref } from "vue";
 
+	import { useForm } from "@inertiajs/vue3";
 	import { BiTicketDetailed, RiMenuFill } from "oh-vue-icons/icons";
 
 	import ApplicationLogo from "@/Components/ApplicationLogo.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import Switch from "@/Components/Switch.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
 	import DarkSwitch from "@/Layouts/FontendLayout/Dropdowns/DarkSwitch.vue";
 	import FeedbackModal from "@/Layouts/FontendLayout/Dropdowns/FeedbackModal.vue";
@@ -28,6 +30,10 @@
 
 	const closeLoginModal = () => {
 		showLoginModal.value = false;
+	};
+
+	const setMultiples = () => {
+		useForm({}).post(window.route("multiples"));
 	};
 </script>
 <template>
@@ -57,6 +63,13 @@
 		</div>
 		<div
 			class="flex items-center justify-end flex-nowrap h-full lg:flex-[2]">
+			<Switch
+				@update:model-value="setMultiples"
+				:modelValue="$page.props.multiples ?? false">
+				<h3 class="text-sm hidden sm:flex uppercase font-inter">
+					Multiples
+				</h3>
+			</Switch>
 			<HelpDropDown class="hidden lg:flex" />
 			<DarkSwitch />
 			<button

@@ -2,6 +2,7 @@
 
 namespace App\Enums\Volleyball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
@@ -54,6 +55,7 @@ enum VolleyballOddEven: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::VOLLEYBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::VOLLEYBALL_ODD_EVEN,
                     'sport' => LeagueSport::VOLLEYBALL

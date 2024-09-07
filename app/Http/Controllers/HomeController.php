@@ -2,22 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Afl\GameStatus;
 use App\Enums\LeagueSport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Game as GameResource;
 use App\Http\Resources\Market as ResourcesMarket;
 use App\Http\Resources\Slider as ResourcesSlider;
 use App\Models\Game;
-use App\Models\GameMarket;
-use App\Models\League;
 use App\Models\Market;
 use App\Models\Slider;
+use App\Support\TradeManager;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -27,22 +22,16 @@ use function Clue\StreamFilter\fun;
 class HomeController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the games on homepage.
      * @return \Illuminate\View\View
      */
     public function index(Request $reques)
     {
 
+        $multiples  = TradeManager::multiples();
         $defaultMarketsIds = Market::with(['bets'])
             ->where('is_default', true)
             ->pluck('id')->all();
-
-
-        // Slider
-        // Top Markets
-        // popular categories
-        // Football
-        // News and politics
         $sport = LeagueSport::FOOTBALL;
         $defaultMarket = Market::with(['bets'])
             ->where('sport', $sport)
@@ -57,8 +46,13 @@ class HomeController extends Controller
                 'league',
                 'homeTeam',
                 'awayTeam',
-                'odds' => fn($q) => $q->where('market_id', $defaultMarket->id)
+                'odds' => fn($q) => $q->where('odds.market_id', $defaultMarket->id)
             ])
+            ->when($multiples, function ($query) use ($defaultMarket) {
+                $query->whereHas('odds', function ($q) use ($defaultMarket) {
+                    $q->where('odds.market_id', $defaultMarket->id);
+                });
+            })
             ->withCount('activeMarkets as marketsCount')
             ->withExists(['odds as has_odds' => fn($q) => $q->where('market_id', $defaultMarket->id)])
             ->latest('traded')
@@ -92,7 +86,6 @@ class HomeController extends Controller
                 ;
             },
         ]);
-        $query->with(['odds']);
         $query->inNext7Days();
         $gamesItems = $query->latest('startTime')->take(5)->get();
         return Inertia::render('Home', [
@@ -107,16 +100,20 @@ class HomeController extends Controller
             'games' => GameResource::collection($gamesItems),
             'slides' => fn() => ResourcesSlider::collection(Slider::where('active', true)->latest()->take(3)->get()),
             'popular' => fn() => static::popular(),
-            'top' => function () use ($defaultMarketsIds) {
+            'top' => function () use ($defaultMarketsIds,  $multiples) {
                 $query = Game::query()
                     ->with([
                         'scores',
                         'league',
                         'homeTeam',
                         'awayTeam',
+                        'odds' => fn($q) => $q->whereIn('market_id', $defaultMarketsIds)
                     ])
                     ->whereHas('league', function (Builder $query) {
                         $query->where('active', true);
+                    })
+                    ->when($multiples, function ($query) use ($defaultMarketsIds) {
+                        $query->whereHas('odds', fn($q) => $q->whereIn('market_id', $defaultMarketsIds));
                     })
                     ->withSum('trades as traded', 'amount');
                 //->where('startTime', '>=', now()->subHour(2));
@@ -145,6 +142,7 @@ class HomeController extends Controller
 
     protected static function popular($top = false)
     {
+        $multiples  = TradeManager::multiples();
         $query = Game::query()
             ->with(['scores', 'league', 'homeTeam', 'awayTeam'])
             ->whereHas('league', function (Builder $query) {
@@ -161,6 +159,9 @@ class HomeController extends Controller
         else
             $query->oldest('startTime')
                 ->take(13);
+        $query->when($multiples, function ($query) {
+            $query->whereHas('odds');
+        });
         $games = $query->get();
         return GameResource::collection($games);
     }

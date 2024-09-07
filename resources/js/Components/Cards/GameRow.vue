@@ -182,6 +182,7 @@
 					:market="market"
 					:showBookie="showBookie"
 					:showExchange="showExchange"
+					:odds="game.odds.find((n) => n.bet_id == bet.id)"
 					:lay="game.lays.find((n) => n.bet_id == bet.id)"
 					:back="game.backs.find((n) => n.bet_id == bet.id)" />
 			</span>

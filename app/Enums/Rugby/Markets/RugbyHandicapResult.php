@@ -3,6 +3,7 @@
 namespace App\Enums\Rugby\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -10,10 +11,12 @@ use App\Enums\Rugby\Outcomes\RugbyHandicapResultOutcome;
 use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
+use App\Traits\Handicaps;
 use Illuminate\Support\Str;
 
 enum RugbyHandicapResult: string implements BetMarket
 {
+    use Handicaps;
     case FULL_TIME = 'full_time';
     case FIRST_HALF = 'first_half';
 
@@ -70,6 +73,7 @@ enum RugbyHandicapResult: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::RUGBY->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::RUGBY_HANDICAP_RESULT,
                     'sport' => LeagueSport::RUGBY

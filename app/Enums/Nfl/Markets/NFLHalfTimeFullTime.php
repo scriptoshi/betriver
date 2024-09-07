@@ -3,6 +3,7 @@
 namespace App\Enums\Nfl\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -68,6 +69,7 @@ enum NFLHalfTimeFullTime: string implements BetMarket
             [
                 'slug' => Str::slug(LeagueSport::NFL->value . '-' . self::FULL_GAME->name()),
                 'description' => self::FULL_GAME->name(),
+                'category' => MarketCategory::getCategory(self::class),
                 'name' => self::FULL_GAME->name(),
                 'type' => EnumsMarket::NFL_HALF_TIME_FULL_TIME,
                 'sport' => LeagueSport::NFL

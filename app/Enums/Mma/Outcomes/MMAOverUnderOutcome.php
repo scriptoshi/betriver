@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\MMA\Outcomes;
+namespace App\Enums\Mma\Outcomes;
 
 use App\Traits\Overunders;
 use Illuminate\Support\Str;

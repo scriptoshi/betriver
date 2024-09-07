@@ -11,6 +11,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum AsianHandicap: string implements BetMarket
 {
@@ -84,6 +85,7 @@ enum AsianHandicap: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::BASKETBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::BASKETBALL_ASIAN_HANDICAP,
                     'sport' => LeagueSport::BASKETBALL

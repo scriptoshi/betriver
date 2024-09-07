@@ -3,6 +3,7 @@
 namespace App\Enums\Rugby\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -62,6 +63,7 @@ enum RugbyHighestScoringHalf: string implements BetMarket
                 'slug' => Str::slug(LeagueSport::RUGBY->value . '-' . self::FULL_GAME->name()),
                 'description' => self::FULL_GAME->name(),
                 'name' => self::FULL_GAME->name(),
+                'category' => MarketCategory::getCategory(self::class),
                 'type' => EnumsMarket::RUGBY_HIGHEST_SCORING_HALF,
                 'sport' => LeagueSport::RUGBY
             ]

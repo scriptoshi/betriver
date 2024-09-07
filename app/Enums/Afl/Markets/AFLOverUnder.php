@@ -12,6 +12,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum AFLOverUnder: string implements BetMarket
 {
@@ -90,6 +91,7 @@ enum AFLOverUnder: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::AFL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => $case->name(),
                     'sport' => LeagueSport::AFL,
                     'type' => EnumsMarket::AFL_OVER_UNDER //'AFLOverUnder',

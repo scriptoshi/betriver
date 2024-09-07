@@ -12,6 +12,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum AFLMatchResult: string implements BetMarket
 {
@@ -92,7 +93,8 @@ enum AFLMatchResult: string implements BetMarket
                     'name' => self::formatMarketName($case->name()),
                     'is_default' => $case == self::FULL_TIME,
                     'sport' => LeagueSport::AFL,
-                    'type' => EnumsMarket::AFL_MATCH_RESULT //'AFLMatchResult',
+                    'type' => EnumsMarket::AFL_MATCH_RESULT, //'AFLMatchResult',
+                    'category' => MarketCategory::getCategory(self::class),
                 ]
             );
             foreach (AFLMatchResultOutcome::cases() as $outcome) {

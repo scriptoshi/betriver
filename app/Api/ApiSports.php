@@ -26,7 +26,7 @@ abstract class ApiSports
 
     public static function apiKey()
     {
-        return settings('site.apifootball_api_key');
+        return config('services.apifootball.apikey', settings('site.apifootball_api_key'));
     }
 
     abstract  public static function url($url);
@@ -227,11 +227,11 @@ abstract class ApiSports
                 $game = Game::query()->updateOrCreate([
                     'gameId' => $gameId
                 ], [
-                    'slug' => Str::slug("{$gameId} {$lg->teams->away->name} vs {$lg->teams->home->name}-" . Carbon::parse($lg->date, timezone: $lg->timezone ?? 'UTC')->format('Y-m-d')),
+                    'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . Carbon::parse($lg->date, timezone: $lg->timezone ?? 'UTC')->format('Y-m-d')),
                     'league_id' => $leagueId,
                     'home_team_id' => $homeTeamId,
                     'away_team_id' => $awayTeamId,
-                    'name' => "{$lg->teams->away->name} vs {$lg->teams->home->name}",
+                    'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
                     'startTime' => Carbon::parse($lg->date, timezone: $lg->timezone ?? 'UTC'),
                     'status' => $lg->status->short,
                     'sport' => static::sport(),
@@ -327,11 +327,11 @@ abstract class ApiSports
                 Game::query()->updateOrCreate([
                     'gameId' => $gameId
                 ], [
-                    'slug' => Str::slug("{$gameId} {$lg->teams->away->name} vs {$lg->teams->home->name}-" . Carbon::parse($lg->date, timezone: $lg->timezone ?? 'UTC')->format('Y-m-d')),
+                    'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . Carbon::parse($lg->date, timezone: $lg->timezone ?? 'UTC')->format('Y-m-d')),
                     'league_id' => $league->id,
                     'home_team_id' => $homeTeamId,
                     'away_team_id' => $awayTeamId,
-                    'name' => "{$lg->teams->away->name} vs {$lg->teams->home->name}",
+                    'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
                     'startTime' => Carbon::parse($lg->date, timezone: $lg->timezone ?? 'UTC'),
                     'status' => $lg->status->short,
                     'sport' => static::sport(),

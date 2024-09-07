@@ -6,6 +6,7 @@
 	defineProps({
 		game: Object,
 		defaultMarket: Object,
+		showBookie: Boolean,
 	});
 </script>
 
@@ -65,6 +66,8 @@
 						<TeamName :game="game" :name="bet.name" />
 					</span>
 					<OddsInfo
+						:showBookie="showBookie"
+						:odds="game.odds.find((t) => t.bet_id === bet.id)"
 						:trade="game.trades.find((t) => t.bet_id === bet.id)" />
 				</span>
 			</div>

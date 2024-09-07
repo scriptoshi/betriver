@@ -14,7 +14,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class Skrill implements Provider
@@ -24,11 +23,7 @@ class Skrill implements Provider
     private string $merchantId;
     private string $secretWord;
 
-    public function __construct()
-    {
-        $this->merchantId = settings('skrill.merchant_id');
-        $this->secretWord = settings('skrill.secret_word');
-    }
+    public function __construct() {}
 
 
     /**

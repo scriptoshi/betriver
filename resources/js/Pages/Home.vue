@@ -17,15 +17,16 @@
 		enableExchange: Boolean,
 		enableBookie: Boolean,
 		defaultMarket: Object,
+		multiples: Boolean,
 	});
-	const multiples = false;
+
 	const showBookie = computed(() => {
 		if (!props.enableBookie) return false;
-		return multiples.value;
+		return props.multiples;
 	});
 	const showExchange = computed(() => {
 		if (!props.enableExchange) return false;
-		return !multiples.value;
+		return !props.multiples;
 	});
 </script>
 
@@ -60,7 +61,8 @@
 				<div class="grid gap-4 sm:grid-cols-2">
 					<HomeEventCard
 						:game="topgame"
-                        :defaultMarket="defaultMarket"
+						:showBookie="showBookie"
+						:defaultMarket="defaultMarket"
 						v-for="topgame in top"
 						:key="topgame.id" />
 				</div>

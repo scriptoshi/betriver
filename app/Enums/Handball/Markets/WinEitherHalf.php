@@ -2,6 +2,7 @@
 
 namespace App\Enums\Handball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -74,6 +75,7 @@ enum WinEitherHalf: string implements BetMarket
                 [
                     'slug' => Str::slug($case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => $case->name(),
                 ]
             );

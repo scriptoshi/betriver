@@ -3,6 +3,7 @@
 namespace App\Enums\Soccer\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
@@ -72,6 +73,7 @@ enum ScoreBothHalves: string implements BetMarket
                 [
                     'slug' => Str::slug($case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::FOOTBALL
                 ]

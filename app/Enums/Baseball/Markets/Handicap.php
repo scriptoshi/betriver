@@ -2,6 +2,7 @@
 
 namespace App\Enums\Baseball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -114,6 +115,7 @@ enum Handicap: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::BASEBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::BASEBALL,
                 ]

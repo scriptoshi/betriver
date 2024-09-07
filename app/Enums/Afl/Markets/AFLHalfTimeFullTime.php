@@ -12,6 +12,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum AFLHalfTimeFullTime: string implements BetMarket
 {
@@ -71,7 +72,8 @@ enum AFLHalfTimeFullTime: string implements BetMarket
                 'description' => self::FULL_GAME->name(),
                 'name' => self::FULL_GAME->name(),
                 'type' => EnumsMarket::AFL_HALF_TIME_FULL_TIME, ///'AFLHalfTimeFullTime',
-                'sport' => LeagueSport::AFL
+                'sport' => LeagueSport::AFL,
+                'category' => MarketCategory::getCategory(self::class),
             ]
         );
         foreach (AFLHalfTimeFullTimeOutcome::cases() as $outcome) {

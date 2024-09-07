@@ -3,6 +3,7 @@
 namespace App\Enums\Nfl\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -92,6 +93,7 @@ enum NFLAsianHandicap: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::NFL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::NFL_ASIAN_HANDICAP,
                     'sport' => LeagueSport::NFL

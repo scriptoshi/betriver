@@ -28,13 +28,7 @@ class CoinPayments implements Provider
         public ?string $private_key = null,
         public ?string $merchant_id = null,
         public ?string $ipn_secret = null
-    ) {
-
-        $this->public_key = $this->public_key ?? settings('coinpayments.public_key');
-        $this->private_key =   $this->private_key ??  settings('coinpayments.private_key');
-        $this->merchant_id  =  $this->merchant_id ?? settings('coinpayments.merchant_id');
-        $this->ipn_secret = $this->ipn_secret ?? settings('coinpayments.ipn_secret');
-    }
+    ) {}
 
     public function getName()
     {
@@ -82,6 +76,7 @@ class CoinPayments implements Provider
      */
     public function updateCurrencies()
     {
+        if (!$this->public_key) return;
         $accepted = Cache::remember('coinpayment-accepted-currencies', 60 * 60, function () {
             return  $this->coinpayment('rates', ['accepted' => 1]);
         });

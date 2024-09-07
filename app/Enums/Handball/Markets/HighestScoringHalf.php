@@ -2,6 +2,7 @@
 
 namespace App\Enums\Handball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\Handball\Outcomes\HighestScoringHalfOutcome;
 use App\Enums\LeagueSport;
@@ -57,6 +58,7 @@ enum HighestScoringHalf: string implements BetMarket
                 'slug' => Str::slug(LeagueSport::HANDBALL->value . '-' . self::HIGHEST_SCORING_HALF->name()),
                 'description' => self::HIGHEST_SCORING_HALF->name(),
                 'name' => self::HIGHEST_SCORING_HALF->name(),
+                'category' => MarketCategory::getCategory(self::class),
             ]
         );
 

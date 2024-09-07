@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Enums\MMA\Markets;
+namespace App\Enums\Mma\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -79,6 +80,7 @@ enum MMAFightDuration: string implements BetMarket
                 [
                     'slug' => Str::slug($case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => $case->name(),
                     'type' => EnumsMarket::MMA_FIGHT_DURATION,
                 ]

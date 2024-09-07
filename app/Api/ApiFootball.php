@@ -24,11 +24,6 @@ class ApiFootball extends ApiSports
         return "https://v3.football.api-sports.io/$url";
     }
 
-    public static function apiKey()
-    {
-        return settings('site.apifootball_api_key');
-    }
-
 
     public static function sport(): LeagueSport
     {
@@ -133,11 +128,11 @@ class ApiFootball extends ApiSports
                 $game = Game::query()->updateOrCreate([
                     'gameId' => $gameId
                 ], [
-                    'slug' => Str::slug("{$gameId} {$lg->teams->away->name} vs {$lg->teams->home->name}-" . Carbon::parse($lg->fixture->date)->format('Y-m-d')),
+                    'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . Carbon::parse($lg->fixture->date)->format('Y-m-d')),
                     'league_id' => $leagueId,
                     'home_team_id' => $homeTeamId,
                     'away_team_id' => $awayTeamId,
-                    'name' => "{$lg->teams->away->name} vs {$lg->teams->home->name}",
+                    'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
                     'startTime' => Carbon::parse($lg->fixture->date, timezone: $lg->fixture->timezone ?? 'UTC'),
                     'status' => $lg->fixture->status->short,
                     'sport' => static::sport(),
@@ -246,11 +241,11 @@ class ApiFootball extends ApiSports
         Game::query()->updateOrCreate([
             'gameId' => $gameId
         ], [
-            'slug' => Str::slug("{$gameId} {$lg->teams->away->name} vs {$lg->teams->home->name}-" . Carbon::parse($lg->fixture->date)->format('Y-m-d')),
+            'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . Carbon::parse($lg->fixture->date)->format('Y-m-d')),
             'league_id' => $league->id,
             'home_team_id' => $homeTeamId,
             'away_team_id' => $awayTeamId,
-            'name' => "{$lg->teams->away->name} vs {$lg->teams->home->name}",
+            'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
             'startTime' => Carbon::parse($lg->fixture->date, timezone: $lg->fixture->timezone ?? 'UTC'),
             'status' => $lg->fixture->status->short,
             'sport' => static::sport(),

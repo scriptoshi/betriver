@@ -6,6 +6,7 @@
 	const props = defineProps({
 		lay: Object,
 		back: Object,
+		odds: Object,
 		bet: Object,
 		market: Object,
 		game: Object,
@@ -47,29 +48,13 @@
 </script>
 <template>
 	<div v-if="showBookie" class="flex flex-wrap mt-0.5 m-0 px-2 py-0">
-		<span v-if="back" class="w-full cursor-pointer lining-nums m-0">
+		<span class="w-full cursor-pointer lining-nums m-0">
 			<span
-				@click="addBet(back.price * 1, true)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
-				<OddsFormat :odds="back.price * 1" #default="{ odds }">
+				@click="addBet(odds.odd * 1, true)"
+				class="font-extrabold whitespace-nowrap lining-nums text-xs font-inter uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-600 hover:bg-emerald-700 dark:hover:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
+				<OddsFormat :odds="odds.odd * 1" #default="{ odds }">
 					{{ odds }}
 				</OddsFormat>
-			</span>
-			<span
-				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] mr-0.5 mt-[5px] m-0 rounded-sm">
-				<MoneyFormat
-					billion
-					:amount="back.amount * 1"
-					#default="{ amount }">
-					{{ amount }}
-				</MoneyFormat>
-			</span>
-		</span>
-		<span v-else class="w-6/12 cursor-pointer lining-nums m-0">
-			<span
-				@click="addBet('BID', true)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
-				{{ $t("BID") }}
 			</span>
 		</span>
 	</div>

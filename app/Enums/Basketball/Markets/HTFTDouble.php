@@ -2,6 +2,7 @@
 
 namespace App\Enums\Basketball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -62,6 +63,7 @@ enum HTFTDouble: string implements BetMarket
             [
                 'slug' => Str::slug(LeagueSport::BASKETBALL->value . '-' . self::HT_FT->name()),
                 'description' => self::HT_FT->name(),
+                'category' => MarketCategory::getCategory(self::class),
                 'name' => self::formatMarketName(self::HT_FT->name()),
                 'type' => EnumsMarket::BASKETBALL_HTFT_DOUBLE,
                 'sport' => LeagueSport::BASKETBALL

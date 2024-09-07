@@ -1,13 +1,12 @@
 <script setup>
 	import { computed } from "vue";
 
-	import { Head } from "@inertiajs/vue3";
+	import { Head, usePage } from "@inertiajs/vue3";
 
 	import BreadCrumbs from "@/Components/BreadCrumbs.vue";
 	import EventCard from "@/Components/Cards/EventCard.vue";
 	import GameRow from "@/Components/Cards/GameRow.vue";
 	import Pagination from "@/Components/Pagination.vue";
-	import Switch from "@/Components/Switch.vue";
 	import { toTitleCase } from "@/Layouts/FontendLayout/useMenu";
 	import AppLayout from "@/Layouts/FrontendLayout.vue";
 	import BettingSideBar from "@/Pages/Games/BettingSideBar.vue";
@@ -29,7 +28,7 @@
 	/**
 	 * off on the homepage for now.
 	 */
-	const multiples = false;
+	const multiples = computed(() => usePage().props.multiples);
 	const showBookie = computed(() => {
 		if (!props.enableBookie) return false;
 		return multiples.value;
@@ -47,9 +46,6 @@
 		<div class="px-3.5">
 			<div class="flex justify-between">
 				<BreadCrumbs class="mt-3" :crumbs="crumbs" />
-				<Switch class="mt-4 hidden" v-model="multiples">
-					<h3 class="text-sm uppercase font-inter">Multiples</h3>
-				</Switch>
 			</div>
 			<div class="grid pb-6 pt-3">
 				<h1

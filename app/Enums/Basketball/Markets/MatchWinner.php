@@ -11,6 +11,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum MatchWinner: string implements BetMarket
 {
@@ -85,6 +86,7 @@ enum MatchWinner: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::BASKETBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::BASKETBALL,
                     'is_default' => $case == self::FULL_TIME,

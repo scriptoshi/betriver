@@ -12,6 +12,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum AFLHighestScoring: string implements BetMarket
 {
@@ -95,7 +96,8 @@ enum AFLHighestScoring: string implements BetMarket
                     'description' => $case->name(),
                     'name' => $case->name(),
                     'type' => EnumsMarket::AFL_HIGHEST_SCORING, // 'AFLHighestScoring',
-                    'sport' => LeagueSport::AFL
+                    'sport' => LeagueSport::AFL,
+                    'category' => MarketCategory::getCategory(self::class),
                 ]
             );
             foreach ($case->outcomes() as $outcome) {

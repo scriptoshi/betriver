@@ -1,23 +1,22 @@
 <script setup>
 	import { computed, ref } from "vue";
 
-	import { Head } from "@inertiajs/vue3";
-	import { useLocalStorage } from "@vueuse/core";
+	import { Head, usePage } from "@inertiajs/vue3";
 
 	import BreadCrumbs from "@/Components/BreadCrumbs.vue";
 	import ContractsCard from "@/Components/Cards/ContractsCard.vue";
 	import EventCard from "@/Components/Cards/EventCard.vue";
-	import Switch from "@/Components/Switch.vue";
 	import AppLayout from "@/Layouts/FrontendLayout.vue";
 	import MenuLink from "@/Pages/Account/Settings/MenuLink.vue";
 	import BettingSideBar from "@/Pages/Games/BettingSideBar.vue";
 	import EventInfo from "@/Pages/Games/EventInfo.vue";
 	const props = defineProps({
 		game: Object,
-		markets: Object,
+		markets: Array,
 		popular: Array,
 		overunders: Object,
 		handicaps: Object,
+		asianhandicaps: Object,
 		enableExchange: Boolean,
 		enableBookie: Boolean,
 	});
@@ -45,7 +44,7 @@
 		"handicap",
 		"half",
 	];
-	const multiples = useLocalStorage("multiples", false);
+	const multiples = computed(() => usePage().props.multiples);
 	const showBookie = computed(() => {
 		if (!props.enableBookie) return false;
 		return multiples.value;
@@ -53,6 +52,18 @@
 	const showExchange = computed(() => {
 		if (!props.enableExchange) return false;
 		return !multiples.value;
+	});
+
+	const filteredMarkets = computed(() => {
+		if (filter.value === "all") return props.markets;
+		if (filter.value === "popular")
+			return props.markets
+				.slice()
+				.sort(
+					(a, b) =>
+						parseFloat(b.traded ?? 0) - parseFloat(a.traded ?? 0),
+				);
+		return props.markets.filter((m) => m.category === filter.value);
 	});
 </script>
 
@@ -65,15 +76,7 @@
 				<BreadCrumbs class="mt-3" :crumbs="crumbs" />
 			</div>
 			<div class="grid px-2 sm:px-0 pb-6 pt-3">
-				<EventInfo :game="game">
-					<template #multiples>
-						<Switch v-model="multiples">
-							<h3 class="text-sm uppercase font-inter">
-								Multiples
-							</h3>
-						</Switch>
-					</template>
-				</EventInfo>
+				<EventInfo :game="game" />
 				<div
 					class="my-2 pt-2 border-t border-gray-250 dark:border-gray-750 flex items-center space-x-4 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-track-transparent">
 					<MenuLink
@@ -88,17 +91,18 @@
 			</div>
 			<div class="grid gap-3">
 				<ContractsCard
-					v-for="(market, index) in markets"
+					v-for="(market, index) in filteredMarkets"
 					:key="market.uuid"
 					:market="market"
 					:game="game"
 					:opened="index == 0"
 					:showBookie="showBookie"
 					:showExchange="showExchange"
-					v-show="(showBookie && market.has_odds) || showExchange"
 					:handicaps="
 						market.slug.includes('handicap')
-							? handicaps
+							? market.slug.includes('asian')
+								? asianhandicaps
+								: handicaps
 							: market.slug.includes('overunder')
 							? overunders
 							: []

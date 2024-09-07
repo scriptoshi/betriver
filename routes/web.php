@@ -7,11 +7,10 @@ use App\Http\Controllers\GamesController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\S3Controller;
-use Illuminate\Foundation\Application;
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-use App\Http\Controllers\SportsController;
 use App\Http\Controllers\LeaguesController;
 use App\Http\Controllers\MarketsController;
 use App\Http\Controllers\OddsController;
@@ -20,7 +19,6 @@ use App\Http\Controllers\StakesController;
 use App\Http\Controllers\TeamsController;
 use App\Http\Controllers\TicketsController;
 use App\Http\Controllers\TradesController;
-use App\Http\Controllers\TransactionsController;
 use App\Http\Controllers\UsersController;
 use App\Http\Controllers\WagersController;
 use App\Http\Controllers\WhitelistsController;
@@ -40,9 +38,18 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+Route::post('/multiples', function () {
+    $multiples = session('multiples', false);
+    session()->put('multiples', !$multiples);
+    return back();
+})->name('multiples');
+
+
+
 Route::get('/privacy', function () {
     return Inertia::render('PrivacyPolicy', ['policy' => settings('pages.privacy')]);
 })->name('privacy');
+
 Route::get('/terms', function () {
     return Inertia::render('TermsOfService', ['terms' => settings('pages.terms')]);
 })->name('terms');
@@ -156,37 +163,6 @@ Route::name('trades')->controller(TradesController::class)->group(function () {
 #trades
 
 
-
-
-
-#accounts
-Route::name('accounts')->controller(AccountsController::class)->group(function () {
-    Route::get('/accounts', 'index')->name('index');
-    Route::get('/accounts/create', 'create')->name('create');
-    Route::post('/accounts/store', 'store')->name('store');
-    Route::get('/accounts/{account}/show', 'show')->name('show');
-    Route::get('/accounts/{account}/edit', 'edit')->name('edit');
-    Route::put('/accounts/{account}', 'update')->name('update');
-    Route::put('/accounts/toggle/{account}', 'toggle')->name('toggle');
-    Route::delete('/accounts/{account}', 'destroy')->name('destroy');
-});
-#accounts
-
-
-#commissions
-Route::name('commissions')->controller(CommissionsController::class)->group(function () {
-    Route::get('/commissions', 'index')->name('index');
-    Route::get('/commissions/create', 'create')->name('create');
-    Route::post('/commissions/store', 'store')->name('store');
-    Route::get('/commissions/{commission}/show', 'show')->name('show');
-    Route::get('/commissions/{commission}/edit', 'edit')->name('edit');
-    Route::put('/commissions/{commission}', 'update')->name('update');
-    Route::put('/commissions/toggle/{commission}', 'toggle')->name('toggle');
-    Route::delete('/commissions/{commission}', 'destroy')->name('destroy');
-});
-#commissions
-
-
 #deposits
 Route::name('deposits.')
     ->middleware('auth')
@@ -203,21 +179,6 @@ Route::name('deposits.')
             ->name('webhooks');
     });
 #deposits
-
-
-#payouts
-Route::name('payouts')->controller(PayoutsController::class)->group(function () {
-    Route::get('/payouts', 'index')->name('index');
-    Route::get('/payouts/create', 'create')->name('create');
-    Route::post('/payouts/store', 'store')->name('store');
-    Route::get('/payouts/{payout}/show', 'show')->name('show');
-    Route::get('/payouts/{payout}/edit', 'edit')->name('edit');
-    Route::put('/payouts/{payout}', 'update')->name('update');
-    Route::put('/payouts/toggle/{payout}', 'toggle')->name('toggle');
-    Route::delete('/payouts/{payout}', 'destroy')->name('destroy');
-});
-#payouts
-
 
 #withdraws
 Route::name('withdraws.')
@@ -298,18 +259,7 @@ Route::name('personal.')
 #personal
 
 
-#currencies
-Route::name('currencies')->controller(CurrenciesController::class)->group(function () {
-    Route::get('/currencies', 'index')->name('index');
-    Route::get('/currencies/create', 'create')->name('create');
-    Route::post('/currencies/store', 'store')->name('store');
-    Route::get('/currencies/{currency}/show', 'show')->name('show');
-    Route::get('/currencies/{currency}/edit', 'edit')->name('edit');
-    Route::put('/currencies/{currency}', 'update')->name('update');
-    Route::put('/currencies/toggle/{currency}', 'toggle')->name('toggle');
-    Route::delete('/currencies/{currency}', 'destroy')->name('destroy');
-});
-#currencies
+
 #whitelists
 Route::name('whitelists.')
     ->middleware('auth')

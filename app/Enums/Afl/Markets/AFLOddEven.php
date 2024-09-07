@@ -12,6 +12,7 @@ use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
 use Illuminate\Support\Str;
+use App\Enums\MarketCategory;
 
 enum AFLOddEven: string implements BetMarket
 {
@@ -59,6 +60,7 @@ enum AFLOddEven: string implements BetMarket
             [
                 'slug' => Str::slug(LeagueSport::AFL->value . '-' . self::FULL_GAME->name()),
                 'description' => self::FULL_GAME->name(),
+                'category' => MarketCategory::getCategory(self::class),
                 'name' => self::FULL_GAME->name(),
                 'sport' => LeagueSport::AFL,
                 'type' => EnumsMarket::AFL_ODD_EVEN //'AFLOddEven',

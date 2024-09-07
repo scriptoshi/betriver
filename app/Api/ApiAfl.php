@@ -40,10 +40,7 @@ class ApiAfl extends ApiSports
         return GameStatus::tryFrom(strtoupper($status))?->ended() ?? true;
     }
 
-    public static function apiKey()
-    {
-        return settings('site.apifootball_api_key');
-    }
+
 
     public static function url($url)
     {

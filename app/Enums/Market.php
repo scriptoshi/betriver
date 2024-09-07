@@ -71,6 +71,7 @@ use App\Enums\Handball\Markets\WinBothHalves as HandballWinBothHalves;
 use App\Enums\Handball\Markets\ExactGoals as HandballExactGoals;
 use App\Enums\Handball\Markets\WinEitherHalf as HandballWinEitherHalf;
 use App\Enums\Handball\Markets\ResultBothTeamsToScore as HandballResultBothTeamsToScore;
+use App\Enums\Handball\Markets\TeamToScore;
 use App\Enums\Handball\Markets\WinningMargin as HandballWinningMargin;
 //hockey
 use App\Enums\Hockey\Markets\CorrectScore as HockeyCorrectScore;
@@ -86,12 +87,12 @@ use App\Enums\Hockey\Markets\TeamGoals as HockeyTeamGoals;
 use App\Enums\Hockey\Markets\TeamToScore as HockeyTeamToScore;
 use App\Enums\Hockey\Markets\WinningMargin as HockeyWinningMargin;
 use App\Enums\Hockey\Markets\WinToNil as HockeyWinToNil;
-use App\Enums\MMA\Markets\MMAFightDuration;
-use App\Enums\MMA\Markets\MMAHandicapOverUnder;
-use App\Enums\MMA\Markets\MMAMatchResult;
-use App\Enums\MMA\Markets\MMAOverUnder;
-use App\Enums\MMA\Markets\MMARoundBetting;
-use App\Enums\MMA\Markets\MMAVictoryMethod;
+use App\Enums\Mma\Markets\MMAFightDuration;
+use App\Enums\Mma\Markets\MMAHandicapOverUnder;
+use App\Enums\Mma\Markets\MMAMatchResult;
+use App\Enums\Mma\Markets\MMAOverUnder;
+use App\Enums\Mma\Markets\MMARoundBetting;
+use App\Enums\Mma\Markets\MMAVictoryMethod;
 use App\Enums\Races\Markets\Winner;
 use App\Enums\Rugby\Markets\RugbyAsianHandicap;
 use App\Enums\Rugby\Markets\RugbyDoubleChance;
@@ -190,6 +191,7 @@ enum Market: string
     case HANDBALL_WIN_EITHER_HALF = HandballWinEitherHalf::class;
     case HANDBALL_RESULT_BOTH_TEAMS_TO_SCORE = HandballResultBothTeamsToScore::class;
     case HANDBALL_WINNING_MARGIN = HandballWinningMargin::class;
+    case HANDBALL_TEAM_TO_SCORE = TeamToScore::class;
 
         //hockey
     case HOCKEY_CORRECT_SCORE = HockeyCorrectScore::class;
@@ -327,6 +329,7 @@ enum Market: string
             static::HANDBALL_WIN_EITHER_HALF,
             static::HANDBALL_RESULT_BOTH_TEAMS_TO_SCORE,
             static::HANDBALL_WINNING_MARGIN,
+            static::HANDBALL_TEAM_TO_SCORE,
             static::HOCKEY_CORRECT_SCORE,
             static::HOCKEY_DOUBLE_CHANCE,
             static::HOCKEY_EXACT_GOALS,

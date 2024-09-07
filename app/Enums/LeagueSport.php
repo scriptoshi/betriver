@@ -34,11 +34,12 @@ use App\Enums\Hockey\Outcomes\HandicapOutcome as HockeyHandicapOutcome;
 use App\Enums\Hockey\Outcomes\OverUnderOutcome as HockeyOverUnderOutcome;
 use App\Enums\Hockey\ScoreType as HockeyScoreType;
 use App\Enums\Mma\GameStatus as MmaGameStatus;
-use App\Enums\MMA\Outcomes\MMAOverUnderOutcome;
+use App\Enums\Mma\Outcomes\MMAOverUnderOutcome;
 use App\Enums\Mma\ScoreType as MmaScoreType;
 use App\Enums\Nfl\GameStatus as NflGameStatus;
 use App\Enums\Nfl\ScoreType as NflScoreType;
 use App\Enums\Rugby\GameStatus as RugbyGameStatus;
+use App\Enums\Rugby\Markets\RugbyHandicapResult;
 use App\Enums\Rugby\Outcomes\RugbyAsianHandicapOutcome;
 use App\Enums\Rugby\Outcomes\RugbyOverUnderOutcome;
 use App\Enums\Rugby\ScoreType as RugbyScoreType;
@@ -46,6 +47,7 @@ use App\Enums\Soccer\GameStatus;
 use App\Enums\Soccer\Markets\GoalsOverUnder;
 use App\Enums\Soccer\Outcomes\AsianHandicapOutcome as SoccerAsianHandicapOutcome;
 use App\Enums\Soccer\Outcomes\GoalsOverUnderOutcome as SoccerGoalsOverUnderOutcome;
+use App\Enums\Soccer\Outcomes\HandicapOutcome;
 use App\Enums\Soccer\ScoreType;
 use App\Enums\Volleyball\GameStatus as VolleyballGameStatus;
 use App\Enums\Volleyball\Outcomes\VolleyballAsianHandicapOutcome;
@@ -187,19 +189,29 @@ enum LeagueSport: string
     public function handicaps(): ?array
     {
         return match ($this) {
-            static::FOOTBALL => SoccerAsianHandicapOutcome::getHandicaps(),
-            static::BASEBALL => BaseballHandicapOutcome::getHandicaps(),
-            static::BASKETBALL => BasketballAsianHandicapOutcome::getHandicaps(),
-            static::VOLLEYBALL => VolleyballAsianHandicapOutcome::getHandicaps(),
-            static::HANDBALL => HandballHandicapOutcome::getHandicaps(),
-            static::HOCKEY => HockeyHandicapOutcome::getHandicaps(),
-            static::NFL, static::AFL => AFLAsianHandicapOutcome::getHandicaps(),
-            //static::NBA => Game,
-            static::RUGBY => RugbyAsianHandicapOutcome::getHandicaps(),
-            static::MMA => [],
+            static::FOOTBALL => HandicapOutcome::getHandicaps(),
+            static::RUGBY => RugbyHandicapResult::getHandicaps(),
             default => [],
         };
     }
+
+
+    public function asianhandicaps(): ?array
+    {
+        return match ($this) {
+            static::FOOTBALL => SoccerAsianHandicapOutcome::getAsianHandicaps(),
+            static::BASEBALL => BaseballHandicapOutcome::getAsianHandicaps(),
+            static::BASKETBALL => BasketballAsianHandicapOutcome::getAsianHandicaps(),
+            static::VOLLEYBALL => VolleyballAsianHandicapOutcome::getAsianHandicaps(),
+            static::HANDBALL => HandballHandicapOutcome::getAsianHandicaps(),
+            static::HOCKEY => HockeyHandicapOutcome::getAsianHandicaps(),
+            static::NFL, static::AFL => AFLAsianHandicapOutcome::getAsianHandicaps(),
+            static::RUGBY => RugbyAsianHandicapOutcome::getAsianHandicaps(),
+            default => [],
+        };
+    }
+
+
 
 
 
@@ -219,6 +231,74 @@ enum LeagueSport: string
             static::RUGBY => ApiRugby::class,
             static::MMA => ApiMma::class,
             default => GameStatus::class,
+        };
+    }
+
+    public  function categories(): array
+    {
+        return match ($this) {
+            // AFL
+            static::AFL => [
+                MarketCategory::WINNER,
+                MarketCategory::HANDICAP,
+                MarketCategory::TOTALS,
+                MarketCategory::TEAMS,
+            ],
+            static::BASEBALL => [
+                MarketCategory::WINNER,
+                MarketCategory::HANDICAP,
+                MarketCategory::TOTALS,
+                MarketCategory::TEAMS,
+            ],
+            static::HANDBALL => [
+                MarketCategory::WINNER,
+                MarketCategory::TOTALS,
+                MarketCategory::GOALS,
+                MarketCategory::HANDICAP,
+                MarketCategory::HALF,
+                MarketCategory::TEAMS,
+            ],
+            static::HOCKEY => [
+                MarketCategory::WINNER,
+                MarketCategory::TOTALS,
+                MarketCategory::GOALS,
+                MarketCategory::HANDICAP,
+                MarketCategory::TEAMS,
+            ],
+
+            static::MMA => [
+                MarketCategory::WINNER,
+                MarketCategory::TOTALS,
+            ],
+            static::NFL => [
+                MarketCategory::WINNER,
+                MarketCategory::TOTALS,
+                MarketCategory::HANDICAP,
+                MarketCategory::TEAMS,
+            ],
+            static::NFL => [
+                MarketCategory::WINNER,
+                MarketCategory::HANDICAP,
+                MarketCategory::GOALS,
+                MarketCategory::HALF,
+                MarketCategory::TOTALS,
+                MarketCategory::TEAMS,
+            ],
+
+            static::FOOTBALL => MarketCategory::cases(),
+            static::VOLLEYBALL => [
+                MarketCategory::WINNER,
+                MarketCategory::HANDICAP,
+                MarketCategory::TEAMS,
+                MarketCategory::TOTALS,
+            ],
+            static::VOLLEYBALL => [
+                MarketCategory::HANDICAP,
+                MarketCategory::WINNER,
+                MarketCategory::TOTALS,
+            ],
+
+            default => []
         };
     }
 }

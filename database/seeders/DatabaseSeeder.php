@@ -17,13 +17,14 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
+        $user = User::query()->create([
             'name' => 'Admin',
             'is_admin' => true,
             'password' => Hash::make('*Codex123#'),
             'email' => 'admin@coderiver.io',
             'refId' => Random::generate()
         ]);
+        $user->personal()->create([]);
         $this->call(SettingsTableSeeder::class);
         //$this->call(MarketsTableSeeder::class);
         //$this->call(BetsTableSeeder::class);

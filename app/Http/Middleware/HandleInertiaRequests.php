@@ -7,6 +7,7 @@ use App\Enums\StakeStatus;
 use App\Http\Resources\User;
 use App\Models\Game;
 use App\Models\League;
+use App\Models\Personal;
 use App\Support\LeagueSlug;
 use Auth;
 use Illuminate\Http\Request;
@@ -38,13 +39,18 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $personal =  $user ? $user->personal()->firstOrCreate([
+            'user_id' => $user->id
+        ], []) : null;
         $activeCounts = Game::getCountsBySport();
         $leagues = League::getLeaguesBySport();
         $footballLeagues = League::getLeaguesByCountry(LeagueSport::FOOTBALL);
         return [
             ...parent::share($request),
+            'multiples' => $request->session()->get('multiples', false),
             'auth' => [
                 'user' =>  $user ? new User($user) : null,
+                'personal' => $personal
             ],
 
             'isAdmin' => $user ? $user->isAdmin() : false,

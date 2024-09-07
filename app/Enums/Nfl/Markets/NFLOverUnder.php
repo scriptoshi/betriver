@@ -3,6 +3,7 @@
 namespace App\Enums\Nfl\Markets;
 
 use App\Contracts\BetMarket;
+use App\Enums\MarketCategory;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
@@ -89,6 +90,7 @@ enum NFLOverUnder: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::NFL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => $case->name(),
                     'sport' => LeagueSport::NFL,
                     'type' => EnumsMarket::NFL_OVER_UNDER

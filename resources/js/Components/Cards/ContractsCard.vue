@@ -25,10 +25,21 @@
 	});
 
 	const marketSummary = computed(() => Market.getMarketSummary(props.market));
-	const handicap = ref(props.handicaps[0]);
+	const handicap = ref(Object.keys(props.handicaps ?? {})[0] ?? null);
 
 	const isChosen = ref(false);
 	const show = ref(props.opened);
+	const bets = computed(() => {
+		if (handicap.value === null || !handicap.value)
+			return props.market.bets;
+		const caps = props.handicaps[handicap.value] ?? [];
+		if (!caps.length) return props.market.bets;
+		return props.market.bets.filter((bet) => caps.includes(bet.result));
+	});
+	const setHandicap = (hcap) => {
+		handicap.value = hcap;
+		if (!show.value) show.value = true;
+	};
 </script>
 <template>
 	<div
@@ -113,13 +124,13 @@
 							v-for="cap in Object.keys(handicaps)"
 							:key="cap"
 							:active="cap === handicap && show"
-							@click="handicap = cap"
+							@click.prevent="setHandicap(cap)"
 							class="self-start">
 							{{ cap.replace("k", "") }}
 						</TinyButton>
 						<TinyButton
-							:active="!!handicap"
-							@click="handicap = null"
+							:active="handicap === null && show"
+							@click="setHandicap(null)"
 							class="self-start">
 							{{ $t("ALL") }}
 						</TinyButton>
@@ -144,7 +155,7 @@
 						:back="marketSummary.back_overround" />
 					<ul v-if="show">
 						<ContractOpen
-							v-for="bet in market.bets"
+							v-for="bet in bets"
 							:key="bet.uid"
 							:showBookie="showBookie"
 							:showExchange="showExchange"

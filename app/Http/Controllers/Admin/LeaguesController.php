@@ -137,7 +137,7 @@ class LeaguesController extends Controller
      */
     public function loadOddsFromApi(Request $request, League $league)
     {
-        $apiKey = settings('site.apifootball_api_key');
+        $apiKey = config('services.apifootball.apikey', settings('site.apifootball_api_key'));
         if (empty($apiKey)) return back()->with('error', 'Missing api key');
         return $league->sport->api()::loadOdds($league);
         // cleare menu cache

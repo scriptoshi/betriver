@@ -21,10 +21,6 @@ class ApiNfl extends ApiSports
         return "https://v1.american-football.api-sports.io/$url";
     }
 
-    public static function apiKey()
-    {
-        return settings('site.apifootball_api_key');
-    }
 
     public static function scoreTypes(): array
     {
@@ -115,11 +111,11 @@ class ApiNfl extends ApiSports
                 $game = Game::query()->updateOrCreate([
                     'gameId' => $gameId
                 ], [
-                    'slug' => Str::slug("{$gameId} {$lg->teams->away->name} vs {$lg->teams->home->name}-" . $startTime->format('Y-m-d')),
+                    'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . $startTime->format('Y-m-d')),
                     'league_id' => $leagueId,
                     'home_team_id' => $homeTeamId,
                     'away_team_id' => $awayTeamId,
-                    'name' => "{$lg->teams->away->name} vs {$lg->teams->home->name}",
+                    'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
                     'startTime' =>  $startTime,
                     'status' => $lg->game->status->short,
                     'sport' => static::sport(),

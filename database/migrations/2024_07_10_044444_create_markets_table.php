@@ -25,6 +25,7 @@ return new class extends Migration
             $table->integer('sequence')->default(0);
             $table->string('oddsId')->nullable();
             $table->string('type')->nullable();
+            $table->string('category')->nullable();
             $table->boolean('active')->default(true);
             $table->boolean('is_default')->default(false);
             $table->boolean('bookie_active')->default(true);

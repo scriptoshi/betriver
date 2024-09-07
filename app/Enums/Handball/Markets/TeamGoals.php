@@ -2,6 +2,7 @@
 
 namespace App\Enums\Handball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\Handball\Outcomes\TeamGoalsOutcome;
 use App\Enums\LeagueSport;
@@ -75,6 +76,7 @@ enum TeamGoals: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::HANDBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => formatName($case->name()),
                 ]
             );

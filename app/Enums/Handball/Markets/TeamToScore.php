@@ -2,10 +2,11 @@
 
 namespace App\Enums\Handball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
-use App\Enums\Handball\Outcomes\NoYesOutcome;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
+use App\Enums\Soccer\Outcomes\YesNo;
 use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
@@ -28,7 +29,7 @@ enum TeamToScore: string implements BetMarket
 
     public function outcomes(): array
     {
-        return NoYesOutcome::cases();
+        return YesNo::cases();
     }
 
     public function name(): string
@@ -42,21 +43,21 @@ enum TeamToScore: string implements BetMarket
 
     public function won(Game $game, Bet $bet): bool
     {
-        $outcome = NoYesOutcome::from($bet->result);
+        $outcome = YesNo::from($bet->result);
         $homeScore = $game->getScores('total', 'home');
         $awayScore = $game->getScores('total', 'away');
         return match ($this) {
             self::BOTH_TEAMS_TO_SCORE => match ($outcome) {
-                NoYesOutcome::YES => $homeScore > 0 && $awayScore > 0,
-                NoYesOutcome::NO => $homeScore === 0 || $awayScore === 0,
+                YesNo::YES => $homeScore > 0 && $awayScore > 0,
+                YesNo::NO => $homeScore === 0 || $awayScore === 0,
             },
             self::HOME_TEAM_TO_SCORE => match ($outcome) {
-                NoYesOutcome::YES => $homeScore > 0,
-                NoYesOutcome::NO => $homeScore === 0,
+                YesNo::YES => $homeScore > 0,
+                YesNo::NO => $homeScore === 0,
             },
             self::AWAY_TEAM_TO_SCORE => match ($outcome) {
-                NoYesOutcome::YES => $awayScore > 0,
-                NoYesOutcome::NO => $awayScore === 0,
+                YesNo::YES => $awayScore > 0,
+                YesNo::NO => $awayScore === 0,
             },
         };
     }
@@ -68,12 +69,13 @@ enum TeamToScore: string implements BetMarket
                 [
                     'segment' => $case->value,
                     'oddsId' => $case->oddsId(),
-                    'type' => EnumsMarket::HANDBALL_SCORING,
+                    'type' => EnumsMarket::HANDBALL_TEAM_TO_SCORE,
                     'sport' => LeagueSport::HANDBALL,
                 ],
                 [
                     'slug' => Str::slug(LeagueSport::HANDBALL->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => $case->name(),
                 ]
             );

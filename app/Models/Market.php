@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Contracts\BetMarket;
 use App\Enums\Market as EnumsMarket;
+use App\Enums\MarketCategory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -39,7 +40,8 @@ class Market extends Model
             'active' => 'boolean',
             'bookie_active' => 'boolean',
             'is_default' => 'boolean',
-            'type' => EnumsMarket::class
+            'type' => EnumsMarket::class,
+            'category' => MarketCategory::class
         ];
     }
 
@@ -56,7 +58,7 @@ class Market extends Model
         'segment',
         'sequence',
         'oddsId',
-        'description',
+        'category',
         'sport',
         'active',
         'bookie_active',

@@ -1,11 +1,12 @@
 <?php
 
-namespace App\Enums\MMA\Markets;
+namespace App\Enums\Mma\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
-use App\Enums\MMA\Outcomes\MMAOverUnderOutcome;
+use App\Enums\Mma\Outcomes\MMAOverUnderOutcome;
 use App\Models\Bet;
 use App\Models\Game;
 use App\Models\Market;
@@ -61,6 +62,7 @@ enum MMAOverUnder: string implements BetMarket
                 [
                     'slug' => Str::slug($case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::MMA_OVER_UNDER,
                 ]

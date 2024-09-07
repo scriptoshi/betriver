@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Afl\GameStatus;
+
 use App\Enums\LeagueSport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Game as GameResource;
 use App\Http\Resources\Market as ResourcesMarket;
 use App\Models\Game;
-use App\Models\GameMarket;
 use App\Models\League;
 use App\Models\Market;
+use App\Support\TradeManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
-
-use function Clue\StreamFilter\fun;
 
 class GamesController extends Controller
 {
@@ -31,6 +29,7 @@ class GamesController extends Controller
 
         $keyword = $request->get('search');
         $perPage = 25;
+        $multiples =  TradeManager::multiples();
         $defaultMarket = Market::with(['bets'])
             ->where('sport', $sport)
             ->where('is_default', true)
@@ -84,7 +83,9 @@ class GamesController extends Controller
         if (!empty($keyword)) {
             $query->where('name', 'LIKE', "%$keyword%");
         }
-
+        if ($multiples) {
+            $query->whereHas('odds');
+        }
         if ($region) {
             match ($region) {
                 'live' => $query->live(),
@@ -176,6 +177,7 @@ class GamesController extends Controller
      */
     public function show(Request $request, Game $game)
     {
+        $multiples =  TradeManager::multiples();
         $game->load([
             'scores',
             'league',
@@ -209,9 +211,19 @@ class GamesController extends Controller
             ->with('gameMarkets', function (HasMany $query) use ($game) {
                 $query->where('game_id', $game->id);
             })
-            ->withExists(['odds as has_odds' => fn($q) => $q->where('game_id', $game->id)])
+            ->when($multiples, function ($query) use ($game) {
+                $query->whereHas('odds', function ($q) use ($game) {
+                    $q->where('odds.game_id', $game->id);
+                });
+            })
+            ->withExists(['odds as has_odds' => function ($q) use ($game) {
+                $q->where('odds.game_id', $game->id);
+            }])
             ->with(['bets' => function (HasMany $query) use ($game, $rangeSize) {
-                $query->with(['odds' => fn($q) => $q->where('game_id', $game->id)])
+                $query->withExists(['odds as has_odds' => function ($q) use ($game) {
+                    $q->where('odds.game_id', $game->id);
+                }])
+                    ->with(['odds' => fn($q) => $q->where('game_id', $game->id)])
                     ->with([
                         'lays' => function (HasMany $q) use ($game, $rangeSize) {
                             $q->where('game_id', $game->id)
@@ -265,7 +277,9 @@ class GamesController extends Controller
             'markets' => ResourcesMarket::collection($markets),
             'popular' => fn() => static::popular(),
             'handicaps' => $game->sport->handicaps(),
+            'asianhandicaps' => $game->sport->asianhandicaps(),
             'overunders' => $game->sport->overunders(),
+            'categories' => $game->sport->categories(),
             'enableExchange' =>  settings('site.enable_exchange'),
             'enableBookie' => settings('site.enable_bookie'),
         ]);
@@ -273,6 +287,7 @@ class GamesController extends Controller
 
     protected static function popular()
     {
+        $multiples  = TradeManager::multiples();
         $games = Game::query()
             ->with(['scores', 'league', 'homeTeam', 'awayTeam'])
             ->whereHas('league', function (Builder $query) {
@@ -283,6 +298,9 @@ class GamesController extends Controller
                 $query->where('startTime', '>=', now()->subHour(2));
             })
             ->oldest('startTime')
+            ->when($multiples, function ($query) {
+                $query->whereHas('odds');
+            })
             ->take(13)
             ->get();
         return GameResource::collection($games);

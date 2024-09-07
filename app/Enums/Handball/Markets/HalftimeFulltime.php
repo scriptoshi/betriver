@@ -2,6 +2,7 @@
 
 namespace App\Enums\Handball\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\Handball\Outcomes\HalftimeFulltimeOutcome;
 use App\Enums\LeagueSport;
@@ -69,6 +70,7 @@ enum HalftimeFulltime: string implements BetMarket
                 'slug' => Str::slug(LeagueSport::HANDBALL->value . '-' . self::HALFTIME_FULLTIME->name()),
                 'description' => self::HALFTIME_FULLTIME->name(),
                 'name' => self::HALFTIME_FULLTIME->name(),
+                'category' => MarketCategory::getCategory(self::class),
             ]
         );
 

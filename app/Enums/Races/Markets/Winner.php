@@ -5,6 +5,7 @@ namespace App\Enums\Races\Markets;
 use App\Contracts\BetMarket;
 use App\Enums\LeagueSport;
 use App\Enums\Market as EnumsMarket;
+use App\Enums\MarketCategory;
 use App\Enums\Rugby\Outcomes\RugbyAsianHandicapOutcome;
 use App\Models\Bet;
 use App\Models\Game;
@@ -70,6 +71,7 @@ enum Winner: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::RACING->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::WINNER,
                     'name' => self::formatMarketName($case->name()),
                     'type' => EnumsMarket::RACING_WINNER,
                     'sport' => LeagueSport::RACING

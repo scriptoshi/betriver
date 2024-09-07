@@ -2,10 +2,12 @@
 
 namespace App\Enums\Soccer\Outcomes;
 
+use App\Traits\Handicaps;
 use Illuminate\Support\Str;
 
 enum HandicapOutcome: string
 {
+    use Handicaps;
     case HOME_MINUS_3 = 'home_-3';
     case DRAW_MINUS_3 = 'draw_-3';
     case AWAY_MINUS_3 = 'away_-3';
@@ -41,6 +43,7 @@ enum HandicapOutcome: string
         $result = Str::ucfirst($this->result());
         $handicap = $this->handicapValue();
         $handicapStr = $handicap > 0 ? "+{$handicap}" : $handicap;
+        if ($handicap == 'Draw') return 'Draw';
         return formatName("{$result} ({$handicapStr})");
     }
 

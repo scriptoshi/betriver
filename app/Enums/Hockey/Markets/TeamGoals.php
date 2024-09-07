@@ -2,6 +2,7 @@
 
 namespace App\Enums\Hockey\Markets;
 
+use App\Enums\MarketCategory;
 use App\Contracts\BetMarket;
 use App\Enums\GoalCount;
 use App\Enums\LeagueSport;
@@ -79,6 +80,7 @@ enum TeamGoals: string implements BetMarket
                 [
                     'slug' => Str::slug(LeagueSport::HOCKEY->value . '-' . $case->name()),
                     'description' => $case->name(),
+                    'category' => MarketCategory::getCategory(self::class),
                     'name' => self::formatMarketName($case->name()),
                     'sport' => LeagueSport::HOCKEY
                 ]

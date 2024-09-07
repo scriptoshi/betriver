@@ -31,11 +31,7 @@ class NowPayments implements Provider
     public function __construct(
         public ?string $api_key = null,
         public ?string $api_secret = null,
-    ) {
-
-        $this->api_key = $this->api_key ?? settings('nowpayments.api_key');
-        $this->api_secret =  $this->api_secret ?? settings('nowpayments.api_secret');
-    }
+    ) {}
 
     /**
      * Get the name of the gateway
@@ -94,6 +90,7 @@ class NowPayments implements Provider
      */
     public function updateCurrencies()
     {
+        if (!$this->api_key) return;
         $currencies = Cache::remember('now-payments-all-currencies-full', 60 * 60 * 24, function () {
             $currencies = Curl::to(static::endpoint('full-currencies'))
                 ->withHeader("x-api-key: {$this->api_key}")
@@ -292,7 +289,7 @@ class NowPayments implements Provider
         return true;
     }
 
-    
+
     public  function updatePayoutStatus(Collection $withdraws)
     {
         foreach ($withdraws as  $withdraw) {

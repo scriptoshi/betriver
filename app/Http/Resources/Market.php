@@ -25,6 +25,7 @@ class Market extends JsonResource
             'slug' => $this->slug,
             'description' => $this->description,
             'segment' => $this->segment,
+            'category' => $this->category,
             'sport' => $this->sport,
             'oddsId' => $this->oddsId,
             'traded' => $this->traded,

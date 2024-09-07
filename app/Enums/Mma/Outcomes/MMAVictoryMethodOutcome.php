@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Enums\MMA\Outcomes;
+namespace App\Enums\Mma\Outcomes;
 
 use Illuminate\Support\Str;
 

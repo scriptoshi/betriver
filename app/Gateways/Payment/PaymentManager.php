@@ -78,13 +78,11 @@ class PaymentManager extends Manager implements Factory
      */
     protected function createCoinpaymentsDriver(): CoinPayments
     {
-        $config = settings()->for('coinpayments')->only([
-            'public_key',
-            'private_key',
-            'merchant_id',
-            'ipn_secret',
-        ]);
-        return new CoinPayments(...$config);
+        $public_key = config('services.coinpayments.public_key', settings('coinpayments.public_key'));
+        $private_key = config('services.coinpayments.private_key',    settings('coinpayments.private_key'));
+        $merchant_id =   config('services.coinpayments.merchant_id',   settings('coinpayments.merchant_id'));
+        $ipn_secret =  config('services.coinpayments.ipn_secret',   settings('coinpayments.ipn_secret'));
+        return new CoinPayments(public_key: $public_key, private_key: $private_key, merchant_id: $merchant_id, ipn_secret: $ipn_secret);
     }
 
     /**
@@ -94,8 +92,9 @@ class PaymentManager extends Manager implements Factory
      */
     protected function createNowpaymentsDriver(): NowPayments
     {
-        $config = settings()->for('nowpayments')->only(['api_key', 'api_secret']);
-        return new NowPayments(...$config);
+        $api_key = config('services.nowpayments.api_key', settings('nowpayments.api_key'));
+        $api_secret = config('services.nowpayments.api_secret', settings('nowpayments.api_secret'));
+        return new NowPayments(api_key: $api_key, api_secret: $api_secret);
     }
     /**
      * Create an instance of the specified driver.
@@ -104,10 +103,10 @@ class PaymentManager extends Manager implements Factory
      */
     protected function createPaypalDriver(): Paypal
     {
-        $config = settings()->for('paypal')->only([
-            'client_id', 'client_secret'
-        ]);
-        return new Paypal(...$config);
+
+        $client_id = config('services.paypal.client_id', settings('paypal.client_id'));
+        $client_secret = config('services.paypal.client_secret', settings('paypal.client_id'));
+        return new Paypal(client_secret: $client_secret, client_id: $client_id);
     }
     /**
      * Create an instance of the specified driver.
@@ -116,15 +115,18 @@ class PaymentManager extends Manager implements Factory
      */
     protected function createPayeerDriver(): Payeer
     {
-
-        $config = settings()->for('payeer')->only([
-            'shop',
-            'merchant_key',
-            'accountNumber',
-            'apiId',
-            'apiSecret',
-        ]);
-        return new Payeer(...$config);
+        $shop = config('services.payeer.shop', settings('payeer.shop'));
+        $merchant_key = config('services.payeer.merchant_key', settings('payeer.merchant_key'));
+        $accountNumber = config('services.payeer.accountNumber', settings('payeer.accountNumber'));
+        $apiId = config('services.payeer.apiId', settings('payeer.apiId'));
+        $apiSecret = config('services.payeer.apiSecret', settings('payeer.apiSecret'));
+        return new Payeer(
+            shop: $shop,
+            merchant_key: $merchant_key,
+            accountNumber: $accountNumber,
+            apiId: $apiId,
+            apiSecret: $apiSecret
+        );
     }
 
 
