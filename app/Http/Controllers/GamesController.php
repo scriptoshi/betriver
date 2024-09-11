@@ -50,31 +50,38 @@ class GamesController extends Controller
             ->whereHas('league', function (Builder $query) {
                 $query->where('active', true);
             });
-        /**
-         * Requires to be updated to use ranges!!
-         */
+
+        DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+        $rangeSize = (float) settings('odds_spread', 0.2);
+        $rangeSize = $rangeSize < 0.001 ? 0.2 :  $rangeSize;
         $query->with([
-            'lays' => function (HasMany $q) use ($defaultMarket) {
+            'lays' => function (HasMany $q) use ($defaultMarket, $rangeSize) {
                 $q->where('market_id', $defaultMarket->id)
                     ->select(
-                        'game_id',
                         'bet_id',
-                        DB::raw('sum(amount) as amount'),
-                        DB::raw('min(odds) as price')
+                        'game_id',
+                        DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                        DB::raw('SUM(unfilled) AS amount'),
+                        DB::raw('MAX(odds) as price')
                     )
                     ->groupBy(['bet_id', 'game_id'])
+                    ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                    ->latest(DB::raw('MAX(odds)'))
                     ->limit(3);
             },
-            'backs' => function (HasMany $q) use ($defaultMarket) {
-                $q->where('market_id', $defaultMarket->id)->select(
-                    'bet_id',
-                    'game_id',
-                    DB::raw('sum(amount) as amount'),
-                    DB::raw('max(odds) as price')
-                )
+            'backs' => function (HasMany $q) use ($defaultMarket, $rangeSize) {
+                $q->where('market_id', $defaultMarket->id)
+                    ->select(
+                        'bet_id',
+                        'game_id',
+                        DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                        DB::raw('SUM(unfilled) AS amount'),
+                        DB::raw('MIN(odds) as price')
+                    )
                     ->groupBy(['bet_id', 'game_id'])
-                    ->limit(3)
-                ;
+                    ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                    ->oldest(DB::raw('MAX(odds)'))
+                    ->limit(3);;
             },
         ]);
         if (!empty($sport)) {
@@ -101,6 +108,7 @@ class GamesController extends Controller
             $query->inNext7Days();
         }
         $gamesItems = $query->latest('startTime')->paginate($perPage)->onEachSide(1);
+        DB::statement("SET SESSION sql_mode=(SELECT CONCAT(@@sql_mode, ',ONLY_FULL_GROUP_BY'));");
         $games = GameResource::collection($gamesItems);
         $league =  match ($region) {
             'live',
@@ -121,7 +129,6 @@ class GamesController extends Controller
             'sport' => $sport,
             'league' => $league,
             'region' => $region,
-            'popular' => fn() => static::popular(),
             'enableExchange' =>  settings('site.enable_exchange'),
             'enableBookie' => settings('site.enable_bookie'),
             'country' => function () use ($country, $league) {
@@ -187,7 +194,7 @@ class GamesController extends Controller
         $game->loadSum('trades as traded', 'amount');
         $game->loadSum('stakes as liquidity', 'unfilled');
         $game->loadSum('stakes as volume', 'liability');
-        $rangeSize = (float) settings('odds_spread', 0.2);
+
         if ($game->markets()->count() == 0) {
             $marketIds = Market::query()
                 ->where('sport', $game->sport)
@@ -200,7 +207,9 @@ class GamesController extends Controller
         /**
          * We shall group trades in ranges of 0.2.
          */
+
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+        $rangeSize = (float) settings('odds_spread', 0.2);
         $rangeSize = $rangeSize < 0.001 ? 0.2 :  $rangeSize;
 
         $markets = $game->markets()
@@ -235,7 +244,7 @@ class GamesController extends Controller
                                 )
                                 ->groupBy('bet_id')
                                 ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
-                                ->oldest(DB::raw('MAX(odds)'))
+                                ->latest(DB::raw('MAX(odds)'))
                                 ->limit(3);
                         },
                         'backs' => function (HasMany $q) use ($game, $rangeSize) {
@@ -248,7 +257,7 @@ class GamesController extends Controller
                                 )
                                 ->groupBy('bet_id')
                                 ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
-                                ->latest(DB::raw('MAX(odds)'))
+                                ->oldest(DB::raw('MAX(odds)'))
                                 ->limit(3);
                         },
 
@@ -275,7 +284,6 @@ class GamesController extends Controller
         return Inertia::render('Games/Show', [
             'game' => new GameResource($game),
             'markets' => ResourcesMarket::collection($markets),
-            'popular' => fn() => static::popular(),
             'handicaps' => $game->sport->handicaps(),
             'asianhandicaps' => $game->sport->asianhandicaps(),
             'overunders' => $game->sport->overunders(),
@@ -283,26 +291,5 @@ class GamesController extends Controller
             'enableExchange' =>  settings('site.enable_exchange'),
             'enableBookie' => settings('site.enable_bookie'),
         ]);
-    }
-
-    protected static function popular()
-    {
-        $multiples  = TradeManager::multiples();
-        $games = Game::query()
-            ->with(['scores', 'league', 'homeTeam', 'awayTeam'])
-            ->whereHas('league', function (Builder $query) {
-                $query->where('active', true);
-            })
-            ->withSum('stakes as traded', 'filled')
-            ->where(function (Builder $query) {
-                $query->where('startTime', '>=', now()->subHour(2));
-            })
-            ->oldest('startTime')
-            ->when($multiples, function ($query) {
-                $query->whereHas('odds');
-            })
-            ->take(13)
-            ->get();
-        return GameResource::collection($games);
     }
 }

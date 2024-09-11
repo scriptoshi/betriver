@@ -1,15 +1,19 @@
 <script setup>
 	import { computed } from "vue";
 
+	import { useForm } from "@inertiajs/vue3";
 	import { Minus, Plus, XIcon } from "lucide-vue-next";
 
-	import MoneyFormat from "../MoneyFormat.vue";
+	import OddInput from "@/Components/Cards/OddInput.vue";
+	import CollapseTransition from "@/Components/CollapseTransition.vue";
+	import Loading from "@/Components/Loading.vue";
+	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	const props = defineProps({
 		price: [Number, String],
 		stake: [Number, String],
 		bet: Object,
 	});
-	defineEmits(["update:stake", "update:price", "remove"]);
+	const emit = defineEmits(["update:stake", "update:price", "remove"]);
 	function calculateBetReturn(stake, price, isLay) {
 		if (stake < 0 || price < 1) {
 			return {
@@ -18,7 +22,7 @@
 			};
 		}
 		let liability;
-		if (!isLay) {
+		if (isLay) {
 			liability = stake * (price - 1);
 		} else {
 			liability = stake;
@@ -36,6 +40,22 @@
 			props.bet.isLay,
 		),
 	);
+	const form = useForm({ ...props.bet });
+	const tradeNow = () => {
+		form.clearErrors();
+		form.transform((data) => ({
+			price: props.price,
+			stake: props.stake,
+			...props.bet,
+		})).post(window.route("stakes.store"), {
+			onSuccess() {
+				emit("remove");
+			},
+			preserveScroll: true,
+			preserveState: true,
+		});
+	};
+	const isBack = computed(() => !props.bet.isLay);
 </script>
 
 <template>
@@ -72,7 +92,7 @@
 				<span
 					class="min-w-full max-w-0 overflow-hidden text-ellipsis font-bol">
 					<span
-						v-if="bet.isLay"
+						v-if="isBack"
 						class="text-emerald-600 dark:text-emerald-400">
 						{{ $t("For") }}
 					</span>
@@ -81,13 +101,13 @@
 					</span>
 					&nbsp;
 					<div
-						:class="{ 'truncate w-[140px]': !bet.isLay }"
+						:class="{ 'truncate w-[140px]': !isBack }"
 						class="text-gray-800 inline-flex dark:text-white">
 						{{ bet.bet }}
 					</div>
 				</span>
 			</div>
-			<div v-if="!bet.isLay" class="justify-end">
+			<div v-if="!isBack" class="justify-end">
 				<span
 					class="min-w-full text-end max-w-0 overflow-hidden text-ellipsis font-bol">
 					<span class="text-gray-400 dark:text-gray-400">
@@ -161,15 +181,15 @@
 					class="flex overflow-hidden border border-gray-200 dark:border-gray-600 cursor-text h-9 rounded-sm">
 					<div
 						class="relative flex-1 text-sm font-bold overflow-hidden">
-						<input
+						<OddInput
 							type="text"
 							placeholder=""
 							class="text-gray-800 dark:text-white peer delay-[50ms] absolute w-full h-full outline-none [background:none] leading-[1.15] text-[100%] overflow-visible font-bold whitespace-nowrap pl-1 pt-[15px] p-0.5 rounded-none border-[none] left-0 top-0"
 							maxlength="11"
 							tabindex="0"
-							:value="price"
-							@input="
-								$emit('update:price', $event.target.value)
+							:modelValue="price"
+							@update:modelValue="
+								(val) => $emit('update:price', val)
 							" />
 						<span
 							class="absolute uppercase font-bold text-[11px] origin-[left_top] whitespace-nowrap overflow-hidden max-w-full text-ellipsis select-none pointer-events-none left-0.5 duration-300 transform -translate-y-2 scale-75 top-2 peer-focus:text-emerald-600 peer-focus:dark:text-emerald-400 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-2 start-1">
@@ -232,22 +252,33 @@
 			</span>
 			<span class="min-w-0">
 				<button
+					@click="tradeNow"
 					class="block items-center justify-center transition-colors ease-in-out duration-300 w-full h-full relative text-[0.65rem] leading-[1.15] overflow-visible uppercase [appearance:button] text-center bg-transparent outline-none cursor-pointer whitespace-nowrap font-extrabold font-inter tracking-[1px] text-gray-400 hover:text-white border mx-0 px-2 py-2 rounded-[1px] border-solid border-gray-200 dark:border-gray-600"
 					tabindex="0"
 					:class="
-						bet.isLay
-							? 'hover:bg-emerald-600 dark:hover:bg-emerald-500'
+						isBack
+							? form.processing
+								? 'bg-emerald-600 dark:bg-emerald-500'
+								: 'hover:bg-emerald-600 dark:hover:bg-emerald-500'
+							: form.processing
+							? 'bg-sky-600 dark:bg-sky-500'
 							: 'hover:bg-sky-600 dark:hover:bg-sky-500'
 					"
-					disabled>
+					:disabled="
+						form.processing ||
+						parseFloat(price) <= 0 ||
+						parseFloat(stake) <= 0
+					">
+					<Loading class="mx-auto !w-4 !h-4" v-if="form.processing" />
 					<span
+						v-else
 						class="text-ellipsis whitespace-nowrap max-w-full overflow-hidden inline-block z-[1]">
 						{{
 							bet.isAsk
 								? "ASK"
 								: bet.isBid
 								? "BID"
-								: bet.isLay
+								: isBack
 								? $t("Buy")
 								: $t("Sell")
 						}}
@@ -255,6 +286,18 @@
 				</button>
 			</span>
 		</div>
+		<CollapseTransition>
+			<ul
+				v-show="form.hasErrors"
+				class="mt-1 list-disc ml-3 text-xs font-bold font-inter">
+				<li
+					v-for="(error, i) in form.errors"
+					:key="i"
+					class="text-red-500 dark:text-red-400">
+					{{ error }}
+				</li>
+			</ul>
+		</CollapseTransition>
 	</div>
 </template>
 <style scoped>

@@ -23,4 +23,31 @@ enum StakeStatus: string
             static::MATCHED
         ];
     }
+
+    public function name(): string
+    {
+        return match ($this) {
+            self::PENDING => 'Pending',
+            self::PARTIAL => 'Partially Matched',
+            self::MATCHED => 'Fully Matched',
+            self::WINNER => 'Won',
+            self::LOST => 'Lost',
+            self::CANCELLED => 'Cancelled',
+            self::GAME_CANCELLED => 'Game Cancelled',
+            self::REFUNDED => 'Refunded',
+            self::TRADE_OUT => 'Trade Out',
+            self::TRADED_OUT => 'Traded Out',
+        };
+    }
+
+    public static function getNames(): array
+    {
+        return array_reduce(self::cases(), function ($carry, $case) {
+            $carry[$case->value] = [
+                'name' => $case->name(),
+                'value' => $case->value
+            ];
+            return $carry;
+        }, []);
+    }
 }

@@ -51,6 +51,7 @@ class User extends JsonResource
             'address_verified_at' => $this->address_verified_at?->toDateTimeString() ?? null,
             'phone_verified_at' => $this->phone_verified_at?->toDateTimeString() ?? null,
             'created_at' => $this->created_at?->toDateTimeString() ?? null,
+            'joined' => $this->created_at?->diffForHumans() ?? null,
             'verified_at' => $this->verified_at?->toDateTimeString() ?? null,
             //'slips' => Slip::collection($this->whenLoaded('slips')),
             'stakes' => Stake::collection($this->whenLoaded('stakes')),

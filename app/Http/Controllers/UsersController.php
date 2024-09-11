@@ -20,6 +20,7 @@ use App\Models\Transaction;
 use App\Models\User;
 use App\Models\Commission;
 use App\Models\Feedback;
+use App\Models\Ticket;
 use App\Models\Wager;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -53,6 +54,7 @@ class UsersController extends Controller
         $perPage = 10;
         $query  = $request->user()->transactions()
             ->with('transactable');
+
         if (!empty($keyword)) {
             $query->where('description', 'LIKE', "%$keyword%")
                 ->orWhere('amount', 'LIKE', "%$keyword%")
@@ -89,7 +91,13 @@ class UsersController extends Controller
         }
         return Inertia::render('Account/Statement', [
             'transactions' => function () use ($query, $perPage) {
-                $transactionsItems = $query->clone()->latest('created_at')->paginate($perPage);
+                $transactionsItems = $query->clone()
+                    ->latest('created_at')
+                    ->paginate($perPage)
+                    ->loadMorph('transactable', [
+                        Ticket::class => ['wagers.game'],
+                        Stake::class => ['game'],
+                    ]);
                 return  TransactionResource::collection($transactionsItems);
             },
             'won' => function () use ($query) {

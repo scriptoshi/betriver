@@ -4,6 +4,7 @@
 
 namespace App\Http\Resources;
 
+use App\Enums\StakeType;
 use App\Support\TradeManager;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,6 +20,7 @@ class Stake extends JsonResource
     public function toArray($request)
     {
         return [
+            'id' => $this->id,
             'user_id' => $this->user_id,
             'bet_id' => $this->bet_id,
             'game_id' => $this->game_id,
@@ -38,11 +40,15 @@ class Stake extends JsonResource
             'type' => $this->type,
             'status' => $this->status,
             'sport' => $this->sport,
+            'game_info' => $this->game_info,
+            'bet_info' => $this->bet_info,
+            'market_info' => $this->market_info,
             'won' => $this->won,
             'is_withdrawn' => $this->is_withdrawn,
             'allow_partial' => $this->allow_partial,
             'is_trade_out' => $this->is_trade_out,
             'is_traded_out' => $this->is_traded_out,
+            'isLay' => $this->type == StakeType::LAY,
             'user' => new User($this->whenLoaded('user')),
             'game' => new Game($this->whenLoaded('game')),
             'bet' => new Bet($this->whenLoaded('bet')),

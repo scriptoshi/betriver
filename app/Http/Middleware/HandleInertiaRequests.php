@@ -9,6 +9,7 @@ use App\Models\Game;
 use App\Models\League;
 use App\Models\Personal;
 use App\Support\LeagueSlug;
+use App\Support\TradeManager;
 use Auth;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -39,21 +40,25 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        $personal =  $user ? $user->personal()->firstOrCreate([
-            'user_id' => $user->id
-        ], []) : null;
-        $activeCounts = Game::getCountsBySport();
-        $leagues = League::getLeaguesBySport();
-        $footballLeagues = League::getLeaguesByCountry(LeagueSport::FOOTBALL);
         return [
             ...parent::share($request),
-            'multiples' => $request->session()->get('multiples', false),
-            'auth' => [
-                'user' =>  $user ? new User($user) : null,
-                'personal' => $personal
-            ],
-
-            'isAdmin' => $user ? $user->isAdmin() : false,
+            'multiples' => fn() => $request->session()->get('multiples', false),
+            'auth' => function () use ($user) {
+                if ($user) {
+                    $personal =  $user->personal()->firstOrCreate([
+                        'user_id' => $user->id
+                    ], []);
+                    $user->load([
+                        'stakes' => fn($q) => $q->with('game')->latest()->limit(5),
+                        'tickets' => fn($q) => $q->with('wagers.game')->latest()->limit(5)
+                    ]);
+                }
+                return [
+                    'user' =>  $user ? new User($user) : null,
+                    'personal' => $personal
+                ];
+            },
+            'isAdmin' => fn() => $user ? $user->isAdmin() : false,
             'flash' => [
                 'message' => fn() => $request->session()->get('message'),
                 'error' => fn() => $request->session()->get('error'),
@@ -68,46 +73,51 @@ class HandleInertiaRequests extends Middleware
                 if (!$user) return  0;
                 return $user->stakes()->whereIn('status', StakeStatus::exposed())->sum('payout');
             },
-            'appName' => settings('site.app_name'),
-            'appLogo' => settings('site.logo'),
-            'appDescription' => settings('site.description'),
-            'uploadsDisk' => settings('site.uploads_disk'),
-            's3' => settings('site.uploads_disk') != 'public',
-            'profilePhotoDisk' => settings('site.profile_photo_disk'),
-            'twoFactorRequiresConfirmation' => settings('twofa.confirm'),
-            'googleClientId' => settings('google.client_id'),
-            'enableGoogleLogin' => !!settings('google.client_id', null) && str(settings('google.enable'))->toBoolean(),
-            'enableGithubLogin' => !!settings('github.client_id', null) &&  str(settings('github.enable'))->toBoolean(),
-            'enableFacebookLogin' => !!settings('facebook.client_id', null) && str(settings('facebook.enable'))->toBoolean(),
-            'gdprTitle' => settings('pages.gdpr_notice'),
-            'gdprText' => settings('pages.gdpr_terms'),
-            'enableKyc' => str(settings('site.enable_kyc'))->toBoolean(),
-            'currency' => [
+            'appName' => fn() => settings('site.app_name'),
+            'appLogo' => fn() => settings('site.logo'),
+            'appDescription' => fn() => settings('site.description'),
+            'uploadsDisk' => fn() => settings('site.uploads_disk'),
+            's3' => fn() => settings('site.uploads_disk') != 'public',
+            'profilePhotoDisk' => fn() => settings('site.profile_photo_disk'),
+            'twoFactorRequiresConfirmation' => fn() => settings('twofa.confirm'),
+            'googleClientId' => fn() => settings('google.client_id'),
+            'enableGoogleLogin' => fn() => !!settings('google.client_id', null) && str(settings('google.enable'))->toBoolean(),
+            'enableGithubLogin' => fn() => !!settings('github.client_id', null) &&  str(settings('github.enable'))->toBoolean(),
+            'enableFacebookLogin' => fn() => !!settings('facebook.client_id', null) && str(settings('facebook.enable'))->toBoolean(),
+            'gdprTitle' => fn() => settings('pages.gdpr_notice'),
+            'gdprText' => fn() => settings('pages.gdpr_terms'),
+            'enableKyc' => fn() => str(settings('site.enable_kyc'))->toBoolean(),
+            'currency' => fn() => [
                 'currency_code' => settings('site.currency_code'),
                 'currency_symbol' => settings('site.currency_symbol'),
                 'currency_display' => settings('site.currency_display'),
             ],
-            'sports' => collect(LeagueSport::cases())->map(fn(LeagueSport $l) => strlen($l->value) == 3 ? strtoupper($l->value) :  ucfirst($l->value)),
-            'menus' => collect(LeagueSport::cases())->map(function (LeagueSport $sport) use ($activeCounts, $leagues, $footballLeagues) {
-                $leaguesMenu = match ($sport) {
-                    LeagueSport::FOOTBALL => $footballLeagues,
-                    default => collect($leagues[$sport->value] ?? [])->keyBy('slug')->all(),
-                };
-                return [
-                    'route' => "sports.index",
-                    'sport' => $sport->value,
-                    'count' =>  $activeCounts[$sport->value]['total'] ?? 0,
-                    'submenu' =>  [
-                        'live' =>  $activeCounts[$sport->value]['live'] ?? 0,
-                        'today' => $activeCounts[$sport->value]['today'] ?? 0,
-                        'tomorrow' => $activeCounts[$sport->value]['tomorrow'] ?? 0,
-                        'this_week' => $activeCounts[$sport->value]['this_week'] ?? 0,
-                        'next_week' => $activeCounts[$sport->value]['next_week'] ?? 0,
-                        'ended' => $activeCounts[$sport->value]['ended'] ?? 0,
-                        'leagues' => $leaguesMenu
-                    ],
-                ];
-            }),
+            'sports' => fn() => collect(LeagueSport::cases())->map(fn(LeagueSport $l) => strlen($l->value) == 3 ? strtoupper($l->value) :  ucfirst($l->value)),
+            'menus' => function () {
+                $activeCounts = Game::getCountsBySport();
+                $leagues = League::getLeaguesBySport();
+                $footballLeagues = League::getLeaguesByCountry(LeagueSport::FOOTBALL);
+                return collect(LeagueSport::cases())->map(function (LeagueSport $sport) use ($activeCounts, $leagues, $footballLeagues) {
+                    $leaguesMenu = match ($sport) {
+                        LeagueSport::FOOTBALL => $footballLeagues,
+                        default => collect($leagues[$sport->value] ?? [])->keyBy('slug')->all(),
+                    };
+                    return [
+                        'route' => "sports.index",
+                        'sport' => $sport->value,
+                        'count' =>  $activeCounts[$sport->value]['total'] ?? 0,
+                        'submenu' =>  [
+                            'live' =>  $activeCounts[$sport->value]['live'] ?? 0,
+                            'today' => $activeCounts[$sport->value]['today'] ?? 0,
+                            'tomorrow' => $activeCounts[$sport->value]['tomorrow'] ?? 0,
+                            'this_week' => $activeCounts[$sport->value]['this_week'] ?? 0,
+                            'next_week' => $activeCounts[$sport->value]['next_week'] ?? 0,
+                            'ended' => $activeCounts[$sport->value]['ended'] ?? 0,
+                            'leagues' => $leaguesMenu
+                        ],
+                    ];
+                });
+            },
             'quicklinks' => function () use ($user) {
                 $links = ['watchlist', 'inplay'];
                 if (Auth::check()) {
@@ -116,7 +126,8 @@ class HandleInertiaRequests extends Middleware
                 }
                 return $links;
             },
-            'liveCount' => Game::getLiveCount()
+            'liveCount' => fn() => Game::getLiveCount(),
+            'popular' => fn() => TradeManager::popular(),
         ];
     }
 }

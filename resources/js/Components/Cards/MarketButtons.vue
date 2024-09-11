@@ -31,6 +31,7 @@
 			bet_id: props.bet.id,
 			market_id: props.market.id,
 			game_id: props.game.id,
+			odd_id: null,
 			stake: null,
 			returns: null,
 			liability: null,
@@ -40,6 +41,7 @@
 			isBid: price === "BID",
 		};
 		if (props.showBookie) {
+			betData.odd_id = props.odds.id;
 			addBookie(betData);
 			return;
 		}
@@ -50,7 +52,7 @@
 	<div v-if="showBookie" class="flex flex-wrap mt-0.5 m-0 px-2 py-0">
 		<span class="w-full cursor-pointer lining-nums m-0">
 			<span
-				@click="addBet(odds.odd * 1, true)"
+				@click="addBet(odds.odd * 1, false)"
 				class="font-extrabold whitespace-nowrap lining-nums text-xs font-inter uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-600 hover:bg-emerald-700 dark:hover:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
 				<OddsFormat :odds="odds.odd * 1" #default="{ odds }">
 					{{ odds }}
@@ -59,41 +61,16 @@
 		</span>
 	</div>
 	<div v-else class="flex flex-wrap mt-0.5 m-0 px-2 py-0">
-		<span v-if="back" class="w-6/12 cursor-pointer lining-nums m-0">
-			<span
-				@click="addBet(back.price * 1, true)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
-				<OddsFormat :odds="back.price * 1" #default="{ odds }">
-					{{ odds }}
-				</OddsFormat>
-			</span>
-			<span
-				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] mr-0.5 mt-[5px] m-0 rounded-sm">
-				<MoneyFormat
-					billion
-					:amount="back.amount * 1"
-					#default="{ amount }">
-					{{ amount }}
-				</MoneyFormat>
-			</span>
-		</span>
-		<span v-else class="w-6/12 cursor-pointer lining-nums m-0">
-			<span
-				@click="addBet('BID', true)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
-				{{ $t("BID") }}
-			</span>
-		</span>
 		<span v-if="lay" class="w-6/12 cursor-pointer lining-nums m-0">
 			<span
 				@click="addBet(lay.price * 1, false)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-sky-600 dark:bg-sky-500 text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
 				<OddsFormat :odds="lay.price * 1" #default="{ odds }">
 					{{ odds }}
 				</OddsFormat>
 			</span>
 			<span
-				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] ml-0.5 mt-[5px] m-0 rounded-sm">
+				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] mr-0.5 mt-[5px] m-0 rounded-sm">
 				<MoneyFormat
 					billion
 					:amount="lay.amount * 1"
@@ -104,9 +81,42 @@
 		</span>
 		<span v-else class="w-6/12 cursor-pointer lining-nums m-0">
 			<span
-				@click="addBet('ASK', false)"
+				@click="addBet('BID', false)"
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
+				{{ $t("BID") }}
+			</span>
+			<span
+				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] mr-0.5 mt-[5px] m-0 rounded-sm">
+				&nbsp;
+			</span>
+		</span>
+		<span v-if="back" class="w-6/12 cursor-pointer lining-nums m-0">
+			<span
+				@click="addBet(back.price * 1, true)"
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-sky-600 dark:bg-sky-500 text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
+				<OddsFormat :odds="back.price * 1" #default="{ odds }">
+					{{ odds }}
+				</OddsFormat>
+			</span>
+			<span
+				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] ml-0.5 mt-[5px] m-0 rounded-sm">
+				<MoneyFormat
+					billion
+					:amount="back.amount * 1"
+					#default="{ amount }">
+					{{ amount }}
+				</MoneyFormat>
+			</span>
+		</span>
+		<span v-else class="w-6/12 cursor-pointer lining-nums m-0">
+			<span
+				@click="addBet('ASK', true)"
 				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-sky-600 dark:bg-sky-500 text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
 				{{ $t("ASK") }}
+			</span>
+			<span
+				class="font-bold whitespace-nowrap lining-nums block relative text-center text-[0.6875rem] leading-[0.8rem] mr-0.5 mt-[5px] m-0 rounded-sm">
+				&nbsp;
 			</span>
 		</span>
 	</div>

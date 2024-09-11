@@ -177,7 +177,6 @@
 												v-for="market in markets"
 												:key="market.id"
 												role="row">
-												<td>#{{ market.sequence }}</td>
 												<td
 													class="rounded-l-[4px] px-6 py-4 whitespace-nowrap bg-white dark:bg-gray-800 text-sm font-medium text-gray-900 dark:text-gray-300">
 													{{ market.name }}

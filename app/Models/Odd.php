@@ -69,9 +69,9 @@ class Odd extends Model
      * Get the game this model Belongs To.
      *
      */
-    public function game(): MorphTo
+    public function game(): BelongsTo
     {
-        return $this->morphTo(Game::class);
+        return $this->belongsTo(Game::class, 'game_id', 'id');
     }
     /**
 

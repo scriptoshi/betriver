@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Middleware\EnsureApplicationInstalled;
 use App\Http\Middleware\IsAdmin;
+use App\Http\Middleware\NotInstalled;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -16,6 +18,11 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('admin')
                 ->name('admin.')
                 ->group(base_path('routes/admin.php'));
+            Route::middleware(['web', NotInstalled::class])
+                ->prefix('install')
+                ->name('installer.')
+                ->withoutMiddleware(EnsureApplicationInstalled::class)
+                ->group(base_path('routes/installer.php'));
         },
     )
     ->withMiddleware(function (Middleware $middleware) {
@@ -23,6 +30,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\Timeout::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
+            EnsureApplicationInstalled::class,
         ])->validateCsrfTokens(except: ['webhooks/*']);
 
         //

@@ -1,5 +1,8 @@
 <script setup>
+	import WagerCard from "@/Components/Cards/WagerCard.vue";
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
+	import OddsFormat from "@/Components/OddsFormat.vue";
+	import StatusBadge from "@/Components/StatusBadge.vue";
 	defineProps({
 		transaction: {
 			type: Object,
@@ -8,29 +11,24 @@
 	});
 </script>
 <template>
-	<div class="space-y-2">
-		<p class="text-gray-600 dark:text-gray-300">
-			<span class="font-semibold mr-2">Amount:</span>
-			<MoneyFormat :amount="transaction.transactable.amount" />
-		</p>
-		<p class="text-gray-600 dark:text-gray-300">
-			<span class="font-semibold">Total Odds:</span>
-			{{ transaction.transactable.total_odds }}
-		</p>
-		<p class="text-gray-600 dark:text-gray-300">
-			<span class="font-semibold">Status:</span>
-			{{ transaction.transactable.status }}
-		</p>
+	<div class="">
+		<div class="flex items-center justify-between">
+			<p class="text-gray-600 dark:text-gray-300">
+				<span class="font-semibold mr-2">Stake:</span>
+				<MoneyFormat :amount="transaction.transactable.amount" />
+			</p>
+			<p class="text-gray-600 dark:text-gray-300">
+				<span class="font-semibold mr-2">Total Odds:</span>
+				<OddsFormat :odds="transaction.transactable.total_odds" />
+			</p>
+			<StatusBadge :status="transaction.transactable.status" />
+		</div>
 		<div class="mt-2">
-			<h4 class="font-semibold text-gray-700 dark:text-gray-200">
-				Wagers:
-			</h4>
-			<ul class="list-disc list-inside">
+			<ul class="grid gap-1">
 				<li
 					v-for="(wager, index) in transaction.transactable.wagers"
-					:key="index"
-					class="text-gray-600 dark:text-gray-300">
-					{{ wager.bet.name }} - Odds: {{ wager.odds }}
+					:key="index">
+					<WagerCard :wager />
 				</li>
 			</ul>
 		</div>

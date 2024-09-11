@@ -1,18 +1,30 @@
 <script setup>
+	import { ref } from "vue";
+
+	import { Head, router, useForm } from "@inertiajs/vue3";
+	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
+	import { ChevronsRight } from "lucide-vue-next";
+	import { HiSolidChevronDown, HiSolidX } from "oh-vue-icons/icons";
+
 	import ConfirmationModal from "@/Components/ConfirmationModal.vue";
 	import Loading from "@/Components/Loading.vue";
+	import MoneyFormat from "@/Components/MoneyFormat.vue";
+	import Multiselect from "@/Components/Multiselect/Multiselect.vue";
+	import OddsFormat from "@/Components/OddsFormat.vue";
 	import Pagination from "@/Components/Pagination.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import SearchInput from "@/Components/SearchInput.vue";
+	import StatusBadge from "@/Components/StatusBadge.vue";
+	import Switch from "@/Components/Switch.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
+	import { ucfirst } from "@/hooks";
 	import AdminLayout from "@/Layouts/AdminLayout.vue";
-	import { Head, Link, router, useForm } from "@inertiajs/vue3";
-	import { debouncedWatch, useUrlSearchParams } from "@vueuse/core";
-	import { HiPencil, HiTrash } from "oh-vue-icons/icons";
-	import { ref } from "vue";
+
 	defineProps({
 		stakes: Object,
+		filter: String,
 		title: { required: false, type: String },
+		statuses: Object,
 	});
 
 	const params = useUrlSearchParams("history");
@@ -31,11 +43,14 @@
 		);
 	};
 	debouncedWatch(
-		[search],
-		([search]) => {
+		[search, () => params.status],
+		([search, status]) => {
 			router.get(
 				window.route("admin.stakes.index"),
-				{ search },
+				{
+					...(search ? { search } : {}),
+					...(status ? { status } : {}),
+				},
 				{
 					preserveState: true,
 					preserveScroll: true,
@@ -46,22 +61,6 @@
 			maxWait: 700,
 		},
 	);
-
-	const toggle = (stake) => {
-		stake.busy = true;
-		router.put(
-			window.route("admin.stakes.toggle", stake.id),
-			{},
-			{
-				preserveScroll: true,
-				preserveState: true,
-				onFinish: () => {
-					stake.busy = false;
-					stakeBeingDeleted.value = null;
-				},
-			},
-		);
-	};
 </script>
 <template>
 	<Head :title="title ?? 'Stakes'" />
@@ -74,31 +73,44 @@
 						class="lg:flex items-center justify-between mb-4 gap-3">
 						<div class="mb-4 lg:mb-0">
 							<h3 class="h3">
-								{{ $t("Accepted Stakes") }}
+								{{ filter ? ucfirst(filter) : $t("All") }}
+								{{ $t("Stakes") }}
 							</h3>
-							<p>{{ $t("Available Stakes") }}</p>
-						</div>
-						<div
-							class="flex flex-col lg:flex-row lg:items-center gap-3">
-							<button
-								type="button"
-								@click="updateStakes"
-								class="focus:outline-none text-white bg-emerald-700 hover:bg-emerald-800 focus:ring-4 focus:ring-emerald-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-emerald-600 dark:hover:bg-emerald-700 dark:focus:ring-emerald-800">
-								<Loading
-									v-if="loading"
-									class="w-4 h-4 -ml-2 mr-2 inline-block" />
-								{{ $t("Check for New Stakes") }}
-							</button>
 						</div>
 					</div>
 					<div class="card border-0 card-border">
 						<div class="card-body px-0 card-gutterless h-full">
 							<div
-								class="lg:flex items-center justify-between mb-4 px-6">
+								class="lg:flex gap-3 items-center justify-end mb-4 px-6">
 								<div class="flex gap-x-3 sm:w-1/2 lg:w-1/4">
 									<SearchInput
 										class="max-w-md"
 										v-model="search" />
+								</div>
+								<div class="lg:max-w-[200px] w-full">
+									<Multiselect
+										class="md"
+										:options="Object.values(statuses)"
+										valueProp="value"
+										label="name"
+										:placeholder="$t('Filter Status')"
+										v-model="params.status"
+										closeOnSelect>
+										<template #caret="{ isOpen }">
+											<VueIcon
+												:class="{
+													'rotate-180': isOpen,
+												}"
+												class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+												:icon="HiSolidChevronDown" />
+										</template>
+										<template #clear="{ clear }">
+											<VueIcon
+												@click="clear"
+												class="mr-1 relative z-10 opacity-60 w-5 h-5"
+												:icon="HiSolidX" />
+										</template>
+									</Multiselect>
 								</div>
 							</div>
 							<div>
@@ -108,64 +120,33 @@
 										role="table">
 										<thead>
 											<tr role="row">
-												<th role="columnheader">
-													{{ $t("Stake") }}
+												<th
+													scope="col"
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("User") }} &
+													{{ $t("Game") }}
 												</th>
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Slip Id") }}
+													{{ $t("Bet") }}
+												</th>
+
+												<th
+													scope="col"
+													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+													{{ $t("Staked") }}/{{
+														$t("Payout")
+													}}
 												</th>
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("User Id") }}
+													{{ $t("Filled") }}/{{
+														$t("Unfilled")
+													}}
 												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Bet Id") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Game Id") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Uuid") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Scoretype") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Amount") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Filled") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Unfilled") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Payout") }}
-												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Odds") }}
-												</th>
+
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -179,14 +160,8 @@
 												<th
 													scope="col"
 													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Is Withdrawn") }}
+													{{ $t("Claimed") }}
 												</th>
-												<th
-													scope="col"
-													class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-													{{ $t("Allow Partial") }}
-												</th>
-												<td role="columnheader"></td>
 											</tr>
 										</thead>
 										<tbody role="rowgroup">
@@ -196,91 +171,112 @@
 												role="row">
 												<td
 													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.slip_id }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.user_id }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.bet_id }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.game_id }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.uuid }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.scoreType }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.amount }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.filled }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.unfilled }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.payout }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.odds }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.status }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.won }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.is_withdrawn }}
-												</td>
-												<td
-													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
-													{{ stake.allow_partial }}
-												</td>
-												<td role="cell">
-													<div
-														class="flex justify-end text-lg">
-														<Link
-															:href="
-																route(
-																	'admin.stakes.edit',
-																	stake.id,
-																)
-															"
-															class="cursor-pointer p-2 hover:text-blue-600">
-															<VueIcon
-																:icon="HiPencil"
-																class="w-4 h-4" />
-														</Link>
-														<a
-															href="#"
-															@click.prevent="
-																stakeBeingDeleted =
-																	stake
-															"
-															class="cursor-pointer p-2 hover:text-red-500">
-															<VueIcon
-																:icon="HiTrash"
-																class="w-4 h-4" />
-														</a>
+													<div>
+														<div class="underline">
+															{{
+																stake.user.email
+															}}
+														</div>
+														<div>
+															{{
+																stake.game_info
+															}}
+														</div>
 													</div>
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													<div>
+														<div>
+															{{
+																stake.market_info
+															}}
+														</div>
+														<div>
+															<span
+																:class="
+																	stake.isLay
+																		? 'text-sky-500'
+																		: 'text-emerald-500'
+																">
+																{{
+																	stake.isLay
+																		? "Against"
+																		: "For"
+																}}
+															</span>
+															{{ stake.bet_info }}
+														</div>
+													</div>
+												</td>
+
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													<div>
+														<div
+															class="flex items-center">
+															<MoneyFormat
+																:amount="
+																	stake.amount
+																" />
+															<ChevronsRight
+																class="w-4 h-4 mx-0.5 text-emerald-500" />
+
+															<MoneyFormat
+																:amount="
+																	stake.payout
+																" />
+														</div>
+														<div
+															class="uppercase text-xs">
+															<span
+																class="text-emerald-500">
+																{{ $t("Odds") }}
+																:
+															</span>
+															<OddsFormat
+																:odds="
+																	stake.odds
+																" />
+														</div>
+													</div>
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													<MoneyFormat
+														:amount="
+															stake.filled
+														" />
+													<span
+														class="text-emerald-500">
+														/
+													</span>
+													<MoneyFormat
+														:amount="
+															stake.unfilled
+														" />
+												</td>
+
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													<StatusBadge
+														:status="
+															stake.status
+														" />
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													<Switch
+														disabled
+														v-model="stake.won" />
+												</td>
+												<td
+													class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-300">
+													<Switch
+														disabled
+														v-model="
+															stake.is_withdrawn
+														" />
 												</td>
 											</tr>
 										</tbody>

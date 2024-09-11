@@ -134,6 +134,16 @@ class Game extends Model
 
     /**
 
+     * Get the homeTeam this model Belongs To.
+     *
+     */
+    public function teams(): BelongsToMany
+    {
+        return $this->belongsToMany(Team::class, 'game_team', 'game_id', 'team_id');
+    }
+
+    /**
+
      * Get the awayTeam this model Belongs To.
      *
      */
@@ -304,9 +314,9 @@ class Game extends Model
      * Get the odds this model Owns.
      *
      */
-    public function odds(): MorphMany
+    public function odds(): HasMany
     {
-        return $this->morphMany(Odd::class, 'game');
+        return $this->hasMany(Odd::class, 'game_id', 'id');
     }
 
     /**

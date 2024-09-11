@@ -7,6 +7,7 @@ use App\Enums\TicketStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Ticket extends Model
@@ -78,5 +79,15 @@ class Ticket extends Model
     public function wagers(): HasMany
     {
         return $this->hasMany(Wager::class, 'ticket_id', 'id');
+    }
+
+    /**
+
+     * Get transactions related to this model
+     *
+     */
+    public function transactions(): MorphMany
+    {
+        return $this->morphMany(Transaction::class, 'transactable');
     }
 }

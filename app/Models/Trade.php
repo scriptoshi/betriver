@@ -53,12 +53,13 @@ class Trade extends Model
         'game_id',
         'amount',
         'price',
-        'maker_price',
+        'layer_price',
         'status',
         // admin arbitrage info 
         'buy', // bet lay odds
         'sell', // bet back odds
-        'margin' // how much abitrage admin made on this trade
+        'margin', // how much abitrage admin made on this trade
+        'commission' // admin fees (depends on winner level)
     ];
 
 

@@ -138,33 +138,10 @@
 				<span
 					class="flex flex-[5_0_3.75rem] h-14 mb-[-0.5rem] max-w-[180px] overflow-hidden lining-nums">
 					<BetButton
-						lay
 						@go="addBet"
-						:price="bet.backs[2]?.price"
-						:amount="bet.backs[2]?.amount"
-						:blank="!bet.backs[2]" />
-					<BetButton
-						lay
-						@go="addBet"
-						:price="bet.backs[1]?.price"
-						:amount="bet.backs[1]?.amount"
-						:blank="!bet.backs[1]" />
-					<BetButton
-						@go="addBet"
-						:price="bet.backs[0]?.price"
-						:amount="bet.backs[0]?.amount"
-						lay
-						active
-						:ask="bet.backs[0] ? null : 'BID'" />
-				</span>
-				<span
-					class="flex flex-[5_0_3.75rem] flex-row h-14 mb-[-0.5rem] max-w-[180px] overflow-hidden lining-nums">
-					<BetButton
-						@go="addBet"
-						:price="bet.lays[0]?.price"
-						:amount="bet.lays[0]?.amount"
-						active
-						:ask="bet.lays[0] ? null : 'ASK'" />
+						:price="bet.lays[2]?.price"
+						:amount="bet.lays[2]?.amount"
+						:blank="!bet.lays[2]" />
 					<BetButton
 						@go="addBet"
 						:price="bet.lays[1]?.price"
@@ -172,9 +149,32 @@
 						:blank="!bet.lays[1]" />
 					<BetButton
 						@go="addBet"
-						:price="bet.lays[2]?.price"
-						:amount="bet.lays[2]?.amount"
-						:blank="!bet.lays[2]" />
+						:price="bet.lays[0]?.price"
+						:amount="bet.lays[0]?.amount"
+						active
+						:ask="bet.lays[0] ? null : 'BID'" />
+				</span>
+				<span
+					class="flex flex-[5_0_3.75rem] flex-row h-14 mb-[-0.5rem] max-w-[180px] overflow-hidden lining-nums">
+					<BetButton
+						@go="addBet"
+						:price="bet.backs[0]?.price"
+						:amount="bet.backs[0]?.amount"
+						active
+						lay
+						:ask="bet.backs[0] ? null : 'ASK'" />
+					<BetButton
+						@go="addBet"
+						lay
+						:price="bet.backs[1]?.price"
+						:amount="bet.backs[1]?.amount"
+						:blank="!bet.backs[1]" />
+					<BetButton
+						@go="addBet"
+						lay
+						:price="bet.backs[2]?.price"
+						:amount="bet.backs[2]?.amount"
+						:blank="!bet.backs[2]" />
 				</span>
 			</template>
 		</div>

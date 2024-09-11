@@ -4,7 +4,9 @@
 	import { useForm } from "@inertiajs/vue3";
 	import { AlertCircle, Minus, Plus } from "lucide-vue-next";
 
+	import Loading from "@/Components/Loading.vue";
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
+	import OddsFormat from "@/Components/OddsFormat.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import { Alert, AlertDescription, AlertTitle } from "@/Components/ui/alert";
 	import { useBookieForm } from "@/Pages/Games/bettingForm";
@@ -30,6 +32,7 @@
 		};
 	}
 	const form = useForm({
+		wagers: null,
 		stake: 0,
 		isLay: true, // for now only buying, sell will come later
 	});
@@ -46,6 +49,17 @@
 			form.isLay,
 		);
 	});
+
+	const placeBet = () => {
+		form.transform((data) => ({
+			...data,
+			wagers: Object.values(bookieForm.value),
+		})).post(window.route("tickets.store"), {
+			onSuccess() {
+				bookieForm.value = {};
+			},
+		});
+	};
 </script>
 
 <template>
@@ -55,9 +69,13 @@
 				variant="secondary"
 				class="border border-gray-250 dark:border-gray-700">
 				<AlertCircle class="w-4 h-4" />
-				<AlertTitle>Add some bets to start</AlertTitle>
+				<AlertTitle>{{ $t("Add some bets to start") }}</AlertTitle>
 				<AlertDescription>
-					To create a multiple, you need at least 2 back selections.
+					{{
+						$t(
+							"To create a multiple, you need at least 2 back selections.",
+						)
+					}}
 				</AlertDescription>
 			</Alert>
 		</div>
@@ -117,14 +135,16 @@
 					class="flex overflow-hidden border border-gray-200 dark:border-gray-600 cursor-text h-9 rounded-sm">
 					<div
 						class="relative flex-1 text-sm font-bold overflow-hidden">
-						<input
-							type="text"
-							placeholder=""
-							class="text-gray-800 dark:text-white peer delay-[50ms] absolute w-full h-full outline-none [background:none] leading-[1.15] text-[100%] overflow-visible font-bold whitespace-nowrap pl-1 pt-[15px] p-0.5 rounded-none border-[none] left-0 top-0"
-							maxlength="11"
-							tabindex="0"
-							:value="totalPrice"
-							disabled />
+						<OddsFormat :odds="totalPrice" v-slot="{ odds }">
+							<input
+								type="text"
+								placeholder=""
+								class="text-gray-800 dark:text-white peer delay-[50ms] absolute w-full h-full outline-none [background:none] leading-[1.15] text-[100%] overflow-visible font-bold whitespace-nowrap pl-1 pt-[15px] p-0.5 rounded-none border-[none] left-0 top-0"
+								maxlength="11"
+								tabindex="0"
+								:value="odds"
+								disabled />
+						</OddsFormat>
 						<span
 							class="absolute uppercase font-bold text-[11px] origin-[left_top] whitespace-nowrap overflow-hidden max-w-full text-ellipsis select-none pointer-events-none left-0.5 duration-300 transform -translate-y-2 scale-75 top-2 peer-focus:text-emerald-600 peer-focus:dark:text-emerald-400 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-2 start-1">
 							Price
@@ -155,12 +175,27 @@
 				</div>
 			</span>
 		</div>
-
+		<CollapseTransition>
+			<ul
+				v-show="form.hasErrors"
+				class="mt-1 list-disc ml-3 text-xs font-bold font-inter">
+				<li
+					v-for="(error, i) in form.errors"
+					:key="i"
+					class="text-red-500 dark:text-red-400">
+					{{ error }}
+				</li>
+			</ul>
+		</CollapseTransition>
 		<div class="mt-4">
 			<PrimaryButton
-				:disabled="totalPrice <= 0 || form.stake <= 0"
+				@click.prevent="placeBet"
+				:disabled="
+					form.processing || totalPrice <= 0 || form.stake <= 0
+				"
 				class="w-full"
 				primary>
+				<Loading class="!w-4 !h-4 mr-2 -ml-1" v-if="form.processing" />
 				BUY
 			</PrimaryButton>
 		</div>

@@ -4,7 +4,6 @@
 	import { Head, usePage } from "@inertiajs/vue3";
 
 	import BreadCrumbs from "@/Components/BreadCrumbs.vue";
-	import EventCard from "@/Components/Cards/EventCard.vue";
 	import GameRow from "@/Components/Cards/GameRow.vue";
 	import Pagination from "@/Components/Pagination.vue";
 	import { toTitleCase } from "@/Layouts/FontendLayout/useMenu";
@@ -72,20 +71,8 @@
 				<Pagination :meta="games.meta" />
 			</div>
 		</div>
-		<template #right-sidebar>
-			<div>
-				<BettingSideBar :multiples="multiples" />
-				<div
-					class="bg-gray-300 text-gray-900 dark:text-white dark:bg-gray-750 border-b border-gray-250 dark:border-gray-850 flex items-center px-2.5 uppercase font-inter text-sm tracking-[1px] font-bold h-12 box-border flex-shrink-0 flex-wrap m-0">
-					Top Events
-				</div>
-				<div class="grid">
-					<EventCard
-						v-for="game in popular"
-						:key="game.slug"
-						:game="game" />
-				</div>
-			</div>
+		<template #right-sidebar-top>
+			<BettingSideBar :multiples="multiples" />
 		</template>
 	</AppLayout>
 </template>

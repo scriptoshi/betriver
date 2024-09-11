@@ -91,12 +91,6 @@
 							v-model:to="params.to" />
 						<SportsFilter v-model:sports="params.sports" />
 						<TypesFilter v-model:types="params.types" />
-						<Switch v-model="params.debit">
-							{{ $t("Debit") }}
-						</Switch>
-						<Switch v-model="params.credit">
-							{{ $t("Credit") }}
-						</Switch>
 					</div>
 					<div class="grid mt-4 sm:grid-cols-2 gap-5">
 						<div
@@ -212,7 +206,16 @@
 					</div>
 				</div>
 			</div>
-			<div class="p-4 mt-2">
+
+			<div class="p-4">
+				<div class="flex justify-end space-x-3 my-4">
+					<Switch v-model="params.debit">
+						{{ $t("Debit") }}
+					</Switch>
+					<Switch v-model="params.credit">
+						{{ $t("Credit") }}
+					</Switch>
+				</div>
 				<Transactions />
 			</div>
 		</div>

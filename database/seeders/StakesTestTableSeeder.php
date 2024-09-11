@@ -102,7 +102,7 @@ class StakesTestTableSeeder extends Seeder
                 'market_id' => $stake->market_id,
                 'amount' => $stake->amount,
                 'price' => $stake->odds,
-                'maker_price' => $stake->odds,
+                'layer_price' => $stake->odds,
                 'status' => 'pending',
                 'created_at' => $matchingStake->created_at,
                 'updated_at' => Carbon::now(),

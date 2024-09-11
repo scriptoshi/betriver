@@ -20,6 +20,12 @@ return new class extends Migration
             $table->foreignId('game_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('odd_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->string('sport');
+            $table->string('game_info')->nullable();
+            $table->string('bet_info')->nullable();
+            $table->string('market_info')->nullable();
+            $table->string('status')
+                ->default('pending')
+                ->nullable();
             $table->decimal('odds', 6, 2)->default();
             $table->boolean('won')->default(false);
             $table->timestamps();

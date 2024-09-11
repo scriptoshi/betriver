@@ -99,7 +99,6 @@ class HomeController extends Controller
             'defaultMarket' => new ResourcesMarket($defaultMarket),
             'games' => GameResource::collection($gamesItems),
             'slides' => fn() => ResourcesSlider::collection(Slider::where('active', true)->latest()->take(3)->get()),
-            'popular' => fn() => static::popular(),
             'top' => function () use ($defaultMarketsIds,  $multiples) {
                 $query = Game::query()
                     ->with([
@@ -135,34 +134,5 @@ class HomeController extends Controller
                 return GameResource::collection($games);
             },
         ]);
-    }
-
-
-
-
-    protected static function popular($top = false)
-    {
-        $multiples  = TradeManager::multiples();
-        $query = Game::query()
-            ->with(['scores', 'league', 'homeTeam', 'awayTeam'])
-            ->whereHas('league', function (Builder $query) {
-                $query->where('active', true);
-            })
-            ->withSum('stakes as traded', 'filled')
-            ->where(function (Builder $query) {
-                $query->where('startTime', '>=', now()->subHour(2));
-            });
-        if ($top)
-            $query->oldest('traded')
-                ->inRandomOrder()
-                ->take(7);
-        else
-            $query->oldest('startTime')
-                ->take(13);
-        $query->when($multiples, function ($query) {
-            $query->whereHas('odds');
-        });
-        $games = $query->get();
-        return GameResource::collection($games);
     }
 }

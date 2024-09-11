@@ -36,7 +36,7 @@
 				variant="outline"
 				:class="
 					cn(
-						'w-full sm:w-40 justify-between text-left font-normal !border !border-emerald-500',
+						'w-full sm:w-60 justify-between text-left font-normal !border !border-emerald-500',
 						selected.length === 0 && 'text-muted-foreground',
 					)
 				">
@@ -47,7 +47,7 @@
 			</Button>
 		</PopoverTrigger>
 		<PopoverContent side="bottom" align="start" class="w-auto p-0">
-			<div class="grid w-full sm:w-40 gap-3 p-3">
+			<div class="grid w-full sm:w-60 gap-3 p-3">
 				<label
 					v-for="item in $page.props.typeOptions"
 					:key="item.value"

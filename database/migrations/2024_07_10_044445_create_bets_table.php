@@ -18,6 +18,7 @@ return new class extends Migration
         Schema::create('bets', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->foreignId('market_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('team_id')->nullable()->constrained();
             $table->string('name')->nullable();
             $table->string('sport');
             $table->string('result');

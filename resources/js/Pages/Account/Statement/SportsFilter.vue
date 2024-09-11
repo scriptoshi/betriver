@@ -25,8 +25,8 @@
 			const items = usePage().props.sportsOptions;
 			return items[selected.value[0]]?.name;
 		}
-		if (selected.value.length === 0) return "Any Activity";
-		return `${selected.value.length} Activity Types`;
+		if (selected.value.length === 0) return "Any sport";
+		return `${selected.value.length} Sport Types`;
 	});
 </script>
 

@@ -10,6 +10,7 @@ enum TransactionType: string
     case DEPOSIT = 'deposit';
     case WIN = 'win';
     case BET = 'bet';
+    case TICKET = 'ticket';
     case BET_REFUND = 'bet_refund';
     case PAYOUT = 'payout';
     case TRADE_OUT_LIABILITY = 'tradeout_liability';
@@ -35,11 +36,12 @@ enum TransactionType: string
             self::DEPOSIT => 'Deposit',
             self::WIN => 'Win',
             self::BET => 'Bet',
+            self::TICKET => 'Ticket',
             self::BET_REFUND => 'Bet Refund',
             self::PAYOUT => 'Payout',
             self::TRADE_OUT_LIABILITY => 'Trade Out Liability',
             self::TRADE_OUT_PROFIT => 'Trade Out Profit',
-            self::TRADE_OUT_EXPOSURE => 'TO Exposure Reduced',
+            self::TRADE_OUT_EXPOSURE => 'Exposure Reduced',
             self::REFERRAL_COMMISSION => 'Ref Earnings',
             self::LEVEL_UP => 'Level Up',
             self::ADMIN_ACTION => 'Team Action',

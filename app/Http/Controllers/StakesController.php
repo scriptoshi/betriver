@@ -12,6 +12,7 @@ use App\Enums\StakeType;
 use App\Enums\StakeStatus;
 use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
+use App\Http\Resources\StatStake;
 use App\Models\Bet;
 use App\Models\Game;
 use App\Support\TradeManager;
@@ -20,6 +21,8 @@ use Gate;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
+
+use function Clue\StreamFilter\fun;
 
 class StakesController extends Controller
 {
@@ -54,14 +57,7 @@ class StakesController extends Controller
         return Inertia::render('AdminStakes/Index', compact('stakes'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     * @return \Illuminate\View\View
-     */
-    public function create()
-    {
-        return Inertia::render('AdminStakes/Create');
-    }
+
 
     /**
      * Store a  stake
@@ -72,35 +68,44 @@ class StakesController extends Controller
     {
         $min = settings('site.exchange_min_bet', 0.01);
         $request->validate([
-            'amount' => "required|numeric|min:$min",
-            'odds' => 'required|numeric|min:1.01',
-            'type' => ['required', 'string', new Enum(StakeType::class)],
+            'stake' => "required|numeric|min:$min",
+            'price' => 'required|numeric|min:1.01',
+            'isLay' => ['required',  'boolean'],
+            'isAsk' => ['required',  'boolean'],
             'bet_id' => 'required|exists:bets,id',
             'game_id' => 'required|exists:games,id',
+            'game' => 'required|string',
+            'market' => 'required|string',
+            'bet' => 'required|string',
         ]);
-        $type  = StakeType::from($request->type);
+        $type  = $request->isLay ? StakeType::LAY : StakeType::BACK;
         $liability =  $type === StakeType::LAY
-            ? $request->amount * ($request->odds - 1)
-            : $request->amount;
+            ? $request->stake * ($request->price - 1)
+            : $request->stake;
         if ($request->user()->balance < $liability) {
             throw ValidationException::withMessages(['amount' => ['Low Balance']]);
         }
         $bet = Bet::find($request->bet_id);
         $game = Game::find($request->game_id);
         $stake = new Stake();
-        $stake->fill($request->only(['amount', 'odds', 'bet_id']));
         $stake->user_id = $request->user()->id;
-        $stake->bet_type = (new Bet)->getMorphClass();
+        $stake->bet_id = $bet->id;
+        $stake->odds =  $request->price;
+        $stake->amount =  $request->stake;
         $stake->game_id = $request->game_id;
         $stake->market_id = $bet->market_id;
         $stake->uid = Random::generate();
         $stake->type =  $type;
+        $stake->filled =  0;
         $stake->sport =  $game->sport;
         $stake->status = StakeStatus::PENDING;
-        $stake->unfilled = $request->amount;
-        $stake->qty = $request->amount * $request->odds;
+        $stake->unfilled = $request->stake;
+        $stake->qty = $request->stake * $request->price;
         $stake->payout = 0;
         $stake->liability = $liability;
+        $stake->game_info = $request->game;
+        $stake->market_info = $request->market;
+        $stake->bet_info = $request->bet;
         DB::beginTransaction();
         try {
             $stake->save();
@@ -164,6 +169,48 @@ class StakesController extends Controller
         }
     }
 
+    public function showTradeOut(Request $request, Stake $stake = null)
+    {
+        if (!$stake) return Inertia::render('Stakes/TradeOut');
+        Gate::authorize('update', $stake);
+        return Inertia::render('Stakes/TradeOut', [
+            'stake' => function () use ($stake) {
+                $stake->load('game');
+                return new StakeResource($stake);
+            },
+            'odds' => function () use ($stake) {
+                $rangeSize = (float) settings('odds_spread', 0.2);
+                $rangeSize = $rangeSize < 0.001 ? 0.2 :  $rangeSize;
+                $query = Stake::query()->where('type', $stake->type)
+                    ->whereIn('status', [StakeStatus::PENDING->value, StakeStatus::PARTIAL->value])
+                    ->where('unfilled', '>', 0)
+                    ->where('market_id', $stake->market_id)
+                    ->where('bet_id', $stake->bet_id)
+                    ->where('game_id', $stake->game_id);
+                if ($stake->type == StakeType::LAY) {
+                    $query->select(
+                        DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                        DB::raw('SUM(unfilled) AS amount'),
+                        DB::raw('MAX(odds) as price')
+                    )
+                        ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                        ->latest(DB::raw('MAX(odds)'));
+                } else {
+                    $query->select(
+
+                        DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                        DB::raw('SUM(unfilled) AS amount'),
+                        DB::raw('MIN(odds) as price')
+                    )
+                        ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                        ->oldest(DB::raw('MAX(odds)'));
+                }
+                $markets = $query->take(3)->get();
+                return  StatStake::collection($markets);
+            }
+        ]);
+    }
+
     /**
      * Users can tradeout matched bets
      * @param \Illuminate\Http\Request $request
@@ -177,22 +224,38 @@ class StakesController extends Controller
         $request->validate([
             'new_odds' => 'required|numeric|min:1.01',
         ]);
-
-        if ($stake->status !== StakeStatus::MATCHED) {
-            return back()->with('error', __('This stake cannot be traded out'));
+        if (!in_array($stake->status, [StakeStatus::MATCHED, StakeStatus::PARTIAL])) {
+            return back()->with('error', __('Only matched or partially matched stakes can be traded out'));
         }
-
         $newOdds = $request->new_odds;
-        $originalAmount = $stake->amount;
-        $originalOdds = $stake->odds;
-
         DB::beginTransaction();
         try {
+            if ($stake->status === StakeStatus::PARTIAL && $stake->unfilled > 0) {
+                // Create a new stake the unfilled portion
+                $unfilledStake = $stake->replicate();
+                $unfilledStake->original_stake_id = $stake->id;
+                $unfilledStake->amount = $stake->unfilled;
+                $unfilledStake->uid =  Random::generate();
+                $unfilledStake->filled = 0;
+                $unfilledStake->unfilled = $stake->unfilled;
+                $unfilledStake->status = StakeStatus::PENDING;
+                $unfilledStake->liability = TradeManager::calculateLiability($stake->type, $unfilledStake->amount, $stake->odds);
+                $unfilledStake->save();
+                // Update the stake
+                $stake->amount = $stake->filled;
+                $stake->unfilled = 0;
+                $stake->status = StakeStatus::MATCHED;
+                $stake->liability = TradeManager::calculateLiability($stake->type, $stake->amount, $stake->odds);
+                $stake->save();
+            }
+            $originalAmount = $stake->amount;
+            $originalOdds = $stake->odds;
             // Calculate the trade-out amount
             $tradeOutAmount = TradeManager::calculateTradeOutAmount($stake->type, $originalAmount, $originalOdds, $newOdds);
             // Calculate profit/loss
             $profitLoss = TradeManager::calculateProfitLoss($stake->type, $originalAmount, $originalOdds, $tradeOutAmount, $newOdds);
             // Create a new opposing stake
+            $newStakeType = $stake->type === StakeType::BACK ? StakeType::LAY : StakeType::BACK;
             $newStake = new Stake();
             $newStake->fill([
                 'user_id' =>  $stake->user_id,
@@ -201,23 +264,23 @@ class StakesController extends Controller
                 'game_id' => $stake->game_id,
                 'bet_id' => $stake->bet_id,
                 'market_id' => $stake->market_id,
-                'bet_type' => $stake->bet_type,
                 'amount' => $tradeOutAmount,
                 'odds' => $newOdds,
-                'type' => $stake->type === StakeType::BACK ? StakeType::LAY : StakeType::BACK,
+                'type' => $newStakeType,
                 'sport' =>  $stake->sport,
                 'is_trade_out' => true,
                 'status' => StakeStatus::PENDING,
                 'unfilled' => $tradeOutAmount,
+                'filled' => $tradeOutAmount,
                 'profit_loss' => $profitLoss,
-                'liability' => TradeManager::calculateLiability($newStake->type, $tradeOutAmount, $newOdds)
+                'liability' => TradeManager::calculateLiability($newStakeType, $tradeOutAmount, $newOdds)
             ]);
             $newStake->save();
             // Handle profit/loss and liability
             $user = $stake->user;
             $newLiability = $newStake->liability;
             // Calculate additional exposure created
-            $extraExposure = $newLiability - $stake->liability;
+            $extraExposure = round($newLiability - $stake->liability, 2);
             if ($extraExposure > 0) { // increased Exposure
                 // Check if user has enough balance
                 if ($user->balance < $extraExposure) {
@@ -227,7 +290,7 @@ class StakesController extends Controller
                 $user->decrement('balance', $extraExposure);
                 $newStake->transactions()->create([
                     'user_id' => $user->id,
-                    'description' => "Additional liability for trade-out of BET #" . $stake->id,
+                    'description' => "Additional liability for trade-out of BET #" . $stake->uid,
                     'amount' => $extraExposure,
                     'balance_before' => $user->balance + $extraExposure,
                     'action' => TransactionAction::DEBIT,
@@ -237,9 +300,9 @@ class StakesController extends Controller
                 $user->increment('balance', $extraExposure);
                 $newStake->transactions()->create([
                     'user_id' => $user->id,
-                    'description' => "Reduced liability on trade-out of BET #" . $stake->id,
-                    'amount' => $extraExposure,
-                    'balance_before' => $user->balance + $extraExposure,
+                    'description' => "Reduced liability on trade-out of BET #" . $stake->uid,
+                    'amount' => abs($extraExposure),
+                    'balance_before' => $user->balance + abs($extraExposure),
                     'action' => TransactionAction::CREDIT,
                     'type' => TransactionType::TRADE_OUT_EXPOSURE
                 ]);

@@ -237,56 +237,66 @@
 			text: "Bet Exchange",
 			url: "#",
 			active:
-				window.route().current("admin.tickets.*") ||
-				window.route().current("admin.tickets.*"),
+				window.route().current("admin.stakes.*") ||
+				window.route().current("admin.trades.*"),
 			value: "frontend",
 			icon: RiAlarmWarningFill,
 			id: uid(),
 			submenu: [
 				{
-					text: "Configurations",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					text: "Bet Stakes",
+					url: window.route("admin.stakes.index"),
+					active: window.route().current("admin.stakes.index", {
+						filter: null,
+					}),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
-					text: "Exchange Tickets",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					text: "Backing  Stakes",
+					url: window.route("admin.stakes.index", {
+						filter: "backs",
+					}),
+					active: window.route().current("admin.stakes.index", {
+						filter: "backs",
+					}),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
-					text: "Backing  Orders",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					text: "Laying  Stakes",
+					url: window.route("admin.stakes.index", {
+						filter: "lays",
+					}),
+					active: window.route().current("admin.stakes.index", {
+						filter: "lays",
+					}),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
-					text: "Laying  Orders",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
-					value: "slips",
-					icon: MdSportsvolleyballOutlined,
-					id: uid(),
-				},
-				{
-					text: "Order Book",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					text: "Partially Matched Bets",
+					url: window.route("admin.stakes.index", {
+						filter: "partial",
+					}),
+					active: window.route().current("admin.stakes.index", {
+						filter: "partial",
+					}),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
 					text: "Matched Orders",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					url: window.route("admin.stakes.index", {
+						filter: "matched",
+					}),
+					active: window.route().current("admin.stakes.index", {
+						filter: "matched",
+					}),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
@@ -312,25 +322,47 @@
 			id: uid(),
 			submenu: [
 				{
-					text: "Bet Exchange Slips",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					text: "All Tickets",
+					url: window.route("admin.tickets.index", { filter: null }),
+					active: window
+						.route()
+						.current("admin.tickets.index", { filter: null }),
 					value: "slips",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
-					text: "Exchange Trades",
-					url: window.route("admin.trades.index"),
-					active: window.route().current("admin.trades.index"),
-					value: "slips",
+					text: "Winning Tickets",
+					url: window.route("admin.tickets.index", {
+						filter: "winners",
+					}),
+					active: window.route().current("admin.tickets.index", {
+						filter: "winners",
+					}),
+					value: "tickets",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),
 				},
 				{
-					text: "Bookie Tickets",
-					url: window.route("admin.tickets.index"),
-					active: window.route().current("admin.tickets.index"),
+					text: "Loser Tickets",
+					url: window.route("admin.tickets.index", {
+						filter: "losers",
+					}),
+					active: window.route().current("admin.tickets.index", {
+						filter: "losers",
+					}),
+					value: "tickets",
+					icon: MdSportsvolleyballOutlined,
+					id: uid(),
+				},
+				{
+					text: "Pending Tickets",
+					url: window.route("admin.tickets.index", {
+						filter: "pending",
+					}),
+					active: window.route().current("admin.tickets.index", {
+						filter: "pending",
+					}),
 					value: "tickets",
 					icon: MdSportsvolleyballOutlined,
 					id: uid(),

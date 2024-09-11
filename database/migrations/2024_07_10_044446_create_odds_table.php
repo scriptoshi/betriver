@@ -19,8 +19,8 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->foreignId('bet_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('market_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('game_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('league_id')->nullable()->constrained();
-            $table->morphs('game');
             $table->string('bookie')->nullable();
             $table->string('md5')->unique();
             $table->boolean('active')->default(true);

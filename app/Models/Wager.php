@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\LeagueSport;
 use App\Enums\ScoreType;
+use App\Enums\WagerStatus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -36,7 +37,8 @@ class Wager extends Model
         return [
             'sport' => LeagueSport::class,
             'scoreType' => ScoreType::class,
-            'won' => 'boolean'
+            'won' => 'boolean',
+            'status' =>  WagerStatus::class
         ];
     }
 
@@ -53,7 +55,11 @@ class Wager extends Model
         'scoreType',
         'odds',
         'won',
-        'sport'
+        'sport',
+        'game_info',
+        'bet_info',
+        'market_info',
+        'status',
     ];
 
 

@@ -190,11 +190,14 @@ class ApiFootball extends ApiSports
             ])
             ->asJsonResponse()
             ->get();
+
         $games = $league->games()->pluck('id', 'gameId')->all();
         $upserts = [];
         if ($response->results == 0) return back()->with('error', __('Api returned 0 results. No odds provider found'));
         $fxids = collect($response->response)->map(fn($odds) => $odds->fixture->id)->all();
+
         $missing = array_diff($fxids, array_keys($games));
+
         if (count($missing)) {
             static::loadOddsFixture($league, $missing);
             $games = $league->games()->pluck('id', 'gameId')->all();
@@ -234,23 +237,25 @@ class ApiFootball extends ApiSports
             ->withData($data)
             ->get();
         // find missing teams
-        $lg =  $response->response[0];
-        $homeTeamId = $teams[$lg->teams->home->id] ?? static::saveTeam($lg, $lg->teams->home);
-        $awayTeamId = $teams[$lg->teams->away->id] ?? static::saveTeam($lg, $lg->teams->away);
-        $gameId = $lg->id ?? $lg->fixture->id;
-        Game::query()->updateOrCreate([
-            'gameId' => $gameId
-        ], [
-            'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . Carbon::parse($lg->fixture->date)->format('Y-m-d')),
-            'league_id' => $league->id,
-            'home_team_id' => $homeTeamId,
-            'away_team_id' => $awayTeamId,
-            'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
-            'startTime' => Carbon::parse($lg->fixture->date, timezone: $lg->fixture->timezone ?? 'UTC'),
-            'status' => $lg->fixture->status->short,
-            'sport' => static::sport(),
-            'closed' => false
-        ]);
+        foreach ($response->response as $lg) {
+            if (!$lg->teams?->home->id)
+                $homeTeamId = $teams[$lg->teams->home->id] ?? static::saveTeam($lg, $lg->teams->home);
+            $awayTeamId = $teams[$lg->teams->away->id] ?? static::saveTeam($lg, $lg->teams->away);
+            $gameId = $lg->id ?? $lg->fixture->id;
+            Game::query()->updateOrCreate([
+                'gameId' => $gameId
+            ], [
+                'slug' => Str::slug("{$gameId} {$lg->teams->home->name} vs {$lg->teams->away->name}-" . Carbon::parse($lg->fixture->date)->format('Y-m-d')),
+                'league_id' => $league->id,
+                'home_team_id' => $homeTeamId,
+                'away_team_id' => $awayTeamId,
+                'name' => "{$lg->teams->home->name} vs {$lg->teams->away->name}",
+                'startTime' => Carbon::parse($lg->fixture->date, timezone: $lg->fixture->timezone ?? 'UTC'),
+                'status' => $lg->fixture->status->short,
+                'sport' => static::sport(),
+                'closed' => false
+            ]);
+        }
     }
 
     protected static function saveScores(Game $game, $info)
@@ -282,9 +287,9 @@ class ApiFootball extends ApiSports
             'home' => $info->goals->home,
             'away' => $info->goals->away,
         ]);
-        if (($game->teams->home->winner ?? null))
+        if (($info->teams->home->winner ?? null))
             $game->win_team_id = $game->home_team_id;
-        if (($game->teams->away->winner ?? null))
+        if (($info->teams->away->winner ?? null))
             $game->win_team_id = $game->away_team_id;
         $game->save();
     }

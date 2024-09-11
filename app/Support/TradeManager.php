@@ -9,6 +9,8 @@ use App\Enums\StakeStatus;
 use App\Enums\TradeStatus;
 use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
+use App\Http\Resources\Game as ResourcesGame;
+use App\Models\Game;
 use DB;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -181,8 +183,8 @@ class TradeManager
         foreach ($matchingStakes as $matchingStake) {
             if ($stake->unfilled <= 0) break;
             $tradeAmount = min($stake->unfilled, $matchingStake->unfilled);
-            $payoutOdds = $stake->type === StakeType::BACK ? $stake->odds : $matchingStake->odds;
-            $executionOdds = $stake->type === StakeType::LAY ? $stake->odds : $matchingStake->odds;
+            $backerPrice = $stake->type === StakeType::BACK ? $stake->odds : $matchingStake->odds;
+            $layerPrice = $stake->type === StakeType::LAY ? $stake->odds : $matchingStake->odds;
             $trade = new Trade([
                 'maker_id' => $matchingStake->id,
                 'taker_id' => $stake->id,
@@ -190,13 +192,13 @@ class TradeManager
                 'bet_id' => $stake->bet_id,
                 'market_id' => $stake->bet->market_id,
                 'amount' => $tradeAmount,
-                'payout' => $tradeAmount *  $payoutOdds, // amount that this trade pays out
-                'price' => $executionOdds, // price trade executes at.
-                'maker_price' => $matchingStake->odds,
+                'payout' => $tradeAmount *  $backerPrice, // amount that this trade pays out
+                'price' => $backerPrice, // price trade executes at.
+                'layer_price' => $layerPrice,
                 'status' => TradeStatus::PENDING,
-                'buy' => $stake->type === StakeType::BACK ? $stake->odds : $matchingStake->odds,
-                'sell' => $stake->type === StakeType::LAY ? $stake->odds : $matchingStake->odds,
-                'margin' => abs($stake->odds - $matchingStake->odds) * $tradeAmount,
+                'buy' => $backerPrice,
+                'sell' => $layerPrice,
+                'margin' => abs($layerPrice - $backerPrice) * $tradeAmount,
             ]);
             $trade->save();
             $stake->unfilled -= $tradeAmount;
@@ -275,7 +277,7 @@ class TradeManager
                 $user->increment('balance', $unfilledLiability);
                 $stake->transactions()->create([
                     'user_id' => $user->id,
-                    'description' => "Refund unfilled amount for BET #" . $stake->id,
+                    'description' => "Refund unfilled amount for BET #" . $stake->uid,
                     'amount' => $unfilledLiability,
                     'balance_before' => $user->balance - $unfilledLiability,
                     'action' => TransactionAction::CREDIT,
@@ -293,7 +295,7 @@ class TradeManager
             $user->increment('balance', $stake->payout);
             $stake->transactions()->create([
                 'user_id' => $user->id,
-                'description' => "Won BET #" . $stake->id . " (Filled: {$stake->filled})",
+                'description' => "Won BET #" . $stake->uid . " (Filled: {$stake->filled})",
                 'amount' =>  $stake->payout,
                 'balance_before' => $balanceBefore,
                 'action' => TransactionAction::CREDIT,
@@ -328,7 +330,7 @@ class TradeManager
                 $user->increment('balance', $profitLoss);
                 $stake->transactions()->create([
                     'user_id' => $user->id,
-                    'description' => "Trade out profit/loss for BET #" . $stake->id,
+                    'description' => "Trade out profit/loss for BET #" . $stake->uid,
                     'amount' => $profitLoss,
                     'balance_before' => $user->balance - $profitLoss,
                     'action' => TransactionAction::CREDIT,
@@ -355,7 +357,7 @@ class TradeManager
         $user = $stake->user;
         $stake->transactions()->create([
             'user_id' => $stake->user_id,
-            'description' => 'Place BET #' . $stake->id,
+            'description' => 'Place BET #' . $stake->uid,
             'amount' => $stake->liability,
             'balance_before' => $user->balance,
             'action' => TransactionAction::DEBIT,
@@ -415,5 +417,27 @@ class TradeManager
             default:
                 throw new \InvalidArgumentException("Invalid stake type");
         }
+    }
+
+
+    public static function popular()
+    {
+        $multiples  = TradeManager::multiples();
+        $games = Game::query()
+            ->with(['scores', 'league', 'homeTeam', 'awayTeam'])
+            ->whereHas('league', function (Builder $query) {
+                $query->where('active', true);
+            })
+            ->withSum('stakes as traded', 'filled')
+            ->where(function (Builder $query) {
+                $query->where('startTime', '>=', now()->subHour(2));
+            })
+            ->oldest('startTime')
+            ->when($multiples, function ($query) {
+                $query->whereHas('odds');
+            })
+            ->take(13)
+            ->get();
+        return ResourcesGame::collection($games);
     }
 }

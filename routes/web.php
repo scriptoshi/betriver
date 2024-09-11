@@ -114,27 +114,18 @@ Route::name('odds')->controller(OddsController::class)->group(function () {
 #odds
 
 #stakes
-Route::name('stakes')->controller(StakesController::class)->group(function () {
+Route::name('stakes.')->controller(StakesController::class)->group(function () {
     Route::get('/stakes', 'index')->name('index');
-    Route::get('/stakes/create', 'create')->name('create');
+    Route::get('/stake/tradeout/{stake:uid}', 'showTradeOut')->name('tradeout.show');
     Route::post('/stakes/store', 'store')->name('store');
-    Route::get('/stakes/{stake}/show', 'show')->name('show');
-    Route::get('/stakes/{stake}/edit', 'edit')->name('edit');
-    Route::put('/stakes/{stake}', 'update')->name('update');
-    Route::put('/stakes/toggle/{stake}', 'toggle')->name('toggle');
-    Route::delete('/stakes/{stake}', 'destroy')->name('destroy');
+    Route::put('/stakes/{stake}', 'tradeOut')->name('tradeout');
+    Route::delete('/stakes/{stake}', 'cancel')->name('cancel');
 });
 #stakes
 #tickets
-Route::name('tickets')->controller(TicketsController::class)->group(function () {
+Route::name('tickets.')->controller(TicketsController::class)->group(function () {
     Route::get('/tickets', 'index')->name('index');
-    Route::get('/tickets/create', 'create')->name('create');
     Route::post('/tickets/store', 'store')->name('store');
-    Route::get('/tickets/{ticket}/show', 'show')->name('show');
-    Route::get('/tickets/{ticket}/edit', 'edit')->name('edit');
-    Route::put('/tickets/{ticket}', 'update')->name('update');
-    Route::put('/tickets/toggle/{ticket}', 'toggle')->name('toggle');
-    Route::delete('/tickets/{ticket}', 'destroy')->name('destroy');
 });
 #tickets
 #wagers

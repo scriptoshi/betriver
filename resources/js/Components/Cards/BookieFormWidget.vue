@@ -1,5 +1,7 @@
 <script setup lang="ts">
 	import { XIcon } from "lucide-vue-next";
+
+	import OddsFormat from "../OddsFormat.vue";
 	defineProps({
 		bet: Object,
 	});
@@ -52,9 +54,9 @@
 					class="min-w-full text-end max-w-0 overflow-hidden text-ellipsis font-bold">
 					<span class="text-gray-400 dark:text-gray-400">ODDS</span>
 					&nbsp;
-					<span class="text-emerald-600 dark:text-emerald-400">
-						{{ bet.price }}
-					</span>
+					<OddsFormat
+						:odds="bet.price"
+						class="text-emerald-600 dark:text-emerald-400" />
 				</span>
 			</div>
 		</div>

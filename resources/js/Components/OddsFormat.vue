@@ -4,37 +4,36 @@
 	import { usePage } from "@inertiajs/vue3";
 
 	const props = defineProps({
-		odds: Number, // decimal odds
+		odds: {
+			type: [Number, String],
+			required: true,
+		},
 	});
 
-	const page = usePage();
-	const oddsConfig = computed(
-		() => page.props.auth?.user?.odds_type ?? "decimal",
-	);
-
-	const convertToAmericanOdds = () => {
-		if (props.odds >= 2.0) {
-			return `+${Math.round((props.odds - 1) * 100)}`;
-		} else {
-			return `-${Math.round(100 / (props.odds - 1))}`;
+	const convertedOdds = computed(() => {
+		const oddsType = usePage().props.auth.user.odds_type;
+		if (oddsType === "american") {
+			return convertToAmerican(props.odds);
+		} else if (oddsType === "percentage") {
+			return convertToPercentage(props.odds);
 		}
-	};
-
-	const convertToPercentageOdds = () => {
-		return `${((1 / props.odds) * 100).toFixed(2)}%`;
-	};
-
-	const displayValue = computed(() => {
-		if (oddsConfig.value === "american_odds")
-			return convertToAmericanOdds();
-		if (oddsConfig.value === "percentage_odds")
-			return convertToPercentageOdds();
-		return props.odds.toFixed(2);
+		return props.odds;
 	});
-</script>
 
+	function convertToAmerican(decimal) {
+		if (decimal >= 2) {
+			return `+${Math.round((decimal - 1) * 100)}`;
+		} else {
+			return `-${Math.round(100 / (decimal - 1))}`;
+		}
+	}
+
+	function convertToPercentage(decimal) {
+		return `${((1 / decimal) * 100).toFixed(2)}%`;
+	}
+</script>
 <template>
-	<slot :odds="displayValue">
-		<span>{{ displayValue }}</span>
+	<slot :odds="convertedOdds">
+		<span v-bind="$attrs">{{ convertedOdds }}</span>
 	</slot>
 </template>

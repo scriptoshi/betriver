@@ -24,10 +24,12 @@ return new class extends Migration
             $table->foreignId('market_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->decimal('amount', 10, 2)->default();
             $table->decimal('price', 10, 2)->default();
-            $table->decimal('maker_price', 10, 2)->default();
+            $table->decimal('layer_price', 10, 2)->default();
             $table->decimal('buy', 10, 2)->default();
             $table->decimal('sell', 10, 2)->default();
             $table->decimal('margin', 10, 2)->default();
+            $table->decimal('margin', 10, 2)->default();
+            $table->decimal('commission', 10, 2)->default();
             $table->string('status')->default('pending');
             $table->timestamps();
             $table->softDeletes();

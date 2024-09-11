@@ -14,10 +14,10 @@
 	defineEmits(["go"]);
 	const classes = computed(() => {
 		if (props.ask || props.active)
-			return props.lay
+			return !props.lay
 				? "bg-emerald-600 hover:bg-emerald-500 dark:hover:bg-emerald-400 dark:bg-emerald-500"
 				: "bg-sky-600 hover:bg-sky-500 dark:hover:bg-sky-400 dark:bg-sky-500";
-		return props.lay
+		return !props.lay
 			? "bg-gray-150 !text-gray-600 dark:!text-white hover:!text-white hover:bg-emerald-500 dark:hover:bg-emerald-500 dark:bg-gray-750"
 			: "bg-gray-150 !text-gray-600 dark:!text-white hover:!text-white hover:bg-sky-500 dark:hover:bg-sky-500 dark:bg-gray-750";
 	});
@@ -63,6 +63,7 @@
 		<span
 			class="font-bold whitespace-nowrap lining-nums block relative text-[0.6875rem] leading-[0.8rem] mt-[5px] rounded-sm">
 			<MoneyFormat v-if="amount" :amount="amount" />
+			<span v-else>&nbsp;</span>
 		</span>
 	</span>
 </template>

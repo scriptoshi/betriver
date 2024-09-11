@@ -2,6 +2,7 @@
 
 
 use App\Http\Controllers\Admin\CommissionsController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DepositsController;
 use App\Http\Controllers\Admin\FeedbackController;
 use App\Http\Controllers\Admin\GamesController;
@@ -23,9 +24,7 @@ use App\Http\Controllers\Admin\WithdrawsController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('Admin/Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 
 #users
 Route::name('users.')->controller(UsersController::class)->group(function () {
@@ -130,26 +129,12 @@ Route::name('odds.')->controller(OddsController::class)->group(function () {
 #odds
 #stakes
 Route::name('stakes.')->controller(StakesController::class)->group(function () {
-    Route::get('/stakes', 'index')->name('index');
-    Route::get('/stakes/create', 'create')->name('create');
-    Route::post('/stakes/store', 'store')->name('store');
-    Route::get('/stakes/{stake}/show', 'show')->name('show');
-    Route::get('/stakes/{stake}/edit', 'edit')->name('edit');
-    Route::put('/stakes/{stake}', 'update')->name('update');
-    Route::put('/stakes/toggle/{stake}', 'toggle')->name('toggle');
-    Route::delete('/stakes/{stake}', 'destroy')->name('destroy');
+    Route::get('/stakes/{filter?}', 'index')->name('index');
 });
 #stakes
 #tickets
 Route::name('tickets.')->controller(TicketsController::class)->group(function () {
-    Route::get('/tickets', 'index')->name('index');
-    Route::get('/tickets/create', 'create')->name('create');
-    Route::post('/tickets/store', 'store')->name('store');
-    Route::get('/tickets/{ticket}/show', 'show')->name('show');
-    Route::get('/tickets/{ticket}/edit', 'edit')->name('edit');
-    Route::put('/tickets/{ticket}', 'update')->name('update');
-    Route::put('/tickets/toggle/{ticket}', 'toggle')->name('toggle');
-    Route::delete('/tickets/{ticket}', 'destroy')->name('destroy');
+    Route::get('/tickets/{filter?}', 'index')->name('index');
 });
 #tickets
 #wagers

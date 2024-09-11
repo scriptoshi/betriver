@@ -19,6 +19,7 @@ class Odd extends JsonResource
     public function toArray($request)
     {
         return [
+            'id' => $this->id,
             'bet_id' => $this->bet_id,
             'game_id' => $this->game_id,
             'market_id' => $this->market_id,

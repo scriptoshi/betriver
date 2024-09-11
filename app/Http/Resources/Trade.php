@@ -23,9 +23,11 @@ class Trade extends JsonResource
             'taker_id' => $this->taker_id,
             'amount' => $this->amount,
             'price' => $this->price,
+            'status' => $this->status,
+            'commission' => $this->commission,
             'american_price' => TradeManager::decimalToAmericanOdds($this->price),
             'percentage_price' => TradeManager::decimalToPercentageOdds($this->price),
-            'maker_price' => $this->price,
+            'layer_price' => $this->price,
             $this->mergeWhen($request->user()->isAdmin(), [
                 'buy' => $this->buy,
                 'sell' => $this->sell,

@@ -137,15 +137,13 @@ abstract class ApiSports
             ->where('oddsId', $odd->id)->first();
         if (!$market) return [];
         return $market->bets->map(function (Bet $bet) use ($odds, $bookie, $gameId, $leagueId) {
-            $mclass =  (new Game)->getMorphClass();
             return [
                 'bet_id' =>  $bet->id,
                 'market_id' =>  $bet->market_id,
                 'league_id' =>  $leagueId,
                 'game_id' => $gameId,
                 'bookie' => $bookie,
-                'game_type' => $mclass,
-                'md5' => md5($bet->market_id . '-' . $bet->id . '-' . $gameId . '-' . $mclass),
+                'md5' => md5($bet->market_id . '-' . $bet->id . '-' . $gameId),
                 'odd' => $odds[$bet->result],
             ];
         })->all();

@@ -1,27 +1,22 @@
 <?php
 
-
+use App\Actions\SettleStakes;
 use App\Api\ApiMma;
 use App\Enums\LeagueSport;
 use App\Enums\WithdrawGateway;
 use App\Enums\WithdrawStatus;
-use App\Gateways\Payment\Drivers\CoinPayments;
-use App\Gateways\Payment\Drivers\NowPayments;
-use App\Models\Deposit;
 use App\Models\Game;
 use App\Models\Withdraw;
 use App\Support\OverroundCalculator;
 use App\Support\Rate;
-use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 
-Artisan::command('inspire', function () {
-    $this->comment(Inspiring::quote());
-})->purpose('Display an inspiring quote')->hourly();
 
+// update currency rates
 Artisan::command('update:rates', function () {
     Rate::update();
-})->daily();
+})->purpose('update currency rates')
+    ->daily();
 
 // update games that are live.  Api cant batch live games
 // so we load all games today.
@@ -31,7 +26,9 @@ Artisan::command('update:games', function () {
         if (Game::where('sport', $sport->value)->live()->count() == 0)  return;
         $sport->api()::loadGames(0, 1);
     });
-})->hourly();
+})
+    ->purpose('update games that are live')
+    ->hourly();
 
 /**
  * Updates the processing withdraw status at the gateway
@@ -48,7 +45,20 @@ Artisan::command('withdraws:update', function () {
         ->distinct('batchId')
         ->get();
     $paypal->map(fn(Withdraw $withdraw) => $withdraw->gateway->driver()->updateWithdrawStatus($withdraw));
-})->daily();
+})
+    ->purpose('Update the processing withdraw status at the gateway')
+    ->daily();
+
+
+/**
+ * Settle stakes on the system
+ */
+Artisan::command('settle:stakes', function () {
+    app(SettleStakes::class)->execute();
+})
+    ->purpose('Settle Stakes on the System')
+    ->everyFiveMinutes();
+
 
 
 Artisan::command('lang:strap', function () {
@@ -66,7 +76,6 @@ Artisan::command('txt', function () {
     $backOdds = [2.00, 3.50, 3.50]; // Example odds for a three-way market
     $overround = OverroundCalculator::calculateOverround($backOdds);
     $fairOdds = OverroundCalculator::calculateFairOdds($backOdds);
-
     echo "Market overround: " . $overround . "%\n";
     echo "Fair odds: " . implode(", ", $fairOdds) . "\n";
 });

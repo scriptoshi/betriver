@@ -33,6 +33,9 @@ return new class extends Migration
             $table->decimal('odds', 6, 2)->default();
             $table->string('type');
             $table->string('sport');
+            $table->string('game_info')->nullable();
+            $table->string('bet_info')->nullable();
+            $table->string('market_info')->nullable();
             $table->string('status')->default('pending');
             $table->boolean('won')->default(false);
             $table->boolean('is_withdrawn')->default(false);
