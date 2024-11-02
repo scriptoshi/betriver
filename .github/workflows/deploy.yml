@@ -21,7 +21,10 @@ jobs:
                   port: ${{ secrets.PORT }}
                   key: ${{ secrets.SSHKEY }}
                   script: |
+                      echo "Deployment started ..."
                       rm -rf /var/www/demo
                       cd /var/www && git clone github-betriver:sleepfinance/betriver.git demo
                       cp /var/www/envs/.demo /var/www/demo/.env
+                      cd /var/www/demo && chmod u+r+x ./.scripts/deploy.sh
+                      echo "Running Deployment"
                       cd /var/www/demo && ./.scripts/deploy.sh
