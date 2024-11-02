@@ -22,6 +22,6 @@ jobs:
                   key: ${{ secrets.SSHKEY }}
                   script: |
                       rm -rf /var/www/builder
-                      cd /var/www && git clone github-betriver:sleepfinance/betriver.git build
+                      cd /var/www && git clone github-betriver:sleepfinance/betriver.git builder
                       cp /var/www/envs/.demo /var/www/builder/.env
                       cd /var/www/builder && ./.scripts/deploy.sh
