@@ -7,7 +7,6 @@ use App\Models\Game;
 use App\Models\Stake;
 use App\Support\TradeManager;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 
 class SettleStakes
 {
@@ -21,17 +20,19 @@ class SettleStakes
         $stakes = Stake::with(['maker_trades', 'taker_trades', 'bet', 'market'])
             ->withWhereHas(
                 'game',
-                fn(Builder $query) => $query
+                fn($query) => $query
                     ->where('closed', true)
             )
             ->whereIn('status', [StakeStatus::MATCHED->value, StakeStatus::PARTIAL->value])
             ->get();
         foreach ($stakes as $stake) {
             $state = $stake->game->state();
+
             if ($state->cancelled()) {
                 TradeManager::refundStake($stake);
                 continue;
             }
+            
             if ($state->finished()) {
                 $betWon = $stake->market->manager()->won($stake->game, $stake->bet);
                 TradeManager::settleStake($stake, $betWon); // 

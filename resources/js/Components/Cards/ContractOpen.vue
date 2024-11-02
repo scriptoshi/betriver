@@ -1,12 +1,15 @@
 <script setup>
 	import { computed } from "vue";
 
+	import { usePage } from "@inertiajs/vue3";
 	import { ChevronsRight } from "lucide-vue-next";
+	import { HiRefresh, HiSolidStar, HiXCircle } from "oh-vue-icons/icons";
 
 	import BetButton from "@/Components/Cards/BetButton.vue";
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import TeamName from "@/Components/TeamName.vue";
 	import { Badge } from "@/Components/ui/badge/index";
+	import VueIcon from "@/Components/VueIcon.vue";
 	import { useBookieForm, useExchangeForm } from "@/Pages/Games/bettingForm";
 
 	const props = defineProps({
@@ -26,7 +29,28 @@
 	};
 	const { addBet: addExchnage, exchangeForm } = useExchangeForm();
 	const { addBet: addBookie, bookieForm } = useBookieForm();
+	const isWinner = computed(() => {
+		const wins = usePage().props.winBets ?? [];
+		return wins.includes(props.bet.id);
+	});
+	const bettingEnded = computed(
+		() =>
+			props.game.stateCancelled ||
+			props.game.stateEnded ||
+			props.game.stateFinished ||
+			props.game.closed ||
+			props.game.hasEnded ||
+			[
+				"finished",
+				"postponed",
+				"cancelled",
+				"abandoned",
+				"not_played",
+			].includes(props.game.state),
+	);
+
 	const addBet = (price, isLay) => {
+		if (bettingEnded.value) return false;
 		const betData = {
 			guid: `${props.game.id}-${props.bet.id}`,
 			bet: getName(props.bet.name),
@@ -118,7 +142,30 @@
 					</div>
 				</div>
 			</div>
-			<template v-if="showBookie">
+			<template v-if="bettingEnded">
+				<template v-if="game.bets_matched">
+					<span
+						v-if="isWinner"
+						class="text-sm font-bold text-center text-emerald-400 uppercase flex-[10_0_7.5rem] max-w-[360px] box-border shrink-0 flex-wrap m-0 px-4 py-0">
+						<VueIcon class="w-5 h-4" :icon="HiSolidStar" />
+						Winner
+						<VueIcon class="w-5 h-4" :icon="HiSolidStar" />
+					</span>
+					<span
+						v-else
+						class="text-sm font-bold text-center text-gray-400 uppercase flex-[10_0_7.5rem] max-w-[360px] box-border shrink-0 flex-wrap m-0 px-4 py-0">
+						<VueIcon class="w-5 h-4" :icon="HiXCircle" />
+						Loser
+					</span>
+				</template>
+				<span
+					v-else
+					class="text-sm font-bold text-center text-sky-400 uppercase flex-[10_0_7.5rem] max-w-[360px] box-border shrink-0 flex-wrap m-0 px-4 py-0">
+					<VueIcon class="w-5 h-4" :icon="HiRefresh" />
+					Waiting Results
+				</span>
+			</template>
+			<template v-else-if="showBookie">
 				<span
 					class="flex flex-[5_0_3.75rem] h-14 mb-[-0.5rem] max-w-[180px] overflow-hidden lining-nums">
 					<BetButton

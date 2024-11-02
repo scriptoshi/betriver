@@ -42,14 +42,14 @@ enum RugbyExactGoals: string implements BetMarket
     public function won(Game $game, Bet $bet): bool
     {
         $outcome = RugbyExactGoalsOutcome::from($bet->result);
-        $team = $this === self::HOME_TEAM ? GoalCount::HOME : GoalCount::AWAY;
+        $team = $this == self::HOME_TEAM ? GoalCount::HOME : GoalCount::AWAY;
         $goals = $game->getScores('fulltime', $team);
 
-        if ($outcome === RugbyExactGoalsOutcome::SIX_PLUS) {
+        if ($outcome == RugbyExactGoalsOutcome::SIX_PLUS) {
             return $goals >= 6;
         }
 
-        return $goals === $outcome->value();
+        return $goals == $outcome->value();
     }
 
     public static function seed(): void

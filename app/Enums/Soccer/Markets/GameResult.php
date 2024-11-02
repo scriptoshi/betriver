@@ -55,7 +55,7 @@ enum GameResult: string implements BetMarket
         $awayScore = $game->getScores($this->value, GoalCount::AWAY);
         return match ($outcome) {
             MatchWinner::AWAY => $awayScore > $homeScore,
-            MatchWinner::AWAY => $awayScore < $homeScore,
+            MatchWinner::HOME => $awayScore < $homeScore,
             MatchWinner::DRAW => $awayScore == $homeScore,
         };
     }

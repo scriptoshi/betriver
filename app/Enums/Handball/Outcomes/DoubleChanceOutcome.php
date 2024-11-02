@@ -20,9 +20,9 @@ enum DoubleChanceOutcome: string
     public function includes(string $result): bool
     {
         return match ($this) {
-            self::HOME_DRAW => $result === 'home' || $result === 'draw',
-            self::HOME_AWAY => $result === 'home' || $result === 'away',
-            self::DRAW_AWAY => $result === 'draw' || $result === 'away',
+            self::HOME_DRAW => $result == 'home' || $result == 'draw',
+            self::HOME_AWAY => $result == 'home' || $result == 'away',
+            self::DRAW_AWAY => $result == 'draw' || $result == 'away',
         };
     }
 }

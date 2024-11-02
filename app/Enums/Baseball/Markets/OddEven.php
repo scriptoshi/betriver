@@ -50,7 +50,7 @@ enum OddEven: string implements BetMarket
         $outcome = OddEvenOutcome::from($bet->result);
         $totalScore = $this->getTotalScore($game);
 
-        return ($totalScore % 2 === 0) === ($outcome === OddEvenOutcome::EVEN);
+        return ($totalScore % 2 == 0) == ($outcome == OddEvenOutcome::EVEN);
     }
 
     private function getTotalScore(Game $game): int

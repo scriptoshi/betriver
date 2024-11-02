@@ -38,7 +38,7 @@ enum VolleyballCorrectScore: string implements BetMarket
         $homeSets = $game->getScores('fulltime', GoalCount::HOME);
         $awaySets = $game->getScores('fulltime', GoalCount::AWAY);
 
-        return $outcome->homeSets() === $homeSets && $outcome->awaySets() === $awaySets;
+        return $outcome->homeSets() == $homeSets && $outcome->awaySets() == $awaySets;
     }
 
     public static function seed(): void

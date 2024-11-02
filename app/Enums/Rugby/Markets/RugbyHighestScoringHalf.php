@@ -42,7 +42,7 @@ enum RugbyHighestScoringHalf: string implements BetMarket
         return match ($outcome) {
             RugbyHighestScoringHalfOutcome::FIRST_HALF => $firstHalfScore > $secondHalfScore,
             RugbyHighestScoringHalfOutcome::SECOND_HALF => $secondHalfScore > $firstHalfScore,
-            RugbyHighestScoringHalfOutcome::EQUAL => $firstHalfScore === $secondHalfScore,
+            RugbyHighestScoringHalfOutcome::EQUAL => $firstHalfScore == $secondHalfScore,
         };
     }
 

@@ -54,7 +54,7 @@ enum BothTeamsToScore: string implements BetMarket
     {
         $outcome = YesNo::from($bet->result);
         $bothScored = $this->didBothTeamsScore($game);
-        return $outcome === YesNo::YES ? $bothScored : !$bothScored;
+        return $outcome == YesNo::YES ? $bothScored : !$bothScored;
     }
 
     private function didBothTeamsScore(Game $game): bool

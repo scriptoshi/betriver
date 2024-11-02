@@ -52,10 +52,10 @@ enum WinToNil: string implements BetMarket
         $awayScore = $game->getScores('total', 'away');
 
         $result = match ($this) {
-            self::WIN_TO_NIL_HOME => $homeScore > 0 && $awayScore === 0,
-            self::WIN_TO_NIL_AWAY => $awayScore > 0 && $homeScore === 0,
-            self::CLEAN_SHEET_HOME => $awayScore === 0,
-            self::CLEAN_SHEET_AWAY => $homeScore === 0,
+            self::WIN_TO_NIL_HOME => $homeScore > 0 && $awayScore == 0,
+            self::WIN_TO_NIL_AWAY => $awayScore > 0 && $homeScore == 0,
+            self::CLEAN_SHEET_HOME => $awayScore == 0,
+            self::CLEAN_SHEET_AWAY => $homeScore == 0,
         };
 
         return match ($outcome) {

@@ -70,7 +70,7 @@ enum AFLPeriodResults: string implements BetMarket
         return match ($outcome) {
             AFLPeriodResultsOutcome::HOME => $homeScore > $awayScore,
             AFLPeriodResultsOutcome::AWAY => $awayScore > $homeScore,
-            AFLPeriodResultsOutcome::DRAW => $homeScore === $awayScore,
+            AFLPeriodResultsOutcome::DRAW => $homeScore == $awayScore,
         };
     }
 

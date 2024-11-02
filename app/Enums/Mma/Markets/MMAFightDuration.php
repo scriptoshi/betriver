@@ -59,12 +59,12 @@ enum MMAFightDuration: string implements BetMarket
         $totalRounds = static::scheduledRounds($fight);
         $endTime = static::endTime($fight);
         return match ($this) {
-            self::GO_DISTANCE => $completedRounds === $totalRounds && $outcome === YesNo::YES,
-            self::START_ROUND_2 => $completedRounds >= 1 && $outcome === YesNo::YES,
-            self::START_ROUND_3 => $completedRounds >= 2 && $outcome === YesNo::YES,
-            self::START_ROUND_4 => $completedRounds >= 3 && $outcome === YesNo::YES,
-            self::START_ROUND_5 => $completedRounds >= 4 && $outcome === YesNo::YES,
-            self::END_FIRST_60_SECONDS => $endTime <= 60 && $outcome === YesNo::YES,
+            self::GO_DISTANCE => $completedRounds == $totalRounds && $outcome == YesNo::YES,
+            self::START_ROUND_2 => $completedRounds >= 1 && $outcome == YesNo::YES,
+            self::START_ROUND_3 => $completedRounds >= 2 && $outcome == YesNo::YES,
+            self::START_ROUND_4 => $completedRounds >= 3 && $outcome == YesNo::YES,
+            self::START_ROUND_5 => $completedRounds >= 4 && $outcome == YesNo::YES,
+            self::END_FIRST_60_SECONDS => $endTime <= 60 && $outcome == YesNo::YES,
         };
     }
 

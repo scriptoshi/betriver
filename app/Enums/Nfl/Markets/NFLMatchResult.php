@@ -73,7 +73,7 @@ enum NFLMatchResult: string implements BetMarket
         return match ($outcome) {
             AFLMatchResultOutcome::HOME => $homeScore > $awayScore,
             AFLMatchResultOutcome::AWAY => $awayScore > $homeScore,
-            AFLMatchResultOutcome::DRAW => $homeScore === $awayScore,
+            AFLMatchResultOutcome::DRAW => $homeScore == $awayScore,
         };
     }
 

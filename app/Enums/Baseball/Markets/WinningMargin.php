@@ -43,13 +43,13 @@ enum WinningMargin: string implements BetMarket
         $outcome = WinningMarginOutcome::from($bet->result);
         $homeScore = $game->getScores('total', 'home');
         $awayScore = $game->getScores('total', 'away');
-        $margin = $this === self::HOME ? $homeScore - $awayScore : $awayScore - $homeScore;
+        $margin = $this == self::HOME ? $homeScore - $awayScore : $awayScore - $homeScore;
 
         return match ($outcome) {
-            WinningMarginOutcome::ONE => $margin === 1,
-            WinningMarginOutcome::TWO => $margin === 2,
-            WinningMarginOutcome::THREE => $margin === 3,
-            WinningMarginOutcome::FOUR => $margin === 4,
+            WinningMarginOutcome::ONE => $margin == 1,
+            WinningMarginOutcome::TWO => $margin == 2,
+            WinningMarginOutcome::THREE => $margin == 3,
+            WinningMarginOutcome::FOUR => $margin == 4,
             WinningMarginOutcome::FIVE_PLUS => $margin >= 5,
         };
     }

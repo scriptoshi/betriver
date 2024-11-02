@@ -48,9 +48,9 @@ enum MMAMatchResult: string implements BetMarket
         $outcome = MMAMatchResultOutcome::from($bet->result);
         $winner = static::mmaFightWinner($fight);
         return match ($outcome) {
-            MMAMatchResultOutcome::HOME => $winner === 'first',
-            MMAMatchResultOutcome::AWAY => $winner === 'second',
-            MMAMatchResultOutcome::DRAW => $winner === null
+            MMAMatchResultOutcome::HOME => $winner == 'first',
+            MMAMatchResultOutcome::AWAY => $winner == 'second',
+            MMAMatchResultOutcome::DRAW => $winner == null
         };
     }
 

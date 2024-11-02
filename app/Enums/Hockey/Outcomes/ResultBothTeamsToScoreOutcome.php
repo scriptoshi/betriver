@@ -18,7 +18,7 @@ enum ResultBothTeamsToScoreOutcome: string
 
     public function bothTeamsScored(): bool
     {
-        return explode('_', $this->value)[1] === 'yes';
+        return explode('_', $this->value)[1] == 'yes';
     }
 
     public function name(): string

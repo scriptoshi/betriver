@@ -110,10 +110,10 @@ enum MMAVictoryMethod: string implements BetMarket
         $method = static::fightWinningMethod($fight);
         $round = static::completedRounds($fight);
         return match ($this) {
-            self::HOME_SUBMISSION => $winner === 'first' && $method === 'Submission' && $outcome === MMAVictoryMethodOutcome::YES,
-            self::HOME_KO_TKO_DQ => $winner === 'first' && in_array($method, ['KO', 'TKO', 'DQ']) && $outcome === MMAVictoryMethodOutcome::YES,
-            self::AWAY_SUBMISSION => $winner === 'second' && $method === 'Submission' && $outcome === MMAVictoryMethodOutcome::YES,
-            self::AWAY_KO_TKO_DQ => $winner === 'second' && in_array($method, ['KO', 'TKO', 'DQ']) && $outcome === MMAVictoryMethodOutcome::YES,
+            self::HOME_SUBMISSION => $winner == 'first' && $method == 'Submission' && $outcome == MMAVictoryMethodOutcome::YES,
+            self::HOME_KO_TKO_DQ => $winner == 'first' && in_array($method, ['KO', 'TKO', 'DQ']) && $outcome == MMAVictoryMethodOutcome::YES,
+            self::AWAY_SUBMISSION => $winner == 'second' && $method == 'Submission' && $outcome == MMAVictoryMethodOutcome::YES,
+            self::AWAY_KO_TKO_DQ => $winner == 'second' && in_array($method, ['KO', 'TKO', 'DQ']) && $outcome == MMAVictoryMethodOutcome::YES,
             self::VICTORY_METHOD => $outcome->matchesMethod($method),
             self::VICTORY_METHOD_PLAYER => $outcome->matchesMethodAndWinner($method, $winner),
             self::METHOD_AND_ROUND_PLAYER => $outcome->matchesMethodWinnerAndRound($method, $winner, $round),

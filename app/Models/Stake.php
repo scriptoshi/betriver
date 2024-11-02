@@ -110,7 +110,7 @@ class Stake extends Model
      */
     public function market(): BelongsTo
     {
-        return $this->belongsTo(Market::class, 'bet_id', 'id');
+        return $this->belongsTo(Market::class, 'market_id', 'id');
     }
     /**
 

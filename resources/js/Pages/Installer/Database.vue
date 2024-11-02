@@ -1,7 +1,7 @@
 <script setup>
 	import { Link, useForm } from "@inertiajs/vue3";
 
-	import CollapseTransition from "../CollapseTransition.vue";
+	import CollapseTransition from "@/Components/CollapseTransition.vue";
 	const form = useForm({
 		connection: "mysql",
 		host: "localhost",

@@ -29,6 +29,10 @@
 
 	const isChosen = ref(false);
 	const show = ref(props.opened);
+	/**
+	 * return grouped bets for cards like handicapp and over/under markets
+	 * returns the bet if its not a handicap market
+	 */
 	const bets = computed(() => {
 		if (handicap.value === null || !handicap.value)
 			return props.market.bets;
@@ -74,7 +78,9 @@
 						{{ $t("Winner") }}:
 						<span
 							class="text-emerald-600 dark:text-emerald-400 lining-nums box-border shrink-0 flex-wrap m-0">
-							{{ market.gameMarkets?.[0].winningBet?.name }}
+							<TeamName
+								:name="market.gameMarkets?.[0].winningBet?.name"
+								:game="game" />
 						</span>
 					</span>
 				</div>

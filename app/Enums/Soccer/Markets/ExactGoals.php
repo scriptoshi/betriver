@@ -82,7 +82,7 @@ enum ExactGoals: string  implements BetMarket
             self::FULLTIME_AWAY, self::FIRSTHALF_AWAY => GoalCount::AWAY,
         };
 
-        if ($goalCount === GoalCount::TOTAL) {
+        if ($goalCount == GoalCount::TOTAL) {
             return $game->getScores($period, GoalCount::HOME) + $game->getScores($period, GoalCount::AWAY);
         }
 

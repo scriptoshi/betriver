@@ -62,11 +62,11 @@ enum TeamToScore: string implements BetMarket
         $outcome = YesNo::from($bet->result);
         $team = Str::before($this->value, '_');
         $period = Str::after($this->value, '_');
-        $goals = $game->getScores($period, $team === 'home' ? GoalCount::HOME : GoalCount::AWAY);
+        $goals = $game->getScores($period, $team == 'home' ? GoalCount::HOME : GoalCount::AWAY);
 
         return match ($outcome) {
             YesNo::YES => $goals > 0,
-            YesNo::NO => $goals === 0,
+            YesNo::NO => $goals == 0,
         };
     }
 

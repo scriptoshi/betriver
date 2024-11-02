@@ -52,7 +52,7 @@ enum ResultTotalGoals: string implements BetMarket
             default => 'draw',
         };
 
-        $isCorrectResult = $result === $outcome->result();
+        $isCorrectResult = $result == $outcome->result();
         $isCorrectTotal = match ($outcome->overUnder()) {
             'over' => $totalGoals > $outcome->threshold(),
             'under' => $totalGoals < $outcome->threshold(),

@@ -41,7 +41,7 @@ enum HighestScoringHalf: string implements BetMarket
         return match ($outcome) {
             HighestScoringHalfOutcome::FIRST_HALF => $firstHalfGoals > $secondHalfGoals,
             HighestScoringHalfOutcome::SECOND_HALF => $secondHalfGoals > $firstHalfGoals,
-            HighestScoringHalfOutcome::EQUAL => $firstHalfGoals === $secondHalfGoals,
+            HighestScoringHalfOutcome::EQUAL => $firstHalfGoals == $secondHalfGoals,
         };
     }
 

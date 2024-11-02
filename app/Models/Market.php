@@ -112,7 +112,9 @@ class Market extends Model
      */
     public function games(): BelongsToMany
     {
-        return $this->belongsToMany(Game::class, 'game_market', 'market_id', 'game_id');
+        return $this->belongsToMany(Game::class, 'game_market', 'market_id', 'game_id')
+            ->withTimestamps()
+            ->withPivot(['bookie_active', 'winning_bet_id', 'active', 'id']);
     }
 
     /**

@@ -46,8 +46,8 @@ enum WinToNil: string implements BetMarket
         $awayScore = $game->getScores('total', GoalCount::AWAY);
 
         $winToNil = match ($this) {
-            self::HOME => $homeScore > 0 && $awayScore === 0,
-            self::AWAY => $awayScore > 0 && $homeScore === 0,
+            self::HOME => $homeScore > 0 && $awayScore == 0,
+            self::AWAY => $awayScore > 0 && $homeScore == 0,
         };
 
         return match ($outcome) {

@@ -1,4 +1,8 @@
 <script setup>
+	import { ref } from "vue";
+
+	import { useForm } from "@inertiajs/vue3";
+
 	import ActionMessage from "@/Components/ActionMessage.vue";
 	import ActionSection from "@/Components/ActionSection.vue";
 	import DialogModal from "@/Components/DialogModal.vue";
@@ -6,8 +10,6 @@
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
 	import SecondaryButton from "@/Components/SecondaryButton.vue";
 	import TextInput from "@/Components/TextInput.vue";
-	import { useForm } from "@inertiajs/vue3";
-	import { ref } from "vue";
 
 	defineProps({
 		sessions: Array,
@@ -27,7 +29,7 @@
 	};
 
 	const logoutOtherBrowserSessions = () => {
-		form.delete(route("other-browser-sessions.destroy"), {
+		form.delete(window.route("other-browser-sessions.destroy"), {
 			preserveScroll: true,
 			onSuccess: () => closeModal(),
 			onError: () => passwordInput.value.focus(),

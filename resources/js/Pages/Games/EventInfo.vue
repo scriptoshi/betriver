@@ -27,16 +27,30 @@
 						</h1>
 					</div>
 					<div
-						v-if="game.hasStarted && game.state == 'in_play'"
+						v-if="
+							game.hasStarted &&
+							(game.state == 'in_play' ||
+								game.state == 'finished')
+						"
 						class="inline-block font-bold text-center text-base">
-						<div class="inline-block relative align-middle ml-2">
+						<div class="inline-block relative align-middle ml-6">
 							<div
-								class="text-white rounded-sm h-[30px] leading-[30px] px-2 bg-gray-700 relative text-center font-bold font-inter whitespace-nowrap tabular-nums">
+								:class="
+									game.homeScore > game.awayScore
+										? ' bg-green-600 '
+										: ' bg-gray-700 '
+								"
+								class="text-white rounded-sm h-[30px] leading-[30px] px-2 relative text-center font-bold font-inter whitespace-nowrap tabular-nums">
 								{{ game.homeScore }}
 							</div>
 							<div class="font-semibold h-2"></div>
 							<div
-								class="text-white rounded-sm h-[30px] leading-[30px] px-2 bg-gray-700 relative text-center font-bold font-inter whitespace-nowrap tabular-nums">
+								:class="
+									game.awayScore > game.homeScore
+										? ' bg-green-600 '
+										: ' bg-gray-700 '
+								"
+								class="text-white rounded-sm h-[30px] leading-[30px] px-2relative text-center font-bold font-inter whitespace-nowrap tabular-nums">
 								{{ game.awayScore }}
 							</div>
 						</div>

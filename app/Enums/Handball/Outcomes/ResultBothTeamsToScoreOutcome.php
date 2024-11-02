@@ -15,7 +15,7 @@ enum ResultBothTeamsToScoreOutcome: string
     {
         $parts = explode('_', $this->value);
         $result = ucfirst($parts[0]);
-        $bothScore = $parts[1] === 'yes' ? 'Yes' : 'No';
+        $bothScore = $parts[1] == 'yes' ? 'Yes' : 'No';
         return formatName("{$result} & {$bothScore}");
     }
 
@@ -26,6 +26,6 @@ enum ResultBothTeamsToScoreOutcome: string
 
     public function bothTeamsScore(): bool
     {
-        return explode('_', $this->value)[1] === 'yes';
+        return explode('_', $this->value)[1] == 'yes';
     }
 }

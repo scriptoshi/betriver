@@ -45,7 +45,7 @@ enum ResultAndBothTeamsToScore: string implements BetMarket
     public function won(Game $game, Bet $bet): bool
     {
         $outcome = ResultAndBothTeamsToScoreOutcome::from($bet->result);
-        $period = $this === self::FULL_TIME ? 'fulltime' : 'halftime';
+        $period = $this == self::FULL_TIME ? 'fulltime' : 'halftime';
 
         $homeGoals = $game->getScores($period, GoalCount::HOME);
         $awayGoals = $game->getScores($period, GoalCount::AWAY);
@@ -58,7 +58,7 @@ enum ResultAndBothTeamsToScore: string implements BetMarket
 
         $bothTeamsScored = $homeGoals > 0 && $awayGoals > 0;
 
-        return $outcome->matchWinner() === $result && $outcome->bothTeamsToScore() === ($bothTeamsScored ? YesNo::YES : YesNo::NO);
+        return $outcome->matchWinner() == $result && $outcome->bothTeamsToScore() == ($bothTeamsScored ? YesNo::YES : YesNo::NO);
     }
 
     public static function seed(): void

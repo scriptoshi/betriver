@@ -12,7 +12,7 @@
 
 	const emit = defineEmits(["update:modelValue"]);
 
-	const oddsType = computed(() => usePage().props.auth.user.odds_type);
+	const oddsType = computed(() => usePage().props.auth?.user?.odds_type);
 	const isEditing = ref(false);
 	const inputValue = ref("");
 

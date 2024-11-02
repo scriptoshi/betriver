@@ -48,7 +48,7 @@ enum NFLWinningMargin: string implements BetMarket
     public function won(Game $game, Bet $bet): bool
     {
         $outcome = NFLWinningMarginOutcome::from($bet->result);
-        $period = $this->value === 'home_winning_margin_first_half' || $this->value === 'away_winning_margin_first_half' ? 'halftime' : 'fulltime';
+        $period = $this->value == 'home_winning_margin_first_half' || $this->value == 'away_winning_margin_first_half' ? 'halftime' : 'fulltime';
         $homeScore = $game->getScores($period, GoalCount::HOME);
         $awayScore = $game->getScores($period, GoalCount::AWAY);
 

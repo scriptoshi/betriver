@@ -8,6 +8,7 @@
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import TeamName from "@/Components/TeamName.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
+	import ToggleWatchList from "../ToggleWatchList.vue";
 
 	defineProps({
 		game: Object,
@@ -142,22 +143,22 @@
 					</div>
 				</div>
 				<div
-					class="text-gray-500 ml-5 inline-block leading-[1em] text-[10px] font-inter font-extrabold tracking-[0.7px] uppercase">
-					{{
-						`${
-							game.marketsCount == 0
-								? defaultMarketsCount
-								: game.marketsCount
-						} Markets availabale`
-					}}
-				</div>
-				<div
-					class="text-gray-500 ml-5 inline-block leading-[1em] text-[10px] font-inter font-extrabold tracking-[0.7px] uppercase">
+					class="text-gray-400 ml-5 inline-block leading-[1em] text-[10px] font-inter font-semibold tracking-[0.7px] uppercase">
 					{{ $t("Traded:") }}
 					<span
 						class="text-emerald-600 dark:text-emerald-500 whitespace-nowrap">
 						<MoneyFormat :amount="game.traded ?? 0" />
 					</span>
+				</div>
+				<div
+					class="text-gray-400 ml-5 inline-block leading-[1em] text-[10px] font-inter font-semibold tracking-[0.5px] uppercase">
+					{{
+						`${
+							game.marketsCount == 0
+								? defaultMarketsCount
+								: game.marketsCount
+						} Markets active`
+					}}
 				</div>
 			</div>
 		</div>
@@ -187,6 +188,9 @@
 					:back="game.backs.find((n) => n.bet_id == bet.id)" />
 			</span>
 		</div>
+		<ToggleWatchList
+			:gameId="game.id"
+			:isWatched="$page.props.auth.watchlist.includes(game.id)" />
 		<div class="order-7 w-full"></div>
 	</li>
 </template>

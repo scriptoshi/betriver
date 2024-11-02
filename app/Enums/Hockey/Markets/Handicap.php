@@ -56,7 +56,7 @@ enum Handicap: string implements BetMarket
         return match ($outcome->team()) {
             'home' => $adjustedHomeScore > $awayScore,
             'away' => $adjustedHomeScore < $awayScore,
-            'draw' => $adjustedHomeScore === $awayScore,
+            'draw' => $adjustedHomeScore == $awayScore,
         };
     }
 

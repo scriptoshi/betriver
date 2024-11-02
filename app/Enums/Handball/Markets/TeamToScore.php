@@ -49,15 +49,15 @@ enum TeamToScore: string implements BetMarket
         return match ($this) {
             self::BOTH_TEAMS_TO_SCORE => match ($outcome) {
                 YesNo::YES => $homeScore > 0 && $awayScore > 0,
-                YesNo::NO => $homeScore === 0 || $awayScore === 0,
+                YesNo::NO => $homeScore == 0 || $awayScore == 0,
             },
             self::HOME_TEAM_TO_SCORE => match ($outcome) {
                 YesNo::YES => $homeScore > 0,
-                YesNo::NO => $homeScore === 0,
+                YesNo::NO => $homeScore == 0,
             },
             self::AWAY_TEAM_TO_SCORE => match ($outcome) {
                 YesNo::YES => $awayScore > 0,
-                YesNo::NO => $awayScore === 0,
+                YesNo::NO => $awayScore == 0,
             },
         };
     }

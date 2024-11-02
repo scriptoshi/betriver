@@ -29,8 +29,8 @@ enum RugbyWinningMargin: string implements BetMarket
     public function outcomes(): array
     {
         return match ($this) {
-            self::HOME_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn($outcome) => $outcome->team() === 'home'),
-            self::AWAY_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn($outcome) => $outcome->team() === 'away'),
+            self::HOME_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn($outcome) => $outcome->team() == 'home'),
+            self::AWAY_WINNING_MARGIN => array_filter(RugbyWinningMarginOutcome::cases(), fn($outcome) => $outcome->team() == 'away'),
         };
     }
 
@@ -49,7 +49,7 @@ enum RugbyWinningMargin: string implements BetMarket
         $awayScore = $game->getScores('fulltime', GoalCount::AWAY);
 
         $margin = $homeScore - $awayScore;
-        if ($outcome->team() === 'away') {
+        if ($outcome->team() == 'away') {
             $margin = -$margin;
         }
 

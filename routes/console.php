@@ -6,6 +6,7 @@ use App\Enums\LeagueSport;
 use App\Enums\WithdrawGateway;
 use App\Enums\WithdrawStatus;
 use App\Models\Game;
+use App\Models\GameMarket;
 use App\Models\Withdraw;
 use App\Support\OverroundCalculator;
 use App\Support\Rate;
@@ -87,5 +88,10 @@ Artisan::command('txt', function () {
 
 
 Artisan::command('bo', function () {
-    ApiMma::updateLeagues();
+    $gm = GameMarket::with(['market', 'game'])->find(369);
+    foreach ($gm->market->bets as $bet) {
+        $won = $gm->market->manager()->won($gm->game, $bet);
+        if ($won)
+            dd($won, $bet->name);
+    }
 });

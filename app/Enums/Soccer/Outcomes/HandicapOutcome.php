@@ -35,7 +35,7 @@ enum HandicapOutcome: string
     public function handicapValue(): int
     {
         $handicap = Str::after($this->value, '_');
-        return $handicap === '0' ? 0 : (int) $handicap;
+        return $handicap == '0' ? 0 : (int) $handicap;
     }
 
     public function name(): string

@@ -23,6 +23,12 @@
 	}
 }
 @layer components {
+	html {
+		@apply bg-white;
+	}
+	html.dark {
+		@apply bg-gray-900;
+	}
 	body,
 	html,
 	#app {

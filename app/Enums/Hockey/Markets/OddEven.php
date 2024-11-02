@@ -52,7 +52,7 @@ enum OddEven: string implements BetMarket
 
         return match ($outcome) {
             OddEvenOutcome::ODD => $totalGoals % 2 !== 0,
-            OddEvenOutcome::EVEN => $totalGoals % 2 === 0,
+            OddEvenOutcome::EVEN => $totalGoals % 2 == 0,
         };
     }
 

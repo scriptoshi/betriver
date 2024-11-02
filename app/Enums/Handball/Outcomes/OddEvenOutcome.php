@@ -16,7 +16,7 @@ enum OddEvenOutcome: string
     {
         return match ($this) {
             self::ODD => $totalGoals % 2 !== 0,
-            self::EVEN => $totalGoals % 2 === 0,
+            self::EVEN => $totalGoals % 2 == 0,
         };
     }
 }

@@ -47,8 +47,8 @@ enum MMARoundBetting: string implements BetMarket
         $winningRound = static::completedRounds($fight);
         $winner = static::mmaFightWinner($fight);
         return match ($this) {
-            self::ROUND_BETTING => $outcome->round() === $winningRound,
-            self::ROUND_BETTING_PLAYER => $outcome->round() === $winningRound && $outcome->player() === $winner,
+            self::ROUND_BETTING => $outcome->round() == $winningRound,
+            self::ROUND_BETTING_PLAYER => $outcome->round() == $winningRound && $outcome->player() == $winner,
         };
     }
 

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-
+use App\Actions\FixBets;
 use App\Enums\LeagueSport;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Game as GameResource;
@@ -139,6 +139,109 @@ class GamesController extends Controller
         ]);
     }
 
+    /**
+     * Add to watch list.
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function addToWatchlist(Request $request, Game $game)
+    {
+        $request->user()
+            ->watchlist()
+            ->syncWithoutDetaching([$game->id]);
+        return back();
+    }
+
+    /**
+     * Remove from watch list.
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function removeFromWatchlist(Request $request, Game $game)
+    {
+        $request->user()
+            ->watchlist()
+            ->detach($game->id);
+        return back();
+    }
+
+    /**
+     * Display a listing of the resource.
+     * @return \Illuminate\View\View
+     */
+    public function watchlist(Request $request)
+    {
+        $defaultMarkets = Market::with(['bets'])
+            ->where('is_default', true)
+            ->pluck('id')->all();
+        $query  = $request->user()
+            ->watchlist()
+            ->where('active', true)
+            ->withSum('trades as traded', 'amount')
+            ->with([
+                'scores',
+                'league',
+                'homeTeam',
+                'awayTeam',
+                'odds' => fn($q) => $q->whereIn('market_id', $defaultMarkets)
+            ])
+            ->withCount('activeMarkets as marketsCount')
+            ->withExists(['odds as has_odds' => fn($q) => $q->whereIN('market_id', $defaultMarkets)])
+            ->latest('traded')
+            ->whereHas('league', function (Builder $query) {
+                $query->where('active', true);
+            });
+        DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
+        $rangeSize = (float) settings('odds_spread', 0.2);
+        $rangeSize = $rangeSize < 0.001 ? 0.2 :  $rangeSize;
+        $query->with([
+            'lays' => function (HasMany $q) use ($defaultMarkets, $rangeSize) {
+                $q->whereIn('market_id', $defaultMarkets)
+                    ->select(
+                        'bet_id',
+                        'game_id',
+                        DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                        DB::raw('SUM(unfilled) AS amount'),
+                        DB::raw('MAX(odds) as price')
+                    )
+                    ->groupBy(['bet_id', 'game_id'])
+                    ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                    ->latest(DB::raw('MAX(odds)'))
+                    ->limit(3);
+            },
+            'backs' => function (HasMany $q) use ($defaultMarkets, $rangeSize) {
+                $q->whereIn('market_id', $defaultMarkets)
+                    ->select(
+                        'bet_id',
+                        'game_id',
+                        DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                        DB::raw('SUM(unfilled) AS amount'),
+                        DB::raw('MIN(odds) as price')
+                    )
+                    ->groupBy(['bet_id', 'game_id'])
+                    ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                    ->oldest(DB::raw('MAX(odds)'))
+                    ->limit(3);;
+            },
+        ]);
+        $gamesItems = $query->latest('startTime')->take(30)->get();
+        DB::statement("SET SESSION sql_mode=(SELECT CONCAT(@@sql_mode, ',ONLY_FULL_GROUP_BY'));");
+        $games = GameResource::collection($gamesItems);
+        return Inertia::render('Games/WatchList', [
+            'defaultMarketsCounts' =>   Market::query()
+                ->selectRaw('sport, COUNT(*) as total')
+                ->groupBy('sport')
+                ->get()
+                ->pluck('total', 'sport'),
+            'defaultMarkets' => Market::with(['bets'])
+                ->where('is_default', true)
+                ->get()
+                ->keyBy('sport'),
+            'games' => $games,
+            'enableExchange' =>  settings('site.enable_exchange'),
+            'enableBookie' => settings('site.enable_bookie'),
+            'multiples' =>  TradeManager::multiples()
+        ]);
+    }
+
 
     /**
      * XHR Search Input for games based on user input.
@@ -168,15 +271,6 @@ class GamesController extends Controller
             ->get();
         return GameResource::collection($games);
     }
-
-
-
-
-
-
-
-
-
     /**
      * Display the specified resource.
      * @param  int  $id
@@ -184,6 +278,7 @@ class GamesController extends Controller
      */
     public function show(Request $request, Game $game)
     {
+
         $multiples =  TradeManager::multiples();
         $game->load([
             'scores',
@@ -195,6 +290,7 @@ class GamesController extends Controller
         $game->loadSum('stakes as liquidity', 'unfilled');
         $game->loadSum('stakes as volume', 'liability');
 
+        // Force sync all markets
         if ($game->markets()->count() == 0) {
             $marketIds = Market::query()
                 ->where('sport', $game->sport)
@@ -204,6 +300,13 @@ class GamesController extends Controller
             $game->markets()->sync($marketIds);
         }
         $game->loadCount('markets as marketsCount');
+
+        /**
+         * game ended?
+         * lets ensure winning bets are marked.
+         */
+        if ($game->closed)
+            $game = FixBets::setWinners($game);
         /**
          * We shall group trades in ranges of 0.2.
          */
@@ -218,6 +321,7 @@ class GamesController extends Controller
             ->withSum(['stakes as liquidity' => fn($q) => $q->where('game_id', $game->id)], 'unfilled')
             ->withSum(['stakes as volume' => fn($q) => $q->where('game_id', $game->id)], 'liability')
             ->with('gameMarkets', function (HasMany $query) use ($game) {
+                $query->with('winningBet');
                 $query->where('game_id', $game->id);
             })
             ->when($multiples, function ($query) use ($game) {
@@ -234,33 +338,6 @@ class GamesController extends Controller
                 }])
                     ->with(['odds' => fn($q) => $q->where('game_id', $game->id)])
                     ->with([
-                        'lays' => function (HasMany $q) use ($game, $rangeSize) {
-                            $q->where('game_id', $game->id)
-                                ->select(
-                                    'bet_id',
-                                    DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
-                                    DB::raw('SUM(unfilled) AS amount'),
-                                    DB::raw('MAX(odds) as price')
-                                )
-                                ->groupBy('bet_id')
-                                ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
-                                ->latest(DB::raw('MAX(odds)'))
-                                ->limit(3);
-                        },
-                        'backs' => function (HasMany $q) use ($game, $rangeSize) {
-                            $q->where('game_id', $game->id)
-                                ->select(
-                                    'bet_id',
-                                    DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
-                                    DB::raw('SUM(unfilled) AS amount'),
-                                    DB::raw('MIN(odds) as price')
-                                )
-                                ->groupBy('bet_id')
-                                ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
-                                ->oldest(DB::raw('MAX(odds)'))
-                                ->limit(3);
-                        },
-
                         'last_trade' => function (HasOne $query) use ($game) {
                             $query->where('game_id', $game->id);
                         },
@@ -277,12 +354,41 @@ class GamesController extends Controller
                                 ->groupBy(['bet_id', 'time_range']);
                         }
                     ]);
+                $query->with([
+                    'lays' => function (HasMany $q) use ($game, $rangeSize) {
+                        $q->where('game_id', $game->id)
+                            ->select(
+                                'bet_id',
+                                DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                                DB::raw('SUM(unfilled) AS amount'),
+                                DB::raw('MAX(odds) as price')
+                            )
+                            ->groupBy('bet_id')
+                            ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                            ->latest(DB::raw('MAX(odds)'))
+                            ->limit(3);
+                    },
+                    'backs' => function (HasMany $q) use ($game, $rangeSize) {
+                        $q->where('game_id', $game->id)
+                            ->select(
+                                'bet_id',
+                                DB::raw("FLOOR(odds / $rangeSize) AS range_code"),
+                                DB::raw('SUM(unfilled) AS amount'),
+                                DB::raw('MIN(odds) as price')
+                            )
+                            ->groupBy('bet_id')
+                            ->groupBy(DB::raw("FLOOR(odds / $rangeSize)"))
+                            ->oldest(DB::raw('MAX(odds)'))
+                            ->limit(3);
+                    }
+                ]);
             }])
             ->oldest('sequence')
             ->get();
         DB::statement("SET SESSION sql_mode=(SELECT CONCAT(@@sql_mode, ',ONLY_FULL_GROUP_BY'));");
         return Inertia::render('Games/Show', [
             'game' => new GameResource($game),
+            'winBets' => $game->winBets()->pluck('bets.id'),
             'markets' => ResourcesMarket::collection($markets),
             'handicaps' => $game->sport->handicaps(),
             'asianhandicaps' => $game->sport->asianhandicaps(),

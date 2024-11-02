@@ -31,6 +31,7 @@ return new class extends Migration
             $table->json('result')->nullable();
             $table->integer('rounds')->nullable();
             $table->string('sport')->default('football');
+            $table->boolean('bets_fixed')->default(false);
             $table->boolean('closed')->default(false);
             $table->boolean('active')->default(true);
             $table->timestamps();

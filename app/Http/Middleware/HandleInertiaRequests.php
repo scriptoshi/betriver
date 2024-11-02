@@ -55,7 +55,8 @@ class HandleInertiaRequests extends Middleware
                 }
                 return [
                     'user' =>  $user ? new User($user) : null,
-                    'personal' => $personal
+                    'personal' =>  $user ? $personal : null,
+                    'watchlist' => $user ? $user->watchlist()->pluck('games.id')->all() : [],
                 ];
             },
             'isAdmin' => fn() => $user ? $user->isAdmin() : false,

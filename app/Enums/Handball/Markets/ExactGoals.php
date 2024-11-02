@@ -51,11 +51,11 @@ enum ExactGoals: string implements BetMarket
             self::AWAY => $game->getScores('total', 'away'),
         };
 
-        if ($outcome === ExactGoalsOutcome::SIX_OR_MORE) {
+        if ($outcome == ExactGoalsOutcome::SIX_OR_MORE) {
             return $goals >= 6;
         }
 
-        return $goals === $outcome->value();
+        return $goals == $outcome->value();
     }
 
     public static function seed(): void

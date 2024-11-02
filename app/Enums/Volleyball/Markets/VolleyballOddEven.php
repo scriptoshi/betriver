@@ -39,7 +39,7 @@ enum VolleyballOddEven: string implements BetMarket
 
         return match ($outcome) {
             VolleyballOddEvenOutcome::ODD => $totalSets % 2 !== 0,
-            VolleyballOddEvenOutcome::EVEN => $totalSets % 2 === 0,
+            VolleyballOddEvenOutcome::EVEN => $totalSets % 2 == 0,
         };
     }
 

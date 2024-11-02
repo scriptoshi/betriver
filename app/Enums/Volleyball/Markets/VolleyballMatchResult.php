@@ -43,7 +43,7 @@ enum VolleyballMatchResult: string implements BetMarket
         return match ($outcome) {
             VolleyballMatchResultOutcome::HOME => $homeSets > $awaySets,
             VolleyballMatchResultOutcome::AWAY => $awaySets > $homeSets,
-            VolleyballMatchResultOutcome::DRAW => $awaySets === $homeSets,
+            VolleyballMatchResultOutcome::DRAW => $awaySets == $homeSets,
         };
     }
 

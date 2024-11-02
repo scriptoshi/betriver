@@ -42,7 +42,7 @@ enum OddEven: string implements BetMarket
     {
         $outcome = OddEvenOutcome::from($bet->result);
         $totalScore = $this->getTotalScore($game);
-        $isEven = $totalScore % 2 === 0;
+        $isEven = $totalScore % 2 == 0;
 
         return match ($outcome) {
             OddEvenOutcome::ODD => !$isEven,

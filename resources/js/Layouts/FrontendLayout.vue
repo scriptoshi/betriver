@@ -83,7 +83,7 @@
 							? '#52525b transparent'
 							: '#d4d4d8 transparent',
 					}"
-					class="lg:z-0 z-40 w-[340px] 2xl:w-[440px] contain-strict p-0 right-0 overflow-y-auto fixed top-[52px] bottom-0 text-left transition duration-600 scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+					class="lg:z-0 z-40 w-[340px] 2xl:w-[440px] contain-strict p-0 right-0 overflow-y-auto fixed top-[52px] bottom-0 text-left transition duration-600 scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent dark:bg-gray-850">
 					<div class="bg-white dark:bg-gray-800">
 						<slot name="right-sidebar-top" />
 						<template

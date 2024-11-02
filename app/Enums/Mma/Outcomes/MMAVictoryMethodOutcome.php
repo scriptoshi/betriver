@@ -77,8 +77,8 @@ enum MMAVictoryMethodOutcome: string
     {
         return match ($this) {
             self::KO_TKO => in_array($method, ['KO', 'TKO']),
-            self::SUBMISSION => $method === 'Submission',
-            self::DECISION => $method === 'Decision',
+            self::SUBMISSION => $method == 'Submission',
+            self::DECISION => $method == 'Decision',
             default => false,
         };
     }
@@ -86,12 +86,12 @@ enum MMAVictoryMethodOutcome: string
     public function matchesMethodAndWinner(string $method, string $winner): bool
     {
         return match ($this) {
-            self::HOME_KO_TKO => $winner === 'first' && in_array($method, ['KO', 'TKO']),
-            self::HOME_SUBMISSION => $winner === 'first' && $method === 'Submission',
-            self::HOME_DECISION => $winner === 'first' && $method === 'Decision',
-            self::AWAY_KO_TKO => $winner === 'second' && in_array($method, ['KO', 'TKO']),
-            self::AWAY_SUBMISSION => $winner === 'second' && $method === 'Submission',
-            self::AWAY_DECISION => $winner === 'second' && $method === 'Decision',
+            self::HOME_KO_TKO => $winner == 'first' && in_array($method, ['KO', 'TKO']),
+            self::HOME_SUBMISSION => $winner == 'first' && $method == 'Submission',
+            self::HOME_DECISION => $winner == 'first' && $method == 'Decision',
+            self::AWAY_KO_TKO => $winner == 'second' && in_array($method, ['KO', 'TKO']),
+            self::AWAY_SUBMISSION => $winner == 'second' && $method == 'Submission',
+            self::AWAY_DECISION => $winner == 'second' && $method == 'Decision',
             default => false,
         };
     }
@@ -102,10 +102,10 @@ enum MMAVictoryMethodOutcome: string
         $outcomeMethod = $this->getMethod();
         $outcomeWinner = $this->getWinner();
 
-        return $outcomeRound === $round &&
-            $outcomeWinner === $winner &&
-            (($outcomeMethod === 'ko_tko' && in_array($method, ['KO', 'TKO'])) ||
-                ($outcomeMethod === 'submission' && $method === 'Submission'));
+        return $outcomeRound == $round &&
+            $outcomeWinner == $winner &&
+            (($outcomeMethod == 'ko_tko' && in_array($method, ['KO', 'TKO'])) ||
+                ($outcomeMethod == 'submission' && $method == 'Submission'));
     }
 
     public function matchesMethodDoubleChance(string $method): bool

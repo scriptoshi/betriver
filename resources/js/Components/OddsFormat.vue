@@ -11,7 +11,7 @@
 	});
 
 	const convertedOdds = computed(() => {
-		const oddsType = usePage().props.auth.user.odds_type;
+		const oddsType = usePage().props?.auth?.user?.odds_type;
 		if (oddsType === "american") {
 			return convertToAmerican(props.odds);
 		} else if (oddsType === "percentage") {

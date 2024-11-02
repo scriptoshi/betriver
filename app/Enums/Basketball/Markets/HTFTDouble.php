@@ -38,7 +38,7 @@ enum HTFTDouble: string implements BetMarket
         $htResult = $this->getResult($game, ['quarter_1', 'quarter_2']);
         $ftResult = $this->getResult($game, 'total');
 
-        return $outcome->halfTimeResult() === $htResult && $outcome->fullTimeResult() === $ftResult;
+        return $outcome->halfTimeResult() == $htResult && $outcome->fullTimeResult() == $ftResult;
     }
 
     private function getResult(Game $game, array|string $period): string

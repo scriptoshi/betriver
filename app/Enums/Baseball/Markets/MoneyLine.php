@@ -51,7 +51,7 @@ enum MoneyLine: string implements BetMarket
         return match ($outcome) {
             MoneyLineOutcome::HOME => $homeScore > $awayScore,
             MoneyLineOutcome::AWAY => $awayScore > $homeScore,
-            MoneyLineOutcome::DRAW => $homeScore === $awayScore,
+            MoneyLineOutcome::DRAW => $homeScore == $awayScore,
         };
     }
 

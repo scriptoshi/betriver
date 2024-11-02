@@ -27,7 +27,7 @@ enum WinningMargin: string implements BetMarket
 
     public function outcomes(): array
     {
-        return array_filter(WinningMarginOutcome::cases(), fn($outcome) => $outcome->team() === $this->value);
+        return array_filter(WinningMarginOutcome::cases(), fn($outcome) => $outcome->team() == $this->value);
     }
 
     public function name(): string
@@ -54,7 +54,7 @@ enum WinningMargin: string implements BetMarket
             return false;
         }
 
-        if ($outcome->maxMargin() === null) {
+        if ($outcome->maxMargin() == null) {
             return $margin >= $outcome->minMargin();
         }
 

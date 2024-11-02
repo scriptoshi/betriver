@@ -36,7 +36,7 @@ enum CorrectScoreOutcome: string
 
     public function name(): string
     {
-        if ($this === self::ANY_OTHER) {
+        if ($this == self::ANY_OTHER) {
             return "Any Other Score";
         }
         return str_replace('_', '-',  formatName($this->value));

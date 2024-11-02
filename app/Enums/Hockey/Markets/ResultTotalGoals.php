@@ -45,7 +45,7 @@ enum ResultTotalGoals: string implements BetMarket
             default => 'draw',
         };
 
-        return $outcome->result() === $result && $outcome->isGoalRangeCorrect($totalGoals);
+        return $outcome->result() == $result && $outcome->isGoalRangeCorrect($totalGoals);
     }
 
     public static function seed(): void

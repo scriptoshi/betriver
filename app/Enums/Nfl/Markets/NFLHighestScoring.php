@@ -73,11 +73,11 @@ enum NFLHighestScoring: string implements BetMarket
         $highestScoringPeriods = array_keys($scores, $highestScore);
 
         if (count($highestScoringPeriods) > 1) {
-            return $outcome === AFLHighestScoringOutcome::EQUAL;
+            return $outcome == AFLHighestScoringOutcome::EQUAL;
         }
 
         $highestScoringPeriod = $highestScoringPeriods[0];
-        return $outcome->value === $highestScoringPeriod;
+        return $outcome->value == $highestScoringPeriod;
     }
 
     private function getHalfScore(Game $game, string $period): int

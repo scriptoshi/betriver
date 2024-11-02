@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App;
 use App\Enums\ConnectionProvider;
 use App\Enums\MailDrivers;
 use Exception;
@@ -18,6 +19,7 @@ use Illuminate\Database\Schema\Grammars\Grammar;
 use Illuminate\Database\Schema\Grammars\SQLiteGrammar;
 use Illuminate\Support\Fluent;
 use Illuminate\Support\Str;
+use URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -63,6 +65,13 @@ class AppServiceProvider extends ServiceProvider
          * Setup check macro
          */
         $this->dbMacros();
+
+        /**
+         * force https // for cloudflare proxies
+         */
+        if (App::environment(['staging', 'production'])) {
+            URL::forceScheme('https');
+        }
     }
 
     public function dbMacros()

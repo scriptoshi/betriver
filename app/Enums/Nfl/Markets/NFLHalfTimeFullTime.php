@@ -44,7 +44,7 @@ enum NFLHalfTimeFullTime: string implements BetMarket
         $halfTimeResult = $this->getResult($halfTimeHomeScore, $halfTimeAwayScore);
         $fullTimeResult = $this->getResult($fullTimeHomeScore, $fullTimeAwayScore);
 
-        return $outcome->halfTimeResult() === $halfTimeResult && $outcome->fullTimeResult() === $fullTimeResult;
+        return $outcome->halfTimeResult() == $halfTimeResult && $outcome->fullTimeResult() == $fullTimeResult;
     }
 
     private function getResult(int $homeScore, int $awayScore): string

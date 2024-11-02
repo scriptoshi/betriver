@@ -45,15 +45,15 @@ enum CorrectScore: string implements BetMarket
         $homeScore = $game->getScores($this->value, 'home');
         $awayScore = $game->getScores($this->value, 'away');
 
-        if ($outcome === CorrectScoreOutcome::ANY_OTHER_HOME_WIN) {
+        if ($outcome == CorrectScoreOutcome::ANY_OTHER_HOME_WIN) {
             return $homeScore > $awayScore && !in_array("{$homeScore}-{$awayScore}", array_column(CorrectScoreOutcome::cases(), 'value'));
         }
 
-        if ($outcome === CorrectScoreOutcome::ANY_OTHER_AWAY_WIN) {
+        if ($outcome == CorrectScoreOutcome::ANY_OTHER_AWAY_WIN) {
             return $awayScore > $homeScore && !in_array("{$homeScore}-{$awayScore}", array_column(CorrectScoreOutcome::cases(), 'value'));
         }
 
-        return $homeScore === $outcome->homeGoals() && $awayScore === $outcome->awayGoals();
+        return $homeScore == $outcome->homeGoals() && $awayScore == $outcome->awayGoals();
     }
 
     public static function seed(): void

@@ -267,7 +267,7 @@ class TradeManager
         try {
             $stake->load(['user', 'maker_trades', 'taker_trades']);
             $stake->won = $betWon;
-            $stake->status =  StakeStatus::TRADE_OUT;
+            $stake->status =  StakeStatus::LOST;
             $stake->save();
             $user = $stake->user;
 

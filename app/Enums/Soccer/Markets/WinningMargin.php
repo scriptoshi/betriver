@@ -38,12 +38,12 @@ enum WinningMargin: string implements BetMarket
         $homeGoals = $game->getScores($this->value, GoalCount::HOME);
         $awayGoals = $game->getScores($this->value, GoalCount::AWAY);
         return match ($outcome) {
-            WinningMarginOutcome::DRAW => $homeGoals === $awayGoals,
-            WinningMarginOutcome::HOME_1 => $homeGoals === $awayGoals + 1,
-            WinningMarginOutcome::HOME_2 => $homeGoals === $awayGoals + 2,
+            WinningMarginOutcome::DRAW => $homeGoals == $awayGoals,
+            WinningMarginOutcome::HOME_1 => $homeGoals == $awayGoals + 1,
+            WinningMarginOutcome::HOME_2 => $homeGoals == $awayGoals + 2,
             WinningMarginOutcome::HOME_3PLUS => $homeGoals >= $awayGoals + 3,
-            WinningMarginOutcome::AWAY_1 => $awayGoals === $homeGoals + 1,
-            WinningMarginOutcome::AWAY_2 => $awayGoals === $homeGoals + 2,
+            WinningMarginOutcome::AWAY_1 => $awayGoals == $homeGoals + 1,
+            WinningMarginOutcome::AWAY_2 => $awayGoals == $homeGoals + 2,
             WinningMarginOutcome::AWAY_3PLUS => $awayGoals >= $homeGoals + 3,
         };
     }

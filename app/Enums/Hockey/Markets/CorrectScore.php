@@ -50,7 +50,7 @@ enum CorrectScore: string implements BetMarket
         $outcome = CorrectScoreOutcome::from($bet->result);
         $homeScore = $game->getScores($this->value, GoalCount::HOME);
         $awayScore = $game->getScores($this->value, GoalCount::AWAY);
-        return $outcome->homeGoals() === $homeScore && $outcome->awayGoals() === $awayScore;
+        return $outcome->homeGoals() == $homeScore && $outcome->awayGoals() == $awayScore;
     }
 
     public static function seed(): void

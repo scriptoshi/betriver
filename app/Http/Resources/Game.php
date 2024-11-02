@@ -52,6 +52,7 @@ class Game extends JsonResource
             'has_odds' => $this->has_odds,
             'has_scores' => $this->has_scores || ($this->sport === LeagueSport::MMA && !is_null($this->result)),
             'closed' => $this->closed,
+            'bets_matched' => $this->bets_fixed,
             /**
              * Query derived values
              * 

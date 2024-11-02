@@ -72,7 +72,7 @@ enum MailDrivers: string
         $factory = new EsmtpTransportFactory;
         $scheme = $config['scheme'] ?? null;
         if (!$scheme) {
-            $scheme = !empty($config['encryption']) && $config['encryption'] === 'tls'
+            $scheme = !empty($config['encryption']) && $config['encryption'] == 'tls'
                 ? (($config['port'] == 465) ? 'smtps' : 'smtp')
                 : '';
         }

@@ -91,7 +91,15 @@ Route::name('teams')->controller(TeamsController::class)->group(function () {
 Route::name('sports.')->controller(GamesController::class)->group(function () {
     Route::post('/sports/search', 'search')->name('search');
     Route::post('/sports/filter', 'filter')->name('filter');
-    Route::get('/sport/watchlist', 'watchlist')->name('watchlist');
+    Route::get('/sport/watchlist', 'watchlist')
+        ->middleware('auth')
+        ->name('watchlist');
+    Route::post('sport/add-watchlist/{game}', 'addToWatchlist')
+        ->middleware('auth')
+        ->name('watchlist.add');
+    Route::delete('sport/remove-watchlist/{game}', 'removeFromWatchlist')
+        ->middleware('auth')
+        ->name('watchlist.remove');
     Route::get('/sport/in-play', 'inPlay')->name('inplay');
     Route::get('/sports/{sport?}/{region?}/{country?}', 'index')->name('index');
     Route::get('/sport/{game}/{slug?}', 'show')->name('show');
@@ -114,31 +122,42 @@ Route::name('odds')->controller(OddsController::class)->group(function () {
 #odds
 
 #stakes
-Route::name('stakes.')->controller(StakesController::class)->group(function () {
-    Route::get('/stakes', 'index')->name('index');
-    Route::get('/stake/tradeout/{stake:uid}', 'showTradeOut')->name('tradeout.show');
-    Route::post('/stakes/store', 'store')->name('store');
-    Route::put('/stakes/{stake}', 'tradeOut')->name('tradeout');
-    Route::delete('/stakes/{stake}', 'cancel')->name('cancel');
-});
+Route::name('stakes.')
+    ->controller(StakesController::class)
+    ->middleware('auth')
+    ->group(function () {
+        Route::get('/stakes', 'index')->name('index');
+        Route::get('/stake/tradeout/{stake:uid}', 'showTradeOut')->name('tradeout.show');
+        Route::post('/stakes/store', 'store')->name('store');
+        Route::put('/stakes/{stake}', 'tradeOut')->name('tradeout');
+        Route::delete('/stakes/{stake}', 'cancel')->name('cancel');
+    });
 #stakes
+
 #tickets
-Route::name('tickets.')->controller(TicketsController::class)->group(function () {
-    Route::get('/tickets', 'index')->name('index');
-    Route::post('/tickets/store', 'store')->name('store');
-});
+Route::name('tickets.')
+    ->controller(TicketsController::class)
+    ->middleware('auth')
+    ->group(function () {
+        Route::get('/tickets', 'index')->name('index');
+        Route::post('/tickets/store', 'store')->name('store');
+    });
 #tickets
+
 #wagers
-Route::name('wagers')->controller(WagersController::class)->group(function () {
-    Route::get('/wagers', 'index')->name('index');
-    Route::get('/wagers/create', 'create')->name('create');
-    Route::post('/wagers/store', 'store')->name('store');
-    Route::get('/wagers/{wager}/show', 'show')->name('show');
-    Route::get('/wagers/{wager}/edit', 'edit')->name('edit');
-    Route::put('/wagers/{wager}', 'update')->name('update');
-    Route::put('/wagers/toggle/{wager}', 'toggle')->name('toggle');
-    Route::delete('/wagers/{wager}', 'destroy')->name('destroy');
-});
+Route::name('wagers')
+    ->controller(WagersController::class)
+    ->middleware('auth')
+    ->group(function () {
+        Route::get('/wagers', 'index')->name('index');
+        Route::get('/wagers/create', 'create')->name('create');
+        Route::post('/wagers/store', 'store')->name('store');
+        Route::get('/wagers/{wager}/show', 'show')->name('show');
+        Route::get('/wagers/{wager}/edit', 'edit')->name('edit');
+        Route::put('/wagers/{wager}', 'update')->name('update');
+        Route::put('/wagers/toggle/{wager}', 'toggle')->name('toggle');
+        Route::delete('/wagers/{wager}', 'destroy')->name('destroy');
+    });
 #wagers
 #trades
 Route::name('trades')->controller(TradesController::class)->group(function () {

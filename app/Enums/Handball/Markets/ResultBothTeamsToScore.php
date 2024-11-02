@@ -46,7 +46,7 @@ enum ResultBothTeamsToScore: string implements BetMarket
 
         $bothTeamsScored = $homeScore > 0 && $awayScore > 0;
 
-        return $outcome->result() === $result && $outcome->bothTeamsScore() === $bothTeamsScored;
+        return $outcome->result() == $result && $outcome->bothTeamsScore() == $bothTeamsScored;
     }
 
     public static function seed(): void

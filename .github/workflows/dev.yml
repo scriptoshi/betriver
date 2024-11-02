@@ -1,0 +1,28 @@
+name: Deploy
+
+# Trigger the workflow on push and
+# pull request events on the production branch
+on:
+    push:
+        branches:
+            - dev
+# Authenticate to the the server via ssh
+# and run our deployment script
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - name: Deploy to server
+              uses: appleboy/ssh-action@master
+              with:
+                  host: ${{ secrets.HOST }}
+                  username: ${{ secrets.USERNAME }}
+                  port: ${{ secrets.PORT }}
+                  key: ${{ secrets.SSHKEY }}
+                  script: |
+                      rm -rf /var/www/dev
+                      cd /var/www && git clone github-betn:sleepfinance/betn.git dev
+                      cp /var/www/envs/.dev_betn /var/www/dev/.env
+                      cd /var/www/dev && git checkout dev
+                      cd /var/www/dev && ./.scripts/dev.sh

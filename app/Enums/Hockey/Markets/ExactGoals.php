@@ -51,7 +51,7 @@ enum ExactGoals: string implements BetMarket
             self::AWAY_TEAM => $game->getScores($this->value, GoalCount::AWAY),
         };
 
-        return $outcome->goals() === $goals;
+        return $outcome->goals() == $goals;
     }
 
     public static function seed(): void

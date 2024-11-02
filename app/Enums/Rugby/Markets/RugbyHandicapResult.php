@@ -44,7 +44,7 @@ enum RugbyHandicapResult: string implements BetMarket
     public function won(Game $game, Bet $bet): bool
     {
         $outcome = RugbyHandicapResultOutcome::from($bet->result);
-        $period = $this === self::FULL_TIME ? 'fulltime' : 'halftime';
+        $period = $this == self::FULL_TIME ? 'fulltime' : 'halftime';
 
         $homeScore = $game->getScores($period, GoalCount::HOME);
         $awayScore = $game->getScores($period, GoalCount::AWAY);
@@ -58,7 +58,7 @@ enum RugbyHandicapResult: string implements BetMarket
             default => 'draw',
         };
 
-        return $outcome->result() === $result;
+        return $outcome->result() == $result;
     }
 
     public static function seed(): void

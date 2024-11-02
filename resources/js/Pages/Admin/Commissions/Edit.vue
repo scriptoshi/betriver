@@ -1,13 +1,14 @@
 <script setup>
-	import FormInput from "@/Components/FormInput.vue";
-	import FormSwitch from "@/Components/FormSwitch.vue";
-	import Loading from "@/Components/Loading.vue";
-	import MultiSelect from "@/Components/MultiSelect/MultiSelect.vue";
-	import PrimaryButton from "@/Components/PrimaryButton.vue";
-	import VueIcon from "@/Components/VueIcon.vue";
-	import AdminLayout from "@/Layouts/AdminLayout.vue";
 	import { Link, useForm } from "@inertiajs/vue3";
 	import { HiArrowLeft, HiSolidChevronDown } from "oh-vue-icons/icons";
+
+	import FormInput from "@/Components/FormInput.vue";
+	import Loading from "@/Components/Loading.vue";
+	import MultiSelect from "@/Components/Multiselect/Multiselect.vue";
+	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import FormSwitch from "@/Components/Switch.vue";
+	import VueIcon from "@/Components/VueIcon.vue";
+	import AdminLayout from "@/Layouts/AdminLayout.vue";
 	const props = defineProps({
 		title: { required: false, type: String },
 		commission: { type: Object, required: true },

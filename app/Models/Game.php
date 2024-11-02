@@ -15,7 +15,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 
@@ -54,6 +53,7 @@ class Game extends Model
             'startTime' => 'datetime',
             'endTime' => 'datetime',
             'active' => 'boolean',
+            'bets_fixed' => 'boolean',
             'closed' => 'boolean',
             'result' => 'array',
             'sport' => LeagueSport::class
@@ -77,6 +77,7 @@ class Game extends Model
         'endTime',
         'status',
         'result',
+        'bets_fixed',
         'rounds',
         'sport',
         'active',
@@ -110,6 +111,15 @@ class Game extends Model
     public function scores(): HasMany
     {
         return $this->hasMany(Score::class, 'game_id', 'id');
+    }
+
+    /**
+     * pivot model for game->markets().
+     * allows to quickly update pivot values
+     */
+    public function gameMarkets(): HasMany
+    {
+        return $this->hasMany(GameMarket::class, 'game_id', 'id');
     }
 
     /**
@@ -171,7 +181,7 @@ class Game extends Model
     {
         return $this->belongsToMany(Market::class, 'game_market', 'game_id', 'market_id')
             ->withTimestamps()
-            ->withPivot(['bookie_active', 'active', 'id']);
+            ->withPivot(['bookie_active', 'winning_bet_id', 'active', 'id']);
     }
 
     /**'active',
@@ -326,7 +336,7 @@ class Game extends Model
      */
     public function winBets(): BelongsToMany
     {
-        return $this->belongsToMany(Bet::class, 'bet_game', 'game_id', 'bet_id');
+        return $this->belongsToMany(Bet::class, 'bet_games', 'game_id', 'bet_id')->withTimestamps();
     }
 
 

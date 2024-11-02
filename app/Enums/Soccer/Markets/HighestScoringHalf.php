@@ -52,15 +52,15 @@ enum HighestScoringHalf: string implements BetMarket
         return match ($outcome) {
             HighestScoringHalfOutcome::FIRST => $firstHalfGoals > $secondHalfGoals,
             HighestScoringHalfOutcome::SECOND => $secondHalfGoals > $firstHalfGoals,
-            HighestScoringHalfOutcome::EQUAL => $firstHalfGoals === $secondHalfGoals,
+            HighestScoringHalfOutcome::EQUAL => $firstHalfGoals == $secondHalfGoals,
         };
     }
 
     private function getGoals(Game $game, string $half): int
     {
-        if ($this === self::TOTAL) {
+        if ($this == self::TOTAL) {
             return $game->getScores($half, GoalCount::HOME) + $game->getScores($half, GoalCount::AWAY);
-        } elseif ($this === self::HOME) {
+        } elseif ($this == self::HOME) {
             return $game->getScores($half, GoalCount::HOME);
         } else { // AWAY
             return $game->getScores($half, GoalCount::AWAY);

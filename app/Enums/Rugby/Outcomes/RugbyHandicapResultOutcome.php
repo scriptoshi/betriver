@@ -34,7 +34,7 @@ enum RugbyHandicapResultOutcome: string
     {
         $result = Str::ucfirst($this->result());
         $handicap = $this->handicapValue();
-        if ($result === 'Draw') return "Draw";
+        if ($result == 'Draw') return "Draw";
         $handicapStr = $handicap > 0 ? "+{$handicap}" : $handicap;
         return formatName("{$result} ({$handicapStr})");
     }
