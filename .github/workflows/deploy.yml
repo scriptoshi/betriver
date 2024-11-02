@@ -23,5 +23,5 @@ jobs:
                   script: |
                       rm -rf /var/www/build
                       cd /var/www && git clone github-betriver:sleepfinance/betriver.git build
-                      cp /var/www/envs/.betn /var/www/build/.env
+                      cp /var/www/envs/.demo /var/www/build/.env
                       cd /var/www/build && ./.scripts/deploy.sh
