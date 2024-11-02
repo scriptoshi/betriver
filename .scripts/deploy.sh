@@ -2,7 +2,7 @@
 set -e
 echo "Deployment started ..."
 echo "# checkout main version of the app"
-git checkout main
+cd /var/www/build && git checkout main
 echo "# Install composer dependencies"
 composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 echo "# Install & Compile npm assets"
