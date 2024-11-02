@@ -46,6 +46,7 @@ class Account extends Model
         'accountable',
         'type',
         'amount'
+
     ];
 
 
