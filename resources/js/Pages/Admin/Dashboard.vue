@@ -105,7 +105,7 @@
 			value: props.usersRegisteredToday.value,
 			label: "Users Registered Today",
 			change: props.usersRegisteredToday.percentage,
-			link: "#",
+			link: window.route("admin.users.index"),
 			linkText: "View all users",
 		},
 		{
@@ -114,8 +114,8 @@
 			value: props.activeBettors.value,
 			label: "Active Bettors",
 			change: props.activeBettors.percentage,
-			link: "#",
-			linkText: "Explore analytics",
+			link: window.route("admin.trades.index"),
+			linkText: "Explore Trades",
 		},
 		{
 			icon: ShoppingCartIcon,
@@ -123,8 +123,8 @@
 			value: props.liveGamesToday.value,
 			label: "Live Games Today",
 			change: props.liveGamesToday.percentage,
-			link: "#",
-			linkText: "View all sales",
+			link: window.route("admin.games.index"),
+			linkText: "View all Games",
 		},
 		{
 			icon: CreditCardIcon,
@@ -132,8 +132,8 @@
 			value: props.commissionCollected.value,
 			label: "Commission Collected",
 			change: props.commissionCollected.percentage,
-			link: "#",
-			linkText: "View Trades",
+			link: window.route("admin.transactions.index"),
+			linkText: "View Transactions",
 			isMoney: true,
 		},
 	]);

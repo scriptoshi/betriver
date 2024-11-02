@@ -3,6 +3,7 @@
 <script setup>
 	import { computed } from "vue";
 
+	import { Link } from "@inertiajs/vue3";
 	import { HiSolidArrowSmRight } from "oh-vue-icons/icons";
 
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
@@ -69,11 +70,11 @@
 		</div>
 		<div
 			class="w-full flex items-center group justify-center py-3 rounded-b-lg bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900">
-			<a
+			<Link
 				:href="link"
 				class="text-emerald-500 transition-colors duration-300 font-bold group-hover:text-emerald-600 dark:text-emerald-400 dark:group-hover:text-emerald-300 inline-block">
 				{{ linkText }}
-			</a>
+			</Link>
 			<VueIcon
 				class="w-5 h-5 text-emerald-500 transition-colors duration-300 group-hover:text-emerald-600 dark:text-emerald-400 dark:group-hover:text-emerald-300"
 				:icon="HiSolidArrowSmRight" />

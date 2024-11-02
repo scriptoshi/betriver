@@ -22,7 +22,7 @@
 
 <template>
 	<Carousel
-		class="relative w-full"
+		class="flex-shrink-0 basis-full md:basis-1/2 lg:basis-1/3"
 		:plugins="[plugin]"
 		@mouseenter="plugin.stop"
 		@mouseleave="[plugin.reset(), plugin.play(), console.log('Running')]">

@@ -37,6 +37,7 @@ Route::name('users.')->controller(UsersController::class)->group(function () {
     Route::put('/users/level/{user}/{level}', 'level')->name('level');
     Route::put('/users/verify/{user}', 'verify')->name('verify');
     Route::delete('/users/twofactor/{user}', 'twofactor')->name('twofactor');
+    Route::delete('/users/delete/{user}', 'destroy')->name('destroy');
 });
 
 #commissions

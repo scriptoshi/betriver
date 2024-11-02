@@ -108,7 +108,7 @@ class NowPayments implements Provider
                     ->get();
             }
         );
-        $coingeckolist = collect(json_decode(File::get(storage_path('app/coingeckids.json'))));
+        $coingeckolist = collect(json_decode(File::get(resource_path('coingeckids.json'))));
         $rates = Rate::symbols();
         collect($currencies)->filter(function ($cur) use ($accepted) {
             return in_array($cur->code, $accepted->selectedCurrencies) &&  $cur->enable;
