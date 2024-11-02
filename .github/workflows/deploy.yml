@@ -21,7 +21,7 @@ jobs:
                   port: ${{ secrets.PORT }}
                   key: ${{ secrets.SSHKEY }}
                   script: |
-                      rm -rf /var/www/builder
-                      cd /var/www && git clone github-betriver:sleepfinance/betriver.git builder
-                      cp /var/www/envs/.demo /var/www/builder/.env
-                      cd /var/www/builder && ./.scripts/deploy.sh
+                      rm -rf /var/www/demo
+                      cd /var/www && git clone github-betriver:sleepfinance/betriver.git demo
+                      cp /var/www/envs/.demo /var/www/demo/.env
+                      cd /var/www/demo && ./.scripts/deploy.sh
