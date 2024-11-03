@@ -20,6 +20,7 @@ rm -r /var/www/demo.betn.io/storage;
 [ -d "/var/www/demo_betn_io_back/storage" ] && mv /var/www/demo_betn_io_back/storage /var/www/demo.betn.io/storage
 #file pond upload dir
 mkdir -p /var/www/demo.betn.io/storage/app/public/uploads/
+rm -rf /var/www/demo.betn.io/storage/app/filepond || :
 echo "# Run post instalation setup"
 cd /var/www/demo.betn.io && php artisan clear-compiled
 cd /var/www/demo.betn.io && php artisan optimize

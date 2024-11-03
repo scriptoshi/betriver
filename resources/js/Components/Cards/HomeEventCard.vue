@@ -1,8 +1,10 @@
 <script setup>
-	import { ChevronRight, ClockIcon, Star } from "lucide-vue-next";
+	import { ChevronRight, ClockIcon } from "lucide-vue-next";
 
-	import TeamName from "../TeamName.vue";
-	import OddsInfo from "./OddsInfo.vue";
+	import OddsInfo from "@/Components/Cards/OddsInfo.vue";
+	import MoneyFormat from "@/Components/MoneyFormat.vue";
+	import TeamName from "@/Components/TeamName.vue";
+	import ToggleWatchListSmall from "@/Components/ToggleWatchListSmall.vue";
 	defineProps({
 		game: Object,
 		defaultMarket: Object,
@@ -33,28 +35,27 @@
 					{{ game.league.name }}
 				</a>
 			</div>
-			<a
-				class="bg-transparent text-[12px] font-extrabold font-inter w-0 min-w-full text-gray-800 dark:text-white flex flex-wrap max-h-[2.8125rem] leading-[1.2rem] overflow-hidden no-underline"
-				:href="
-					route('sports.show', {
-						game: game.slug,
-					})
-				">
-				<div class="flex-[1_1_0px] w-full min-w-0">
+
+			<div class="flex-[1_1_0px] w-full min-w-0">
+				<a
+					class="bg-transparent text-[12px] font-extrabold font-inter w-0 min-w-full text-gray-800 dark:text-white flex flex-wrap max-h-[2.8125rem] leading-[1.2rem] overflow-hidden no-underline"
+					:href="
+						route('sports.show', {
+							game: game.slug,
+						})
+					">
 					<div
 						class="flex-wrap overflow-hidden text-ellipsis whitespace-nowrap">
 						<span class="overflow-hidden text-ellipsis">
 							{{ game.name }}
 						</span>
 					</div>
-				</div>
+				</a>
+			</div>
+			<ToggleWatchListSmall
+				:gameId="game.id"
+				:isWatched="$page.props.auth.watchlist.includes(game.id)" />
 
-				<button
-					class="items-center text-gray-300 dark:text-gray-700 hover:text-emerald-500 dark:hover:text-emerald-400 block transition-colors duration-[0.4s,opacity] delay-200 absolute z-[1] overflow-visible text-center bg-transparent [outline:none] cursor-pointer p-0 rounded-[1px] border-[none] right-4 top-2"
-					title="Add to Watchlist">
-					<Star class="w-4 h-4" />
-				</button>
-			</a>
 			<div
 				class="flex flex-auto flex-wrap items-center w-0 min-w-full whitespace-nowrap">
 				<span
@@ -85,7 +86,7 @@
 					Traded:
 					<span
 						class="font-bold text-emerald-500 dark:text-emerald-400 whitespace-nowrap">
-						£2,680
+						<MoneyFormat :amount="game.traded ?? 0" />
 					</span>
 				</span>
 			</div>

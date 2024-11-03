@@ -7,8 +7,8 @@
 	import MarketButtons from "@/Components/Cards/MarketButtons.vue";
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import TeamName from "@/Components/TeamName.vue";
+	import ToggleWatchList from "@/Components/ToggleWatchList.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
-	import ToggleWatchList from "../ToggleWatchList.vue";
 
 	defineProps({
 		game: Object,
