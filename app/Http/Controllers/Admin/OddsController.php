@@ -36,11 +36,12 @@ class OddsController extends Controller
         }
         $bets = Bet::where('sport', $game->sport)->get();
         $odds = $game->odds()->pluck('odd', 'md5');
+
         $oddActive = $game->odds()->pluck('active', 'md5');
         $bookies = $game->odds()->pluck('bookie', 'md5');
         $oddsList = $bets->map(
             function (Bet $bet) use ($game, $odds, $bookies, $oddActive) {
-                $md5 = md5($bet->market_id . '-' . $bet->id . '-' . $game->id . '-' . $game->getMorphClass());
+                $md5 = md5($bet->market_id . '-' . $bet->id . '-' . $game->id);
                 return [
                     'label' =>  str($bet->name)->replace(['{home}', '{away}'], [
                         $game->homeTeam->name,

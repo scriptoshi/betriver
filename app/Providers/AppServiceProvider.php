@@ -37,6 +37,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         /**
+         * force https // for cloudflare proxies
+         */
+        if (App::environment(['staging', 'production'])) {
+            URL::forceScheme('https');
+            $this->app['request']->server->set('HTTPS', true);
+        }
+        /**
          * socialite drivers
          */
         try {
@@ -65,13 +72,6 @@ class AppServiceProvider extends ServiceProvider
          * Setup check macro
          */
         $this->dbMacros();
-
-        /**
-         * force https // for cloudflare proxies
-         */
-        if (App::environment(['staging', 'production'])) {
-            URL::forceScheme('https');
-        }
     }
 
     public function dbMacros()

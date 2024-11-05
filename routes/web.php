@@ -34,9 +34,7 @@ Route::controller(S3Controller::class)
         Route::post('sign/{disk?}/{folder?}', 'sign')->name('s3.sign');
     });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard', [UsersController::class, 'statement'])->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::post('/multiples', function () {
     $multiples = session('multiples', false);
@@ -206,8 +204,9 @@ Route::name('withdraws.')
 #connections
 Route::name('connections.')->controller(ConnectionsController::class)->group(function () {
     Route::get('/connections', 'index')->middleware(['auth'])->name('index');
-    Route::get('/connect/{provider}', 'create')->name('connect');
-    Route::get('/callback/{provider}', 'create')->name('callback');
+    Route::get('/connect/{provider}', 'connect')->name('connect');
+    Route::post('/connect/onetap', 'onetap')->name('onetap');
+    Route::get('/callback/{provider}', 'callback')->name('callback');
     Route::delete('/connections/{connection}', 'destroy')->middleware(['auth'])->name('destroy');
 });
 #connections

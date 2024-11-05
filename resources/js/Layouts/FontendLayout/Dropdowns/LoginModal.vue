@@ -15,6 +15,9 @@
 	import Checkbox from "@/Components/Checkbox.vue";
 	import FormInput from "@/Components/FormInput.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
+	import FacebookLogin from "@/Pages/Auth/FacebookLogin.vue";
+	import GithubLogin from "@/Pages/Auth/GithubLogin.vue";
+	import GoogleOneTap from "@/Pages/Auth/GoogleOneTap.vue";
 
 	defineProps({
 		show: Boolean,
@@ -165,7 +168,17 @@
 									</PrimaryButton>
 								</div>
 							</form>
-							<div class="p-2">&nbsp;</div>
+							<div class="py-2 flex items-center gap-2">
+								<GoogleOneTap
+									v-if="$page.props.enableGoogleLogin"
+									:client-id="$page.props.googleClientId"
+									class="w-full"
+									signup />
+								<FacebookLogin
+									v-if="$page.props.enableFacebookLogin" />
+								<GithubLogin
+									v-if="$page.props.enableGithubLogin" />
+							</div>
 							<div
 								class="pt-4 border-t border-gray-150 dark:border-gray-750 text-center">
 								<a

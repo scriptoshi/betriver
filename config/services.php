@@ -114,20 +114,19 @@ return [
     ],
 
     'google' => [
-        'client_id' => env('GOOGLE_CLIENT_ID'),
-        'client_secret' => env('GOOGLE_CLIENT_SECRET'),
-        'project_id' => env('GOOGLE_PROJECT_ID'),
-        'project_id' => env('GOOGLE_PROJECT_ID'),
-        'redirect' => env('GOOGLE_CLIENT_REDIRECT'),
+        'client_id' => env('GOOGLE_CLIENT_ID', null),
+        'client_secret' => env('GOOGLE_CLIENT_SECRET', null),
+        'project_id' => env('GOOGLE_PROJECT_ID', null),
+        'redirect' => env('GOOGLE_CLIENT_REDIRECT', null),
     ],
     'github' => [
-        'client_id' =>  env('GITHUB_CLIENT_ID'),
-        'client_secret' =>  env('GITHUB_CLIENT_SECRET'),
-        'redirect' =>  env('GITHUB_REDIRECT'),
+        'client_id' =>  env('GITHUB_CLIENT_ID', null),
+        'client_secret' =>  env('GITHUB_CLIENT_SECRET', null),
+        'redirect' =>  env('GITHUB_REDIRECT', null),
     ],
     'facebook' => [
-        'client_id' =>  env('FACEBOOK_CLIENT_ID'),
-        'client_secret' =>  env('FACEBOOK_CLIENT_SECRET'),
-        'redirect' =>  env('FACEBOOK_REDIRECT'),
+        'client_id' =>  env('FACEBOOK_CLIENT_ID', null),
+        'client_secret' =>  env('FACEBOOK_CLIENT_SECRET', null),
+        'redirect' =>  env('FACEBOOK_REDIRECT', null),
     ],
 ];

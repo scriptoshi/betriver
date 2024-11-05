@@ -71,7 +71,7 @@ class Socialite
         });
         if ($social->getAvatar())
             $this->saveProfilePhoto($user, $social->getAvatar());
-        $user->setDefaultCountry();
+        //$user->setDefaultCountry();
         return $user;
     }
 

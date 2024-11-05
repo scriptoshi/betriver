@@ -151,6 +151,15 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get users transactions.
+     *
+     */
+    public function connections(): HasMany
+    {
+        return $this->hasMany(Connection::class);
+    }
+
+    /**
      * Get staks the user has.
      *
      */

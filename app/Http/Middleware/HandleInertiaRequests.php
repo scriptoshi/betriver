@@ -7,13 +7,11 @@ use App\Enums\StakeStatus;
 use App\Http\Resources\User;
 use App\Models\Game;
 use App\Models\League;
-use App\Models\Personal;
-use App\Support\LeagueSlug;
 use App\Support\TradeManager;
 use Auth;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
-use Storage;
+use App\Enums\ConnectionProvider as SocialAuth;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -81,10 +79,10 @@ class HandleInertiaRequests extends Middleware
             's3' => fn() => settings('site.uploads_disk') != 'public',
             'profilePhotoDisk' => fn() => settings('site.profile_photo_disk'),
             'twoFactorRequiresConfirmation' => fn() => settings('twofa.confirm'),
-            'googleClientId' => fn() => settings('google.client_id'),
-            'enableGoogleLogin' => fn() => !!settings('google.client_id', null) && str(settings('google.enable'))->toBoolean(),
-            'enableGithubLogin' => fn() => !!settings('github.client_id', null) &&  str(settings('github.enable'))->toBoolean(),
-            'enableFacebookLogin' => fn() => !!settings('facebook.client_id', null) && str(settings('facebook.enable'))->toBoolean(),
+            'googleClientId' => fn() => SocialAuth::GOOGLE->config('client_id'),
+            'enableGoogleLogin' => fn() => !! SocialAuth::GOOGLE->config('client_id') && str(settings('google.enable'))->toBoolean(),
+            'enableGithubLogin' => fn() => !! SocialAuth::GITHUB->config('client_id') &&  str(settings('github.enable'))->toBoolean(),
+            'enableFacebookLogin' => fn() => !! SocialAuth::FACEBOOK->config('client_id') && str(settings('facebook.enable'))->toBoolean(),
             'gdprTitle' => fn() => settings('pages.gdpr_notice'),
             'gdprText' => fn() => settings('pages.gdpr_terms'),
             'enableKyc' => fn() => str(settings('site.enable_kyc'))->toBoolean(),

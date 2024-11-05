@@ -238,8 +238,7 @@ class ApiFootball extends ApiSports
             ->get();
         // find missing teams
         foreach ($response->response as $lg) {
-            if (!$lg->teams?->home->id)
-                $homeTeamId = $teams[$lg->teams->home->id] ?? static::saveTeam($lg, $lg->teams->home);
+            $homeTeamId = $teams[$lg->teams->home->id] ?? static::saveTeam($lg, $lg->teams->home);
             $awayTeamId = $teams[$lg->teams->away->id] ?? static::saveTeam($lg, $lg->teams->away);
             $gameId = $lg->id ?? $lg->fixture->id;
             Game::query()->updateOrCreate([

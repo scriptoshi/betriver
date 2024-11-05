@@ -27,7 +27,7 @@ enum ConnectionProvider: string
      */
     public function driver(): Closure
     {
-        return fn () => Socialite::buildProvider(
+        return fn() => Socialite::buildProvider(
             $this->provider(),
             [...$this->config(), 'redirect' => $this->callback()]
         );
@@ -43,10 +43,16 @@ enum ConnectionProvider: string
 
     /**
      * get the socialite driver
+     * env takes precedence
      */
-    public function config()
+    public function config($name = null)
     {
-        return settings()->for($this->value);
+        $config = array_filter(config('services.' . $this->value, []));
+        $settings = settings()->for($this->value);
+        if ($name) {
+            return  $config[$name] ?? $settings[$name] ??  null;
+        }
+        return collect(array_merge($settings->all(), $config));
     }
 
     /**
@@ -75,7 +81,5 @@ enum ConnectionProvider: string
      * TODO
      * Custom scope 
      */
-    public function scopes()
-    {
-    }
+    public function scopes() {}
 }
