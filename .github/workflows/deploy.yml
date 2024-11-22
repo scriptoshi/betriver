@@ -1,13 +1,17 @@
 name: Deploy
 
-# Trigger the workflow on push and
-# pull request events on the production branch
 on:
     push:
         branches:
             - main
-# Authenticate to the the server via ssh
-# and run our deployment script
+
+# Define environment variables for easier configuration
+env:
+    SITE_DIR: ${{ vars.SITE_DIR || 'betriver.scriptoshi.com' }}
+    REPO_NAME: ${{ vars.REPO_NAME || 'betriver' }}
+    GIT_REMOTE: ${{ vars.GIT_REMOTE || 'github-betriver:sleepfinance/betriver.git' }}
+    ENV_SOURCE: ${{ vars.ENV_SOURCE || '/var/www/envs/.betriver' }}
+
 jobs:
     deploy:
         runs-on: ubuntu-latest
@@ -20,11 +24,14 @@ jobs:
                   username: ${{ secrets.USERNAME }}
                   port: ${{ secrets.PORT }}
                   key: ${{ secrets.SSHKEY }}
+                  envs: SITE_DIR,REPO_NAME,GIT_REMOTE,ENV_SOURCE
                   script: |
                       echo "Deployment started ..."
-                      rm -rf /var/www/demo
-                      cd /var/www && git clone github-betriver:sleepfinance/betriver.git demo
-                      cp /var/www/envs/.demo /var/www/demo/.env
-                      cd /var/www/demo && chmod u+r+x ./.scripts/deploy.sh
+                      rm -rf /var/www/${{ env.REPO_NAME }}
+                      cd /var/www && git clone ${{ env.GIT_REMOTE }} ${{ env.REPO_NAME }}
+                      cp ${{ env.ENV_SOURCE }} /var/www/${{ env.REPO_NAME }}/.env
+                      cd /var/www/${{ env.REPO_NAME }} && chmod u+r+x ./.scripts/deploy.sh
                       echo "Running Deployment"
-                      cd /var/www/demo && ./.scripts/deploy.sh
+                      SITE_DIR="${{ env.SITE_DIR }}" \
+                      REPO_NAME="${{ env.REPO_NAME }}" \
+                      ./.scripts/deploy.sh
