@@ -28,6 +28,7 @@ mv ${WWW_DIR}/${SITE_DIR} ${WWW_DIR}/${REPO_NAME}_back
 mv ${WWW_DIR}/${REPO_NAME} ${WWW_DIR}/${SITE_DIR}
 
 echo "# Handling storage directory"
+[ -d "${WWW_DIR}/${REPO_NAME}_back/storage" ] && \
 rm -r ${WWW_DIR}/${SITE_DIR}/storage
 [ -d "${WWW_DIR}/${REPO_NAME}_back/storage" ] && \
     mv ${WWW_DIR}/${REPO_NAME}_back/storage ${WWW_DIR}/${SITE_DIR}/storage
