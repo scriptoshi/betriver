@@ -21,6 +21,7 @@ use App\Http\Controllers\Admin\UsersController;
 use App\Http\Controllers\Admin\WagersController;
 use App\Http\Controllers\Admin\WhitelistsController;
 use App\Http\Controllers\Admin\WithdrawsController;
+use App\Http\Middleware\DemoMode;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -30,14 +31,14 @@ Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
 Route::name('users.')->controller(UsersController::class)->group(function () {
     Route::get('/user/{user}', 'show')->name('show');
     Route::get('/users/{filter?}', 'index')->name('index');
-    Route::put('/users/toggle/{user}', 'toggle')->name('toggle');
-    Route::put('/users/ban/{user}', 'ban')->name('ban');
-    Route::put('/users/update/{user}', 'update')->name('update');
+    Route::put('/users/toggle/{user}', 'toggle')->middleware(DemoMode::class)->name('toggle');
+    Route::put('/users/ban/{user}', 'ban')->middleware(DemoMode::class)->name('ban');
+    Route::put('/users/update/{user}', 'update')->middleware(DemoMode::class)->name('update');
     Route::put('/users/transact/{user}', 'transact')->name('transact');
-    Route::put('/users/level/{user}/{level}', 'level')->name('level');
+    Route::put('/users/level/{user}/{level}', 'level')->middleware(DemoMode::class)->name('level');
     Route::put('/users/verify/{user}', 'verify')->name('verify');
-    Route::delete('/users/twofactor/{user}', 'twofactor')->name('twofactor');
-    Route::delete('/users/delete/{user}', 'destroy')->name('destroy');
+    Route::delete('/users/twofactor/{user}', 'twofactor')->middleware(DemoMode::class)->name('twofactor');
+    Route::delete('/users/delete/{user}', 'destroy')->middleware(DemoMode::class)->name('destroy');
 });
 
 #commissions
@@ -197,16 +198,16 @@ Route::name('settings.')->controller(SettingsController::class)->group(function 
     Route::get('/settings/notifications', 'notifications')->name('notifications');
     Route::get('/settings/payments', 'payments')->name('payments');
     Route::get('/settings/levels', 'levels')->name('levels');
-    Route::get('/settings/create', 'create')->name('create');
-    Route::post('/settings/store', 'store')->name('store');
-    Route::post('/settings/social/store', 'storeSocial')->name('social.store');
-    Route::post('/settings/meta/store', 'storeMeta')->name('meta.store');
-    Route::post('/settings/privacy-and-terms/store', 'storePrivacyTerms')->name('privacy.store');
-    Route::post('/settings/notifications/store', 'storeNotifications')->name('notifications.store');
-    Route::post('/settings/payments/store', 'storePayments')->name('payments.store');
-    Route::post('/settings/mail/store', 'storeMail')->name('mail.store');
-    Route::post('/settings/sms/store', 'storeSMS')->name('sms.store');
-    Route::post('/settings/messages/store', 'storeMessages')->name('messages.store');
+    Route::get('/settings/create', 'create')->middleware(DemoMode::class)->name('create');
+    Route::post('/settings/store', 'store')->middleware(DemoMode::class)->name('store');
+    Route::post('/settings/social/store', 'storeSocial')->middleware(DemoMode::class)->name('social.store');
+    Route::post('/settings/meta/store', 'storeMeta')->middleware(DemoMode::class)->name('meta.store');
+    Route::post('/settings/privacy-and-terms/store', 'storePrivacyTerms')->middleware(DemoMode::class)->name('privacy.store');
+    Route::post('/settings/notifications/store', 'storeNotifications')->middleware(DemoMode::class)->name('notifications.store');
+    Route::post('/settings/payments/store', 'storePayments')->middleware(DemoMode::class)->name('payments.store');
+    Route::post('/settings/mail/store', 'storeMail')->middleware(DemoMode::class)->name('mail.store');
+    Route::post('/settings/sms/store', 'storeSMS')->middleware(DemoMode::class)->name('sms.store');
+    Route::post('/settings/messages/store', 'storeMessages')->middleware(DemoMode::class)->name('messages.store');
     Route::post('/settings/levels/store/{level}', 'storeLevels')->name('levels.store');
     Route::get('/settings/{setting}/show', 'show')->name('show');
     Route::get('/settings/{setting}/edit', 'edit')->name('edit');
@@ -246,10 +247,10 @@ Route::name('whitelists.')
 Route::name('sliders.')->controller(SlidersController::class)->group(function () {
     Route::get('/sliders', 'index')->name('index');
     Route::get('/sliders/create', 'create')->name('create');
-    Route::post('/sliders/store', 'store')->name('store');
+    Route::post('/sliders/store', 'store')->middleware(DemoMode::class)->name('store');
     Route::get('/sliders/{slider}/edit', 'edit')->name('edit');
-    Route::put('/sliders/{slider}', 'update')->name('update');
-    Route::put('/sliders/toggle/{slider}', 'toggle')->name('toggle');
+    Route::put('/sliders/{slider}', 'update')->middleware(DemoMode::class)->name('update');
+    Route::put('/sliders/toggle/{slider}', 'toggle')->middleware(DemoMode::class)->name('toggle');
     Route::delete('/sliders/{slider}', 'destroy')->name('destroy');
 });
 #sliders

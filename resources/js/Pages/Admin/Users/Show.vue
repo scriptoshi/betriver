@@ -89,7 +89,7 @@
 				</div>
 			</div>
 			<div
-				class="grid rounde-sm mt-8 sm:grid-cols-3 md:grid-cols-6 bg-white p-8 dark:bg-gray-800 transition-all w-full h-full">
+				class="grid rounde-sm mt-8 sm:grid-cols-3 md:grid-cols-6 bg-white p-8 dark:bg-gray-800 transition-all w-full">
 				<div
 					v-for="(stat, name) in statistics"
 					:key="name"

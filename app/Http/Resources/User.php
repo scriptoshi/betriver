@@ -21,8 +21,8 @@ class User extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'email' => $this->email,
-            'phone' => $this->phone,
+            'email' => config('app.demo') ? "***" : $this->email,
+            'phone' =>  config('app.demo') ? "***" : $this->phone,
             'referral' => $this->referral,
             'refId' => $this->refId,
             'balance' => $this->balance ?? 0,
