@@ -1,4 +1,6 @@
 <script setup>
+	import { computed } from "vue";
+
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import OddsFormat from "@/Components/OddsFormat.vue";
 	import { useBookieForm, useExchangeForm } from "@/Pages/Games/bettingForm";
@@ -22,7 +24,23 @@
 	};
 	const { addBet: addExchnage } = useExchangeForm();
 	const { addBet: addBookie } = useBookieForm();
+	const bettingEnded = computed(
+		() =>
+			props.game.stateCancelled ||
+			props.game.stateEnded ||
+			props.game.stateFinished ||
+			props.game.closed ||
+			props.game.hasEnded ||
+			[
+				"finished",
+				"postponed",
+				"cancelled",
+				"abandoned",
+				"not_played",
+			].includes(props.game.state),
+	);
 	const addBet = (price, isLay) => {
+		if (bettingEnded.value) return false;
 		const betData = {
 			guid: `${props.game.id}-${props.bet.id}`,
 			bet: getName(props.bet.name),

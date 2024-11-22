@@ -5,6 +5,7 @@
 	import { MdAccesstime, RiCalendar2Line } from "oh-vue-icons/icons";
 
 	import MarketButtons from "@/Components/Cards/MarketButtons.vue";
+	import MarketSettled from "@/Components/Cards/MarketSettled.vue";
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import TeamName from "@/Components/TeamName.vue";
 	import ToggleWatchList from "@/Components/ToggleWatchList.vue";
@@ -162,8 +163,11 @@
 				</div>
 			</div>
 		</div>
-
+		<template v-if="bettingEnded">
+			<MarketSettled />
+		</template>
 		<div
+			v-else
 			class="flex flex-[1_0_20rem] pl-4 border-l border-gray-150 dark:border-gray-750 flex-wrap items-center w-2/5 min-w-[20rem] order-4 max-w-[40%] whitespace-nowrap">
 			<span
 				v-for="bet in market.bets"

@@ -36,7 +36,13 @@ class LeaguesController extends Controller
             $query->where('sport', $sport);
         }
         if (!empty($country)) {
-            $query->where('country', $country);
+            $query->where(function ($query) use ($country) {
+                $query->where('country', $country)
+                    ->orWhere('country', 'LIKE', "%$country%");
+                if ($country == 'GB-ENG') {
+                    $query->orWhere('country', 'LIKE', "%England%");
+                }
+            });
         }
         if (!empty($active)) {
             $query->where('active', true);

@@ -1,7 +1,7 @@
 <script setup>
 	import { ref } from "vue";
 
-	import { useForm } from "@inertiajs/vue3";
+	import { Link, useForm } from "@inertiajs/vue3";
 	import { BiTicketDetailed, RiMenuFill } from "oh-vue-icons/icons";
 
 	import ApplicationLogo from "@/Components/ApplicationLogo.vue";
@@ -52,13 +52,14 @@
 					"
 					class="w-6 h-6" />
 			</button>
-			<div
+			<Link
+				href="/"
 				class="text-gray-800 flex items-center ml-4 dark:text-white font-bold text-xl">
 				<ApplicationLogo
 					v-if="$page.props.appLogo"
 					class="w-5 h-5 mr-2" />
 				<span v-else>{{ $page.props?.appName }}</span>
-			</div>
+			</Link>
 			<SearchInput />
 		</div>
 		<div

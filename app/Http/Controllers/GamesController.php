@@ -105,7 +105,7 @@ class GamesController extends Controller
                 default => $query->whereHas('league', fn($q) => $q->where('slug', $region))
             };
         } else {
-            $query->inNext7Days();
+            $query->whereDate('startTime', '>=', now());
         }
         $gamesItems = $query->latest('startTime')->paginate($perPage)->onEachSide(1);
         DB::statement("SET SESSION sql_mode=(SELECT CONCAT(@@sql_mode, ',ONLY_FULL_GROUP_BY'));");

@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Str;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB as FacadesDB;
 use Illuminate\Validation\ValidationException;
 
 class InstallerController extends Controller
@@ -61,37 +62,89 @@ class InstallerController extends Controller
             'password' => 'nullable',
         ]);
         $this->updateEnvironmentFile($validated);
-        // Clear config cache to ensure new values are loaded
-        Artisan::call('config:clear');
-        // Test the database connection
-        try {
-            \DB::connection()->getPdo();
-            return redirect()->route('installer.migration');
-        } catch (\Exception $e) {
-            throw ValidationException::withMessages([
-                'database' => ['Unable to connect to the database. Please check your configuration.']
-            ]);
-        }
+        return redirect()->route('installer.migration');
     }
 
-    private function updateEnvironmentFile(array $data)
+
+    private function updateEnvironmentFile(array $data): void
     {
-        $path = base_path('.env');
-        if (file_exists($path)) {
-            $content = file_get_contents($path);
-            $content = preg_replace('/DB_CONNECTION=.*/', 'DB_CONNECTION=' . $data['connection'], $content);
-            if ($data['connection'] !== 'sqlite') {
-                $content = preg_replace('/DB_HOST=.*/', 'DB_HOST=' . $data['host'], $content);
-                $content = preg_replace('/DB_PORT=.*/', 'DB_PORT=' . $data['port'], $content);
-                $content = preg_replace('/DB_USERNAME=.*/', 'DB_USERNAME=' . $data['username'], $content);
+        $envPath = base_path('.env');
+        $currentValues = [
+            'DB_CONNECTION' => config('database.default'),
+            'DB_HOST' => config('database.connections.' . config('database.default') . '.host'),
+            'DB_PORT' => config('database.connections.' . config('database.default') . '.port'),
+            'DB_DATABASE' => config('database.connections.' . config('database.default') . '.database'),
+            'DB_USERNAME' => config('database.connections.' . config('database.default') . '.username'),
+            'DB_PASSWORD' => config('database.connections.' . config('database.default') . '.password'),
+        ];
+
+        $newValues = [
+            'DB_CONNECTION' => $data['connection'],
+            'DB_HOST' => $data['connection'] === 'sqlite' ? '' : $data['host'],
+            'DB_PORT' => $data['connection'] === 'sqlite' ? '' : $data['port'],
+            'DB_DATABASE' => $data['database'],
+            'DB_USERNAME' => $data['connection'] === 'sqlite' ? '' : $data['username'],
+            'DB_PASSWORD' => $data['connection'] === 'sqlite' ? '' : ($data['password'] ?? ''),
+        ];
+
+        // Check if any values have changed
+        $hasChanges = false;
+        foreach ($currentValues as $key => $value) {
+            if ((string)$value !== (string)$newValues[$key]) {
+                $hasChanges = true;
+                break;
             }
-            $content = preg_replace('/DB_DATABASE=.*/', 'DB_DATABASE=' . $data['database'], $content);
-            // Only update password if it's provided
-            if (!empty($data['password'])) {
-                $content = preg_replace('/DB_PASSWORD=.*/', 'DB_PASSWORD=' . $data['password'], $content);
-            }
-            file_put_contents($path, $content);
         }
+
+        if (!$hasChanges) {
+            return;
+        }
+
+        // Read .env file
+        $envContent = file_get_contents($envPath);
+
+        // Update each configuration value
+        foreach ($newValues as $key => $value) {
+            $envContent = $this->updateEnvVariable($envContent, $key, $value);
+        }
+
+        // Write the updated content back to .env file
+        file_put_contents($envPath, $envContent);
+
+        // Clear config cache after updating
+        Artisan::call('config:clear');
+    }
+
+    private function updateEnvVariable(string $envContent, string $key, string $value): string
+    {
+        $value = $this->formatEnvValue($value);
+
+        // Check if key exists
+        $keyPosition = strpos($envContent, "{$key}=");
+
+        // If key exists, replace its value
+        if ($keyPosition !== false) {
+            $endOfLinePosition = strpos($envContent, "\n", $keyPosition);
+            $oldLine = substr($envContent, $keyPosition, $endOfLinePosition !== false ? $endOfLinePosition - $keyPosition : strlen($envContent));
+            $newLine = "{$key}={$value}";
+            return str_replace($oldLine, $newLine, $envContent);
+        }
+
+        // If key doesn't exist, add it at the end
+        return $envContent . "\n{$key}={$value}";
+    }
+
+    private function formatEnvValue(string $value): string
+    {
+        // Check if value contains spaces or special characters
+        if (str_contains($value, ' ') || preg_match('/[^A-Za-z0-9_.-]/', $value)) {
+            // Escape quotes within the value
+            $value = str_replace('"', '\"', $value);
+            // Wrap in quotes
+            $value = "\"{$value}\"";
+        }
+
+        return $value;
     }
 
     public function migration()
@@ -101,11 +154,12 @@ class InstallerController extends Controller
 
     public function migrate()
     {
-        sleep(5);
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Database migration and seeding completed successfully.'
-        ]);
+        Artisan::call('config:clear');
+        try {
+            DB::connection()->getPDO();
+        } catch (\Exception $e) {
+            return redirect()->route('installer.database')->with('error', 'Invalid DB creds');
+        }
         try {
             // Disable foreign key checks before migrations
             DB::statement('SET FOREIGN_KEY_CHECKS=0;');

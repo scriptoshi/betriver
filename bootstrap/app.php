@@ -6,6 +6,7 @@ use App\Http\Middleware\NotInstalled;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -18,10 +19,10 @@ return Application::configure(basePath: dirname(__DIR__))
                 ->prefix('admin')
                 ->name('admin.')
                 ->group(base_path('routes/admin.php'));
-            Route::middleware(['web', NotInstalled::class])
+            Route::middleware([NotInstalled::class])
                 ->prefix('install')
                 ->name('installer.')
-                ->withoutMiddleware(EnsureApplicationInstalled::class)
+                ->withoutMiddleware([EnsureApplicationInstalled::class, StartSession::class])
                 ->group(base_path('routes/installer.php'));
         },
     )
@@ -30,8 +31,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \App\Http\Middleware\Timeout::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
-            EnsureApplicationInstalled::class,
-        ])->validateCsrfTokens(except: ['webhooks/*']);
+        ], prepend: [EnsureApplicationInstalled::class])->validateCsrfTokens(except: ['webhooks/*']);
 
         //
     })

@@ -40,7 +40,7 @@ class TradeManager
     public static function decimalToAmericanOdds(float $decimalOdds): string
     {
         if ($decimalOdds <= 1) {
-            throw new \InvalidArgumentException("Decimal odds must be greater than 1");
+            $decimalOdds = 1.1;
         }
 
         if ($decimalOdds >= 2) {
@@ -95,9 +95,8 @@ class TradeManager
     public static function decimalToPercentageOdds(float $decimalOdds): float
     {
         if ($decimalOdds <= 1) {
-            throw new \InvalidArgumentException("Decimal odds must be greater than 1");
+            $decimalOdds = 1.1;
         }
-
         $percentageOdds = (1 / $decimalOdds) * 100;
         return round($percentageOdds, 2);
     }

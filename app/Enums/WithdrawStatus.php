@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Enums;
+namespace Scriptoshi\Payments\Enums;
 
-enum WithdrawStatus: string
+enum PayoutStatus: string
 {
     case PENDING = 'pending';
     case CONFIRMED = 'confirmed';
@@ -40,7 +40,7 @@ enum WithdrawStatus: string
         ];
     }
     /**
-     * Get the human-readable name of the withdraw status.
+     * Get the human-readable name of the payout status.
      *
      * @return string
      */
@@ -61,7 +61,7 @@ enum WithdrawStatus: string
     }
 
     /**
-     * Get an array of all withdraw status names.
+     * Get an array of all payout status names.
      *
      * @return array<string, array<string, string>>
      */
