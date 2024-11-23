@@ -3,10 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\Market as ResourcesMarket;
-use App\Http\Resources\Odd as OddResource;
 use App\Models\Bet;
-use App\Models\BookieGameMarket;
 use App\Models\Game;
 use App\Models\GameMarket;
 use App\Models\Market;

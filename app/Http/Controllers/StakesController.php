@@ -14,7 +14,7 @@ use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
 use App\Events\GameChanged;
 use App\Events\PriceChanged;
-use App\Http\Resources\GameMarket;
+use App\Models\GameMarket;
 use App\Http\Resources\StatStake;
 use App\Models\Bet;
 use App\Models\Game;

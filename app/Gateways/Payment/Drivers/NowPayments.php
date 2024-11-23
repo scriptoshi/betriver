@@ -267,7 +267,7 @@ class NowPayments implements Provider
      */
     public function webhook(Request $request, string $type = 'deposit')
     {
-        if ($type = 'withdraw') {
+        if ($type == 'withdraw') {
             if ($this->verifyIPN($request)) {
                 $withdraw = Withdraw::query()->where('remoteId', $request->id)->first();
                 if (!$withdraw) return;
@@ -287,6 +287,7 @@ class NowPayments implements Provider
             }
             return;
         }
+
         $verified = $this->verifyIPN($request);
         $is_success = in_array($request->payment_status, ['confirmed', 'finished']);
         if (!$verified) {
@@ -301,7 +302,7 @@ class NowPayments implements Provider
         $deposit = Deposit::query()
             ->where('status', DepositStatus::PROCESSING)
             ->where('uuid', $request->order_id)->first();
-        Log::info('FOUND DEPOSIT', $deposit);
+        Log::info('FOUND DEPOSIT', $deposit->toArray());
         if ($deposit) {
             $deposit->status = DepositStatus::COMPLETE;
             $deposit->save();
@@ -425,12 +426,11 @@ class NowPayments implements Provider
             $sortedRequestJson = json_encode($requestData, JSON_UNESCAPED_SLASHES);
             if ($requestData->isNotEmpty()) {
                 $hmac = hash_hmac("sha512", $sortedRequestJson, trim($this->api_secret));
-                Log::info("Checking HMAC", ['calc hmac' => $hmac, 'receivedHmac' =>  $receivedHmac, 'status' => $hmac === $receivedHmac]);
                 return $hmac === $receivedHmac;
             }
             Log::info('$requestData->isNotEmpty() failed', $requestData->all());
         }
-        Log::info('No HMAC sent', $receivedHmac);
+        Log::info('No HMAC sent', ['receivedHmac' => $receivedHmac]);
         return false;
     }
 }

@@ -208,9 +208,7 @@ class CoinPayments implements Provider
             $deposit->save();
 
             // Process auto-approve if enabled and payment is complete
-            if ($deposit->status === DepositStatus::COMPLETE && $deposit->auto_approve) {
-                app(DepositTx::class)->create($deposit);
-            }
+            app(DepositTx::class)->create($deposit);
         }
     }
 
@@ -247,19 +245,20 @@ class CoinPayments implements Provider
      */
     public function webhook(Request $request, string $type = 'deposit')
     {
-        if (!$this->verifyIpn($request)) return;
+        $verified = $this->verifyIpn($request);
+        Log::info('IPN OK ?', ['verified' => $verified]);
+        if (!$verified) return;
         if ($request->status < 100 && $request->status != 2) return;
-        if (
-            $deposit = Deposit::query()
+        $deposit = Deposit::query()
             ->where('status', DepositStatus::PROCESSING)
-            ->where('uuid', $request->custom)->first()
-        ) {
+            ->where('uuid', $request->custom)->first();
+        Log::info('Found Deposit', $deposit?->toArray() ?? []);
+        if ($deposit) {
             $deposit->status = DepositStatus::COMPLETE;
             $deposit->save();
-            if ($deposit->auto_approve) {
-                app(DepositTx::class)->create($deposit);
-            }
+            app(DepositTx::class)->create($deposit);
         }
+        return 'ok';
     }
 
     /**
