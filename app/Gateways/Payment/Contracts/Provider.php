@@ -29,6 +29,14 @@ interface Provider
     public function deposit(Deposit $deposit);
 
     /**
+     * Manually check payment/deposit status from CoinPayments API
+     * 
+     * @param string $txnId The transaction ID to check
+     * @return object|null Payment status data or null on failure
+     * @throws \Exception If API request fails
+     */
+    public function checkDepositStatus(Deposit $deposit);
+    /**
      * Handle IPN Webhook from provider.
      *
      * @param  Request $request

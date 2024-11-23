@@ -10,6 +10,7 @@ use App\Models\Currency;
 use App\Models\Deposit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
@@ -135,6 +136,33 @@ class DepositsController extends Controller
             ->driver()
             ->returned($request, $deposit);
     }
+
+    /**
+     * Handle in notifications
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function webhooks(Request $request, $gateway,  Deposit $deposit)
+    {
+        $gateway = DepositGateway::tryFrom($gateway);
+        Log::info('IPN', $request->all());
+        return $gateway->driver()->webhook($request, 'deposit');
+    }
+
+
+    /**
+     * manually check status via polling
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     */
+    public function checkStatus(Request $request,  Deposit $deposit)
+    {
+        $deposit->gateway->driver()->checkDepositStatus($deposit);
+        return back();
+    }
+
+
+
 
     protected static function calculateGrossAmount($netAmount, $feePercentage)
     {

@@ -147,6 +147,107 @@ class Paypal implements Provider
         if (!isset($response->id)) throw ValidationException::withMessages(['gateway' => ['Paypal Tx Approval Link not found. Contact admin']]);
     }
 
+    /**
+     * Manually check the status of a deposit
+     * 
+     * @param Deposit $deposit
+     * @return bool Returns true if the status was successfully updated, false otherwise
+     */
+    public function checkDepositStatus(Deposit $deposit)
+    {
+        // Skip if no remote ID exists
+        if (!$deposit->remoteId) {
+            Log::error('No remote ID found for deposit: ' . $deposit->id);
+            return false;
+        }
+
+        try {
+            $accessToken = $this->accessToken();
+            if (!$accessToken) {
+                Log::error('Failed to obtain PayPal access token for deposit status check');
+                return false;
+            }
+
+            // Get order details from PayPal
+            $response = Http::withToken($accessToken)
+                ->withHeaders([
+                    'Content-Type' => 'application/json'
+                ])
+                ->get(static::url("/v2/checkout/orders/{$deposit->remoteId}"));
+
+            if (!$response->successful()) {
+                Log::error('Failed to fetch PayPal order status', [
+                    'deposit_id' => $deposit->id,
+                    'remote_id' => $deposit->remoteId,
+                    'response' => $response->body()
+                ]);
+                return false;
+            }
+
+            $orderDetails = $response->json();
+
+            // Map PayPal status to our deposit status
+            switch ($orderDetails['status']) {
+                case 'COMPLETED':
+                    if ($deposit->status !== DepositStatus::COMPLETE) {
+                        $deposit->status = DepositStatus::COMPLETE;
+                        $deposit->save();
+                        // Process the completed deposit
+                        app(DepositTx::class)->create($deposit);
+                    }
+                    break;
+
+                case 'APPROVED':
+                    // Payment approved but not captured
+                    if ($deposit->status !== DepositStatus::PROCESSING) {
+                        $deposit->status = DepositStatus::PROCESSING;
+                        $deposit->save();
+                        // Attempt to capture the payment
+                        $this->captureOrder($deposit->remoteId);
+                    }
+                    break;
+
+                case 'VOIDED':
+                case 'EXPIRED':
+                    if ($deposit->status !== DepositStatus::FAILED) {
+                        $deposit->status = DepositStatus::FAILED;
+                        $deposit->gateway_error = 'Order ' . strtolower($orderDetails['status']);
+                        $deposit->save();
+                    }
+                    break;
+
+                case 'CREATED':
+                case 'SAVED':
+                    if ($deposit->status !== DepositStatus::PENDING) {
+                        $deposit->status = DepositStatus::PENDING;
+                        $deposit->save();
+                    }
+                    break;
+
+                default:
+                    Log::warning('Unknown PayPal order status', [
+                        'deposit_id' => $deposit->id,
+                        'remote_id' => $deposit->remoteId,
+                        'status' => $orderDetails['status']
+                    ]);
+                    return false;
+            }
+
+            // Store the complete response in the deposit data
+            $deposit->data = $orderDetails;
+            $deposit->save();
+
+            return true;
+        } catch (\Exception $e) {
+            Log::error('Error checking PayPal deposit status', [
+                'deposit_id' => $deposit->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return false;
+        }
+    }
+
     private function accessToken()
     {
         /**

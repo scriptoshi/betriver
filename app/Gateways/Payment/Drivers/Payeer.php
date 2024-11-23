@@ -127,6 +127,11 @@ class Payeer implements Provider
         return Inertia::location($url);
     }
 
+    public function checkDepositStatus(Deposit $deposit)
+    {
+        return null;
+    }
+
     /**
      * Handle IPN Webhook from provider.
      *

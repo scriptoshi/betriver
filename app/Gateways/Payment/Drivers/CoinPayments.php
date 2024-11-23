@@ -129,6 +129,118 @@ class CoinPayments implements Provider
     }
 
     /**
+     * Manually check payment/deposit status from CoinPayments API
+     * 
+     * @param string $txnId The transaction ID to check
+     * @return object|null Payment status data or null on failure
+     * @throws \Exception If API request fails
+     */
+    public function checkDepositStatus(Deposit $deposit)
+    {
+        $txnId = $deposit->remoteId;
+        try {
+            $response = $this->coinpayment('get_tx_info', [
+                'txid' => $txnId,
+            ]);
+
+            if ($response->error !== 'ok') {
+                Log::error('CoinPayments status check failed', [
+                    'txn_id' => $txnId,
+                    'error' => $response->error
+                ]);
+                throw new \Exception("Failed to check payment status: {$response->error}");
+            }
+
+            if (!isset($response->result)) {
+                Log::error('CoinPayments returned invalid response', [
+                    'txn_id' => $txnId,
+                    'response' => $response
+                ]);
+                return null;
+            }
+
+            // Get payment data
+            $paymentData = $response->result;
+
+
+
+            if ($deposit) {
+                $this->updateDepositStatus($deposit, $paymentData);
+            }
+
+            return $paymentData;
+        } catch (\Exception $e) {
+            Log::error('Error checking CoinPayments status', [
+                'txn_id' => $txnId,
+                'error' => $e->getMessage()
+            ]);
+            throw $e;
+        }
+    }
+
+    /**
+     * Update deposit status based on CoinPayments payment data
+     * 
+     * @param Deposit $deposit
+     * @param object $paymentData
+     * @return void
+     */
+    protected function updateDepositStatus(Deposit $deposit, object $paymentData): void
+    {
+        // Map CoinPayments status to our deposit status
+        $status = $this->mapPaymentStatus($paymentData->status);
+
+        // Only proceed if status has changed
+        if ($deposit->status !== $status) {
+            $deposit->status = $status;
+
+            // Update payment data
+            $deposit->data = array_merge($deposit->data ?? [], [
+                'coinpayments_status' => $paymentData,
+                'last_check' => now()->toIso8601String()
+            ]);
+
+            // If payment received is less than expected
+            if ($paymentData->received < $paymentData->amount) {
+                $deposit->gateway_error = "Received amount ({$paymentData->received}) is less than expected ({$paymentData->amount})";
+            }
+
+            $deposit->save();
+
+            // Process auto-approve if enabled and payment is complete
+            if ($deposit->status === DepositStatus::COMPLETE && $deposit->auto_approve) {
+                app(DepositTx::class)->create($deposit);
+            }
+        }
+    }
+
+    /**
+     * Map CoinPayments status codes to our DepositStatus
+     * 
+     * @param int $status CoinPayments status code
+     * @return DepositStatus
+     */
+    protected function mapPaymentStatus(int $status): DepositStatus
+    {
+        return match ($status) {
+            // Status codes from CoinPayments documentation:
+            // -2 = PayPal Refund or Reversal
+            // -1 = Cancelled / Timed Out
+            // 0 = Waiting for funds
+            // 1 = Coin received, confirming
+            // 2 = Confirmed
+            // 3 = Complete
+            // 100 = Complete
+
+            -2, -1 => DepositStatus::FAILED,
+            0 => DepositStatus::PROCESSING,
+            1 => DepositStatus::PROCESSING,
+            2, 3, 100 => DepositStatus::COMPLETE,
+            default => DepositStatus::FAILED,
+        };
+    }
+
+    /**
      * Handle IPN Webhook from provider.
      *
      * @param  Request $request

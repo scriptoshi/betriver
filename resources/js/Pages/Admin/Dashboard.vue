@@ -153,7 +153,9 @@
 						</h1>
 					</div>
 					<p class="text-gray-600 dark:text-gray-300 mb-4">
-						Welcome, admin! You have 8 new registrations today.
+						Welcome, admin! You have
+						{{ props.usersRegisteredToday.value }} new registrations
+						today.
 					</p>
 				</div>
 				<div class="flex justify-end items-center">

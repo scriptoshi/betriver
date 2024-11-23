@@ -1,5 +1,7 @@
 <script setup>
-	import { computed } from "vue";
+	import { computed, onMounted, onUnmounted, watch } from "vue";
+
+	import { router } from "@inertiajs/vue3";
 
 	import WeCopy from "@/Components/WeCopy.vue";
 	import CheckoutInfo from "@/Pages/Deposits/Show/CheckoutInfo.vue";
@@ -16,6 +18,47 @@
 	const endTime = computed(() => {
 		const createdAt = new Date(props.deposit.created_at);
 		return createdAt.getTime() + 30 * 60 * 1000; // 15 minutes in milliseconds
+	});
+
+	let intervalId = null;
+
+	const checkStatus = async () => {
+		if (!["pending", "processing"].includes(props.deposit.status)) {
+			if (intervalId) {
+				clearInterval(intervalId);
+				intervalId = null;
+			}
+			return;
+		}
+		router.visit(window.route("deposits.check"), {
+			preserveScroll: true,
+			preserveState: true,
+		});
+	};
+
+	// Watch for status changes
+	watch(
+		() => props.deposit.status,
+		(newStatus) => {
+			if (!["pending", "processing"].includes(newStatus) && intervalId) {
+				clearInterval(intervalId);
+				intervalId = null;
+			}
+		},
+	);
+
+	onMounted(() => {
+		// Initial check
+		checkStatus();
+		// Set up interval for checking every minute
+		intervalId = setInterval(checkStatus, 60000);
+	});
+
+	onUnmounted(() => {
+		if (intervalId) {
+			clearInterval(intervalId);
+			intervalId = null;
+		}
 	});
 </script>
 <template>

@@ -180,12 +180,13 @@ Route::name('deposits.')
         Route::post('/deposits/store', 'store')->name('store');
         Route::get('/deposit/{deposit:uuid}', 'show')->name('show');
         Route::put('/deposits/{deposit}', 'update')->name('update');
+        Route::post('/deposit-check/{deposit:uuid}', 'checkStatus')->name('check');
         Route::any('/deposits/cancel/{deposit}', 'cancel')->name('cancel');
         Route::any('/deposits/return/{deposit}', 'gatewayReturn')->name('return');
-        Route::any('/webhooks/deposits/{provider}/{deposit}', 'webhooks')
-            ->withoutMiddleware(['auth', ValidateCsrfToken::class])
-            ->name('webhooks');
     });
+Route::any('/webhooks/deposits/{provider}/{deposit}', [DepositsController::class, 'webhooks'])
+    ->withoutMiddleware(['auth', ValidateCsrfToken::class])
+    ->name('deposits.webhooks');
 #deposits
 
 #withdraws

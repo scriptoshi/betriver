@@ -17,8 +17,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Ixudra\Curl\Facades\Curl;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
-use Log;
+
 
 class NowPayments implements Provider
 {
@@ -174,6 +175,91 @@ class NowPayments implements Provider
         return redirect()->route('deposits.show', $deposit->uuid);
     }
 
+    /**
+     * Manually check payment status from NowPayments API
+     * 
+     * @param string $paymentId The payment ID to check
+     * @return array|null Payment status data or null on failure
+     * @throws Exception If API request fails
+     */
+    public function checkDepositStatus(Deposit $deposit)
+    {
+        $paymentId = $deposit->remoteId;
+        try {
+            $response = Curl::to(static::endpoint("payment/$paymentId"))
+                ->withHeader("x-api-key: {$this->api_key}")
+                ->asJson()
+                ->returnResponseObject()
+                ->get();
+
+            if (isset($response->error)) {
+                Log::error('NowPayments status check failed', [
+                    'payment_id' => $paymentId,
+                    'error' => $response->error
+                ]);
+                $deposit->gateway_error = "Failed to check payment status: {$response->error}";
+                $deposit->save();
+                throw new Exception("Failed to check payment status: {$response->error}");
+            }
+
+            if ($response->status > 299) {
+                Log::error('NowPayments status check rejected', [
+                    'payment_id' => $paymentId,
+                    'status' => $response->status
+                ]);
+                $deposit->gateway_error = "Payment status check rejected. Invalid API credentials?";
+                $deposit->save();
+                throw new Exception('Payment status check rejected. Invalid API credentials?');
+            }
+            // Process payment status
+            if ($response->content) {
+                $paymentData = $response->content;
+                $this->updateDepositStatus($deposit, $paymentData);
+                return $paymentData;
+            }
+
+            return null;
+        } catch (Exception $e) {
+            Log::error('Error checking NowPayments status', [
+                'payment_id' => $paymentId,
+                'error' => $e->getMessage()
+            ]);
+            $deposit->gateway_error = "rror checking NowPayments status :" . $e->getMessage();
+            $deposit->save();
+            throw $e;
+        }
+    }
+
+    /**
+     * Update deposit status based on payment data
+     * 
+     * @param Deposit $deposit
+     * @param object $paymentData
+     * @return void
+     */
+    protected function updateDepositStatus(Deposit $deposit, object $paymentData)
+    {
+        // Check if payment is confirmed or finished
+        if (
+            in_array($paymentData->payment_status, ['confirmed', 'finished']) &&
+            ($paymentData->actually_paid >= $paymentData->pay_amount)
+        ) {
+            $deposit->status = DepositStatus::COMPLETE;
+            $deposit->save();
+
+            // Process auto-approve if enabled
+            if ($deposit->auto_approve) {
+                app(DepositTx::class)->create($deposit);
+            }
+        }
+        // Handle failed payments
+        elseif (in_array($paymentData->payment_status, ['failed', 'expired'])) {
+            $deposit->status = DepositStatus::FAILED;
+            $deposit->gateway_error = "Payment {$paymentData->payment_status}";
+            $deposit->save();
+        }
+    }
+
     public function returned(Request $request, Deposit $deposit)
     {
         return redirect()->route('deposits.show', $deposit->uuid);
@@ -209,13 +295,21 @@ class NowPayments implements Provider
             !$this->verifyIPN($request) ||
             !in_array($request->payment_status, ['confirmed', 'finished']) ||
             $request->actually_paid < $request->pay_amount
-        ) return;
-
+        ) {
+            Log::info('CHECKS FAILED', [
+                'verifyIPN' => $this->verifyIPN($request),
+                'payment_status' => in_array($request->payment_status, ['confirmed', 'finished']),
+                "$request->actually_paid < $request->pay_amount" => $request->actually_paid < $request->pay_amount
+            ]);
+            return;
+        }
+        Log::info('CHECKS PASSED', ['uuid' => $request->order_id]);
         if (
             $deposit = Deposit::query()
             ->where('status', DepositStatus::PROCESSING)
             ->where('uuid', $request->order_id)->first()
         ) {
+            Log::info('CHECKS PASSED', ['uuid' => $request->order_id]);
             $deposit->status = DepositStatus::COMPLETE;
             $deposit->save();
             if ($deposit->auto_approve) {
@@ -340,9 +434,12 @@ class NowPayments implements Provider
             $sortedRequestJson = json_encode($requestData, JSON_UNESCAPED_SLASHES);
             if ($requestData->isNotEmpty()) {
                 $hmac = hash_hmac("sha512", $sortedRequestJson, trim($this->api_secret));
+                Log::info("Checking HMAC", ['calc hmac' => $hmac, 'receivedHmac' =>  $receivedHmac, 'status' => $hmac === $receivedHmac]);
                 return $hmac === $receivedHmac;
             }
+            Log::info('$requestData->isNotEmpty() failed', $requestData->all());
         }
+        Log::info('No HMAC sent', $receivedHmac);
         return false;
     }
 }

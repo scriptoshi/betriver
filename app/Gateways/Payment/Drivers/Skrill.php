@@ -131,6 +131,11 @@ class Skrill implements Provider
         }
     }
 
+    public function checkDepositStatus(Deposit $deposit)
+    {
+        return null;
+    }
+
     /**
      * Handle incoming webhooks from Skrill to update transaction statuses.
      *
