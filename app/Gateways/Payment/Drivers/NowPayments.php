@@ -287,26 +287,22 @@ class NowPayments implements Provider
             }
             return;
         }
-
-        if (
-            !$this->verifyIPN($request)
-            || !in_array($request->payment_status, ['confirmed', 'finished'])
-            //|| $request->actually_paid < $request->pay_amount
-        ) {
-            Log::info('CHECKS FAILED', [
-                'verifyIPN' => $this->verifyIPN($request),
-                'payment_status' => in_array($request->payment_status, ['confirmed', 'finished']),
-                "$request->actually_paid < $request->pay_amount" => $request->actually_paid < $request->pay_amount
-            ]);
+        $verified = $this->verifyIPN($request);
+        $is_success = in_array($request->payment_status, ['confirmed', 'finished']);
+        if (!$verified) {
+            Log::info('Invalid IPN Data', $request->all());
             return;
         }
-        Log::info('CHECKS PASSED', ['uuid' => $request->order_id]);
-        if (
-            $deposit = Deposit::query()
+        if (!$is_success) {
+            Log::info('Payment still pending', $request->all());
+            return;
+        }
+        Log::info('CHECKS PASSED', $request->all());
+        $deposit = Deposit::query()
             ->where('status', DepositStatus::PROCESSING)
-            ->where('uuid', $request->order_id)->first()
-        ) {
-            Log::info('CHECKS PASSED', ['uuid' => $request->order_id]);
+            ->where('uuid', $request->order_id)->first();
+        Log::info('FOUND DEPOSIT', $deposit);
+        if ($deposit) {
             $deposit->status = DepositStatus::COMPLETE;
             $deposit->save();
             app(DepositTx::class)->create($deposit);
