@@ -30,7 +30,7 @@
 			}
 			return;
 		}
-		router.visit(
+		router.post(
 			window.route("deposits.check", { deposit: props.deposit.uuid }),
 			{
 				preserveScroll: true,
