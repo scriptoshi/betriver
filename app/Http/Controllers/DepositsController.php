@@ -157,7 +157,8 @@ class DepositsController extends Controller
      */
     public function checkStatus(Request $request,  Deposit $deposit)
     {
-        $deposit->gateway->driver()->checkDepositStatus($deposit);
+        if ($deposit->status == DepositStatus::PROCESSING || $deposit->status == DepositStatus::PENDING)
+            $deposit->gateway->driver()->checkDepositStatus($deposit);
         return back();
     }
 

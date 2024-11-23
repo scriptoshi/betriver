@@ -191,7 +191,6 @@ class NowPayments implements Provider
                 ->asJson()
                 ->returnResponseObject()
                 ->get();
-
             if (isset($response->error)) {
                 Log::error('NowPayments status check failed', [
                     'payment_id' => $paymentId,
@@ -239,18 +238,16 @@ class NowPayments implements Provider
      */
     protected function updateDepositStatus(Deposit $deposit, object $paymentData)
     {
+
         // Check if payment is confirmed or finished
         if (
-            in_array($paymentData->payment_status, ['confirmed', 'finished']) &&
-            ($paymentData->actually_paid >= $paymentData->pay_amount)
+            in_array($paymentData->payment_status, ['confirmed', 'finished'])
+            //&& ($paymentData->actually_paid >= $paymentData->pay_amount)
         ) {
             $deposit->status = DepositStatus::COMPLETE;
             $deposit->save();
-
             // Process auto-approve if enabled
-            if ($deposit->auto_approve) {
-                app(DepositTx::class)->create($deposit);
-            }
+            app(DepositTx::class)->create($deposit);
         }
         // Handle failed payments
         elseif (in_array($paymentData->payment_status, ['failed', 'expired'])) {
@@ -292,9 +289,9 @@ class NowPayments implements Provider
         }
 
         if (
-            !$this->verifyIPN($request) ||
-            !in_array($request->payment_status, ['confirmed', 'finished']) ||
-            $request->actually_paid < $request->pay_amount
+            !$this->verifyIPN($request)
+            || !in_array($request->payment_status, ['confirmed', 'finished'])
+            //|| $request->actually_paid < $request->pay_amount
         ) {
             Log::info('CHECKS FAILED', [
                 'verifyIPN' => $this->verifyIPN($request),
@@ -312,9 +309,7 @@ class NowPayments implements Provider
             Log::info('CHECKS PASSED', ['uuid' => $request->order_id]);
             $deposit->status = DepositStatus::COMPLETE;
             $deposit->save();
-            if ($deposit->auto_approve) {
-                app(DepositTx::class)->create($deposit);
-            }
+            app(DepositTx::class)->create($deposit);
         }
     }
 
