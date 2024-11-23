@@ -30,10 +30,13 @@
 			}
 			return;
 		}
-		router.visit(window.route("deposits.check"), {
-			preserveScroll: true,
-			preserveState: true,
-		});
+		router.visit(
+			window.route("deposits.check", { deposit: props.deposit.uuid }),
+			{
+				preserveScroll: true,
+				preserveState: true,
+			},
+		);
 	};
 
 	// Watch for status changes
@@ -113,7 +116,6 @@
 				<p>This deposit request will expire in 15 minutes.</p>
 			</div>
 		</div>
-
 		<CheckoutInfo />
 	</div>
 </template>
