@@ -245,15 +245,17 @@ class NowPayments implements Provider
             ->post();
         if (!$response->id) return back()->withErrors('Withdraw Failed. Check API Credentails');
         foreach ($response->withdrawals as $withdrawal) {
-            Withdraw::query()
+            $withdraw = Withdraw::query()
                 ->where('uuid', $withdrawal->unique_external_id)
-                ->update([
-                    'gateway_amount' => $withdrawal->amount,
-                    'batchId' => $response->id,
-                    'remoteId' => $withdrawal->id,
-                    'data' =>  $withdrawal,
-                    'status' => WithdrawStatus::PROCESSING
-                ]);
+                ->first();
+            if (!$withdraw) continue;
+            $withdraw->gateway_amount  = $withdrawal->amount;
+            $withdraw->batchId = $response->id;
+            $withdraw->remoteId  = $withdrawal->id;
+            $withdraw->data =  $withdrawal;
+            $withdraw->status = WithdrawStatus::PROCESSING;
+            $withdraw->save();
+            $withdraw->notify();
         }
     }
 

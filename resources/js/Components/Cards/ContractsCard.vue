@@ -1,5 +1,5 @@
 <script setup>
-	import { computed, ref } from "vue";
+	import { computed, onMounted, onUnmounted, ref } from "vue";
 
 	import { HiChevronDown } from "oh-vue-icons/icons";
 
@@ -33,17 +33,32 @@
 	 * return grouped bets for cards like handicapp and over/under markets
 	 * returns the bet if its not a handicap market
 	 */
+	const marketItem = ref(props.market);
 	const bets = computed(() => {
 		if (handicap.value === null || !handicap.value)
-			return props.market.bets;
+			return marketItem.value.bets;
 		const caps = props.handicaps[handicap.value] ?? [];
-		if (!caps.length) return props.market.bets;
-		return props.market.bets.filter((bet) => caps.includes(bet.result));
+		if (!caps.length) return marketItem.value.bets;
+		return marketItem.value.bets.filter((bet) => caps.includes(bet.result));
 	});
 	const setHandicap = (hcap) => {
 		handicap.value = hcap;
 		if (!show.value) show.value = true;
 	};
+
+	const listner = ref();
+	onMounted(() => {
+		if (props.market.gameMarket?.uuid)
+			listner.value = window.Echo.channel(
+				props.market.gameMarket?.uuid,
+			).listen("PriceChanged", (event) => {
+				marketItem.value = event;
+			});
+	});
+
+	onUnmounted(() => {
+		listner.value.stopListening("PriceChanged");
+	});
 </script>
 <template>
 	<div

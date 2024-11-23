@@ -4,13 +4,14 @@ namespace App\Api;
 
 use InvalidArgumentException;
 use App\Enums\LeagueSport;
+use App\Events\GameUpdated;
 use App\Models\Bet;
 use App\Models\Game;
 use App\Models\League;
 use App\Models\Market;
 use App\Models\Odd;
 use App\Models\Team;
-
+use App\Support\EventHydrant;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -88,6 +89,7 @@ abstract class ApiSports
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
             static::saveScores($game, $lg);
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
     }
 

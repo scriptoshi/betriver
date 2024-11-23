@@ -5,7 +5,9 @@ namespace App\Api;
 use App\Enums\LeagueSport;
 use App\Enums\Volleyball\GameStatus;
 use App\Enums\Volleyball\ScoreType;
+use App\Events\GameUpdated;
 use App\Models\Game;
+use App\Support\EventHydrant;
 use Illuminate\Support\Collection;
 use Ixudra\Curl\Facades\Curl;
 
@@ -54,6 +56,7 @@ class ApiVolleyball extends ApiSports
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
             static::saveScores($game, $lg);
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
     }
 

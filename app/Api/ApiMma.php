@@ -5,9 +5,11 @@ namespace App\Api;
 use App\Enums\LeagueSport;
 use App\Enums\Mma\GameStatus;
 use App\Enums\Mma\ScoreType;
+use App\Events\GameUpdated;
 use App\Models\Game;
 use App\Models\League;
 use App\Models\Team;
+use App\Support\EventHydrant;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Ixudra\Curl\Facades\Curl;
@@ -84,6 +86,7 @@ class ApiMma extends ApiSports
             if (!$game) continue;
             $gameId = static::saveResults($game, $lg);
             if ($gameId) $results[] = $gameId;
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
         if (count($results)) {
             static::fetchResults(collect($results));

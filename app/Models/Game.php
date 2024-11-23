@@ -122,6 +122,8 @@ class Game extends Model
         return $this->hasMany(GameMarket::class, 'game_id', 'id');
     }
 
+
+
     /**
 
      * Get the league this model Belongs To.
@@ -181,7 +183,7 @@ class Game extends Model
     {
         return $this->belongsToMany(Market::class, 'game_market', 'game_id', 'market_id')
             ->withTimestamps()
-            ->withPivot(['bookie_active', 'winning_bet_id', 'active', 'id']);
+            ->withPivot(['bookie_active', 'winning_bet_id', 'active', 'uuid', 'id']);
     }
 
     /**'active',

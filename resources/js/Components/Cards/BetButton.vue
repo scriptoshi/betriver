@@ -1,5 +1,5 @@
 <script setup>
-	import { computed } from "vue";
+	import { computed, ref, watch } from "vue";
 
 	import MoneyFormat from "../MoneyFormat.vue";
 
@@ -12,11 +12,29 @@
 		lay: Boolean,
 	});
 	defineEmits(["go"]);
+	const flashing = ref(false);
+	watch(
+		[() => props.price],
+		(newPrice, oldPrice) => {
+			if (newPrice !== null && newPrice !== oldPrice) {
+				flashing.value = true;
+				setTimeout(() => (flashing.value = false), 200); // Fl
+			}
+		},
+		{ immediate: true },
+	);
 	const classes = computed(() => {
-		if (props.ask || props.active)
+		if (props.ask || props.active) {
+			const layBg = flashing.value
+				? "bg-red-400 dark:bg-red-300 animate-pulse"
+				: "bg-emerald-600 dark:bg-emerald-500";
+			const backBg = flashing.value
+				? "bg-yellow-400 dark:bg-yellow-300 animate-pulse"
+				: "bg-sky-600 dark:bg-sky-500";
 			return !props.lay
-				? "bg-emerald-600 hover:bg-emerald-500 dark:hover:bg-emerald-400 dark:bg-emerald-500"
-				: "bg-sky-600 hover:bg-sky-500 dark:hover:bg-sky-400 dark:bg-sky-500";
+				? `${layBg} hover:bg-emerald-500 dark:hover:bg-emerald-400`
+				: `${backBg} hover:bg-sky-500 dark:hover:bg-sky-400`;
+		}
 		return !props.lay
 			? "bg-gray-150 !text-gray-600 dark:!text-white hover:!text-white hover:bg-emerald-500 dark:hover:bg-emerald-500 dark:bg-gray-750"
 			: "bg-gray-150 !text-gray-600 dark:!text-white hover:!text-white hover:bg-sky-500 dark:hover:bg-sky-500 dark:bg-gray-750";

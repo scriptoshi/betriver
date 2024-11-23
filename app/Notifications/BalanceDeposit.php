@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Gateways\Sms\SmsChannel;
+use App\Models\Transaction;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -15,7 +16,7 @@ class BalanceDeposit extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      */
-    public function __construct()
+    public function __construct(public Transaction $tx)
     {
         //
     }
@@ -37,14 +38,21 @@ class BalanceDeposit extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
+        $vars = [
+            'amount' => $this->tx->amount,
+            'symbol' => settings('site.currency_code'),
+            'balance' => $notifiable->balance,
+            ...(array)$notifiable,
+            'appname' => config('app.name')
+        ];
         $message = settings('mail.balance_deposit_message', ':amount :symbol has been credited to your account. Your new balance is :balance :symbol');
         $subject = settings('mail.balance_deposit_subject', '[:appname] :symbol Deposit Confirmed ');
         $salutation = settings('mail.balance_deposit_salutation', ':symbol Deposit Successful');
         return (new MailMessage)
-            ->subject(__($subject, [...(array)$notifiable, 'appname' => config('app.name')]))
-            ->salutation(__($salutation, [...(array)$notifiable, 'appname' => config('app.name')]))
-            ->line(__($message, [...(array)$notifiable, 'appname' => config('app.name')]))
-            ->action(__('View Your Dashboard'), url('/'))
+            ->subject(__($subject, $vars))
+            ->salutation(__($salutation, $vars))
+            ->line(__($message, $vars))
+            ->action(__('View Your Balance'), url('/account/statement'))
             ->line(__('Regards'))
             ->line(__('This is an automated message, please do not reply.'));
     }
@@ -55,7 +63,13 @@ class BalanceDeposit extends Notification implements ShouldQueue
     public function toSMS(object $notifiable): string
     {
         $message = settings('sms.balance_deposit_message', ':amount :symbol has been credited to your account.');
-        return __($message, [...(array)$notifiable, 'appname' => config('app.name')]);
+        return __($message, [
+            'amount' => $this->tx->amount,
+            'symbol' => settings('site.currency_code'),
+            'balance' => $notifiable->balance,
+            ...(array)$notifiable,
+            'appname' => config('app.name')
+        ]);
     }
 
     /**

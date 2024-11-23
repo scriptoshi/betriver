@@ -114,7 +114,7 @@ class Market extends Model
     {
         return $this->belongsToMany(Game::class, 'game_market', 'market_id', 'game_id')
             ->withTimestamps()
-            ->withPivot(['bookie_active', 'winning_bet_id', 'active', 'id']);
+            ->withPivot(['bookie_active', 'winning_bet_id', 'active', 'uuid', 'id']);
     }
 
     /**

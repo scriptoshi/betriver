@@ -12,17 +12,18 @@ use App\Enums\StakeType;
 use App\Enums\StakeStatus;
 use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
+use App\Events\GameChanged;
+use App\Events\PriceChanged;
+use App\Http\Resources\GameMarket;
 use App\Http\Resources\StatStake;
 use App\Models\Bet;
 use App\Models\Game;
+use App\Support\EventHydrant;
 use App\Support\TradeManager;
-use Exception;
 use Gate;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
-
-use function Clue\StreamFilter\fun;
+use Str;
 
 class StakesController extends Controller
 {
@@ -87,6 +88,8 @@ class StakesController extends Controller
         }
         $bet = Bet::find($request->bet_id);
         $game = Game::find($request->game_id);
+        //ensure market is attached.
+        $game->markets()->syncWithoutDetaching([$bet->market_id => ['uuid' => Str::uuid()]]);
         $stake = new Stake();
         $stake->user_id = $request->user()->id;
         $stake->bet_id = $bet->id;
@@ -112,6 +115,8 @@ class StakesController extends Controller
             $stake = TradeManager::matchStake($stake);
             TradeManager::collectLiability($stake);
             DB::commit();
+            $gameMarket = GameMarket::where('game_id', $stake->game_id)->where('market_id', $stake->market_id)->first();
+            static::fireEvents($gameMarket);
             return back()->with('success', __('Bet placed successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
@@ -137,6 +142,7 @@ class StakesController extends Controller
         }
         DB::beginTransaction();
         try {
+            TradeManager::refundLiability($stake);
             // If the stake is partially matched, we need to handle the matched portion
             if ($stake->status === StakeStatus::PARTIAL && $stake->unfilled > 0) {
                 // Create a new stake for the cancelled portion
@@ -160,8 +166,9 @@ class StakesController extends Controller
                 $stake->liability = 0;
                 $stake->save();
             }
-            TradeManager::refundLiability($stake);
             DB::commit();
+            $gameMarket = GameMarket::where('game_id', $stake->game_id)->where('market_id', $stake->market_id)->first();
+            static::fireEvents($gameMarket);
             return back()->with('success', __('Stake cancelled successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
@@ -316,6 +323,8 @@ class StakesController extends Controller
             $stake->status = StakeStatus::TRADED_OUT;
             $stake->save();
             DB::commit();
+            $gameMarket = GameMarket::where('game_id', $stake->game_id)->where('market_id', $stake->market_id)->first();
+            static::fireEvents($gameMarket);
             return back()->with('success', __('Trade-out stake created successfully'));
         } catch (\Exception $e) {
             DB::rollBack();
@@ -334,5 +343,17 @@ class StakesController extends Controller
         return Inertia::render('AdminStakes/Show', [
             'stake' => new StakeResource($stake)
         ]);
+    }
+
+
+    private static function fireEvents(GameMarket $gameMarket)
+    {
+        $gameMarket->load(['market', 'game']);
+        if ($gameMarket->market->is_default) {
+            $gameResource = EventHydrant::hydrateGame($gameMarket->game, $gameMarket->market);
+            GameChanged::dispatch($gameResource, $gameMarket->game->uuid);
+        }
+        $market = EventHydrant::hydrateMarket($gameMarket->game, $gameMarket->market);
+        PriceChanged::dispatch($market, $gameMarket->uuid);
     }
 }

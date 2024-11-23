@@ -8,6 +8,7 @@ use App\Enums\PersonalBetEmails;
 use App\Enums\PersonalLossLimitInterval;
 use App\Enums\PersonalProofOfAddressType;
 use App\Enums\PersonalProofOfIdentityType;
+use App\Enums\StakeStatus;
 use App\Enums\StakeType;
 use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
@@ -111,11 +112,13 @@ class UsersController extends Controller
                     ->whereHasMorph('transactable', [
                         Stake::class,
                         Wager::class
-                    ], fn(Builder $query) => $query->where('won', false))
+                    ], fn(Builder $query) => $query->where('status', 'lost'))
                     ->count();
             },
             'bets' => function () use ($query) {
-                return $query->clone()->where('type', TransactionType::BET)->count();
+                return $query->clone()
+                    ->where('type', TransactionType::BET)
+                    ->count();
             },
             'profitLoss' => function () use ($query) {
                 // cant get to loss stakes !!
@@ -125,6 +128,9 @@ class UsersController extends Controller
             },
             'exposure' => function () use ($query) {
                 return $query->clone()
+                    ->whereHasMorph('transactable', [
+                        Stake::class,
+                    ], fn(Builder $query) => $query->whereIn('status', StakeStatus::exposed()))
                     ->where('type', TransactionType::BET)
                     ->sum('amount');
             },

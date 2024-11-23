@@ -5,12 +5,12 @@ namespace App\Api;
 use App\Enums\Afl\GameStatus;
 use App\Enums\Afl\ScoreType;
 use App\Enums\LeagueSport;
-
+use App\Events\GameUpdated;
 use App\Models\Game;
 use App\Models\League;
 use App\Models\Score;
 use App\Models\Team;
-
+use App\Support\EventHydrant;
 use Carbon\Carbon;
 
 use Illuminate\Support\Collection;
@@ -126,6 +126,7 @@ class ApiAfl extends ApiSports
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
             static::saveScores($game, $lg);
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
         // safely update quatetrs
         $games->chunk(10)->each(fn($chunk) => static::updateQuaterScores($chunk));

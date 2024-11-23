@@ -6,7 +6,9 @@ namespace App\Api;
 use App\Enums\LeagueSport;
 use App\Enums\Rugby\GameStatus;
 use App\Enums\Rugby\ScoreType;
+use App\Events\GameUpdated;
 use App\Models\Game;
+use App\Support\EventHydrant;
 use Ixudra\Curl\Facades\Curl;
 use Illuminate\Support\Collection;
 
@@ -53,6 +55,7 @@ class ApiRugby extends ApiSports
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
             static::saveScores($game, $lg);
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
     }
 

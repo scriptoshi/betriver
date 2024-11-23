@@ -49,6 +49,7 @@ class Stake extends JsonResource
             'is_trade_out' => $this->is_trade_out,
             'is_traded_out' => $this->is_traded_out,
             'isLay' => $this->type == StakeType::LAY,
+            'isExposed' => $this->status->isExposed(),
             'user' => new User($this->whenLoaded('user')),
             'game' => new Game($this->whenLoaded('game')),
             'bet' => new Bet($this->whenLoaded('bet')),

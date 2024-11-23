@@ -5,11 +5,13 @@ namespace App\Api;
 use App\Enums\LeagueSport;
 use App\Enums\Soccer\GameStatus;
 use App\Enums\Soccer\ScoreType;
+use App\Events\GameUpdated;
 use App\Models\Game;
 use App\Models\League;
 use App\Models\Odd;
 use App\Models\Team;
 use App\Support\Country;
+use App\Support\EventHydrant;
 use Carbon\Carbon;
 
 use Illuminate\Support\Collection;
@@ -91,6 +93,7 @@ class ApiFootball extends ApiSports
             $game = Game::query()->where('gameId', $lg->fixture->id)->first();
             if (!$game) continue;
             static::saveScores($game, $lg);
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
     }
 

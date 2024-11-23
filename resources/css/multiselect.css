@@ -73,11 +73,11 @@
 }
 
 .multiselect-tags-search-wrapper {
-	@apply inline-block relative mx-1 mb-1 flex-grow flex-shrink h-full;
+	@apply inline-block relative mx-1 mb-1 flex-grow flex-shrink min-h-5 h-full;
 }
 
 .multiselect-tags-search {
-	@apply focus:!border-none !bg-transparent  focus:!outline-none absolute inset-0 border-0 !outline-none focus:ring-0 appearance-none p-0 text-base font-sans box-border w-full;
+	@apply h-full focus:!border-none !bg-transparent  focus:!outline-none absolute inset-0 border-0 !outline-none focus:ring-0 appearance-none p-0 text-base font-sans box-border w-full;
 }
 
 .multiselect-tags-search-copy {

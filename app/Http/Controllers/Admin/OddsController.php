@@ -14,6 +14,7 @@ use App\Models\Odd;
 use Inertia\Inertia;
 
 use Illuminate\Http\Request;
+use Str;
 
 class OddsController extends Controller
 {
@@ -33,6 +34,24 @@ class OddsController extends Controller
                 ->pluck('id')
                 ->all();
             $game->markets()->sync($marketIds);
+            GameMarket::whereNull('uuid')
+                ->orWhere('uuid', '')
+                ->chunkById(1000, function ($gameMarkets) {
+                    foreach ($gameMarkets as $gameMarket) {
+                        $gameMarket->update([
+                            'uuid' => (string) Str::uuid()
+                        ]);
+                    }
+                });
+            GameMarket::whereNull('uuid')
+                ->orWhere('uuid', '')
+                ->chunkById(1000, function ($gameMarkets) {
+                    foreach ($gameMarkets as $gameMarket) {
+                        $gameMarket->update([
+                            'uuid' => (string) Str::uuid()
+                        ]);
+                    }
+                });
         }
         $bets = Bet::where('sport', $game->sport)->get();
         $odds = $game->odds()->pluck('odd', 'md5');

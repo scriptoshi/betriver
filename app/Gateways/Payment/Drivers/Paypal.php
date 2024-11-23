@@ -438,6 +438,7 @@ class Paypal implements Provider
                     $withdraw->gateway_error = $item->errors[0]->message ?? 'Unknown error';
                 }
                 $withdraw->save();
+                $withdraw->notify();
             }
         } else {
             \Log::error('PayPal batch payout failed', ['response' => $response]);
@@ -446,6 +447,7 @@ class Paypal implements Provider
                 $withdraw->status = WithdrawStatus::FAILED;
                 $withdraw->gateway_error = 'Batch payout creation failed';
                 $withdraw->save();
+                $withdraw->notify();
             }
         }
     }

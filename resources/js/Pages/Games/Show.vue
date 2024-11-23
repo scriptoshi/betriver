@@ -1,5 +1,5 @@
 <script setup>
-	import { computed, ref } from "vue";
+	import { computed, onMounted, ref } from "vue";
 
 	import { Head, usePage } from "@inertiajs/vue3";
 
@@ -64,6 +64,20 @@
 						parseFloat(b.traded ?? 0) - parseFloat(a.traded ?? 0),
 				);
 		return props.markets.filter((m) => m.category === filter.value);
+	});
+	const game = ref(props.game);
+	const listner = ref();
+	onMounted(() => {
+		if (props.game?.uuid)
+			listner.value = window.Echo.channel(props.game?.uuid).listen(
+				"GameUpdated",
+				(event) => {
+					game.value = event;
+				},
+			);
+	});
+	onMounted(() => {
+		listner.value.stopListening("GameUpdated");
 	});
 </script>
 

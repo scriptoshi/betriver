@@ -54,7 +54,7 @@
 
 <template>
 	<div
-		class="h-full w-full group hover:border-sky-500 dark:hover:border-sky-400 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded border-2 border-gray-300 dark:border-gray-650 border-dashed transition-colors duration-200">
+		class="w-full group hover:border-sky-500 dark:hover:border-sky-400 cursor-pointer bg-gray-100 dark:bg-gray-800 rounded border-2 border-gray-300 dark:border-gray-650 border-dashed transition-colors duration-200">
 		<label class="cursor-pointer">
 			<FilePond
 				name="filepond"

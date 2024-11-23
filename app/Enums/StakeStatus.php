@@ -24,6 +24,16 @@ enum StakeStatus: string
         ];
     }
 
+    public  function isExposed()
+    {
+        return match ($this) {
+            self::PENDING,
+            self::PARTIAL,
+            self::MATCHED => true,
+            default => false
+        };
+    }
+
     public function name(): string
     {
         return match ($this) {

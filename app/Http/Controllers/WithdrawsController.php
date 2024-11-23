@@ -114,6 +114,7 @@ class WithdrawsController extends Controller
             $transaction = new Transaction([
                 'user_id' => $user->id,
                 'amount' => $withdraw->amount,
+                'fees' => $withdraw->fees,
                 'balance_before' => $user->balance,
                 'action' => TransactionAction::DEBIT,
                 'type' => TransactionType::WITHDRAW,

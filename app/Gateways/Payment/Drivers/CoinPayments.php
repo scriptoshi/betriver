@@ -171,26 +171,20 @@ class CoinPayments implements Provider
             })
         );
         if ($response->error != 'ok') return back()->with('error', __("Withdraw Failed: " . $response->error));
-        $hasError = false;
         $batchId = Str::random(32);
         foreach ($response->result as $id => $res) {
+            $withdraw =   Withdraw::find($id);
+            $withdraw->status = WithdrawStatus::PROCESSING;
+            $withdraw->remoteId  = $res->id;
+            $withdraw->batchId = $batchId;
+            $withdraw->gateway_amount = $res->amount;
             if ($res->error != 'ok') {
-                Withdraw::where('id', $id)->update([
-                    'status' => WithdrawStatus::FAILED,
-                    'gateway_error' => $res->error
-                ]);
-                $hasError = true;
-                continue;
+                $withdraw->status  = WithdrawStatus::FAILED;
+                $withdraw->gateway_error = $res->error;
             }
-            Withdraw::where('id', $id)->update([
-                'status' => WithdrawStatus::PROCESSING,
-                'remoteId' => $res->id,
-                'batchId' => $batchId,
-                'gateway_amount' => $res->amount
-            ]);
+            $withdraw->save();
+            $withdraw->notify();
         }
-        if ($hasError) return back()->with('error', __("Some withdraws failed to process."));
-        return back()->with('success', __("All withdraws processed successfully"));
     }
 
 
@@ -225,9 +219,7 @@ class CoinPayments implements Provider
             $withdraw->status = $newStatus;
             $withdraw->data = array_merge($withdraw->data ?? [], ['coinpayments_status' => $result]);
             $withdraw->save();
-
-            // You might want to trigger additional actions here based on the new status
-            // For example, if the status is now COMPLETE, you might want to credit the user's account
+            $withdraw->notify();
         }
 
         return true;

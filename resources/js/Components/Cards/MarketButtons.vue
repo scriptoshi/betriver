@@ -1,5 +1,5 @@
 <script setup>
-	import { computed } from "vue";
+	import { computed, ref, watch } from "vue";
 
 	import MoneyFormat from "@/Components/MoneyFormat.vue";
 	import OddsFormat from "@/Components/OddsFormat.vue";
@@ -11,6 +11,7 @@
 		odds: Object,
 		bet: Object,
 		market: Object,
+		channel: String,
 		game: Object,
 		showBookie: Boolean,
 		showExchange: Boolean,
@@ -65,6 +66,22 @@
 		}
 		addExchnage(betData);
 	};
+	const flashingLay = ref(false);
+	const flashingBack = ref(false);
+	watch(
+		[() => props.lay?.price, () => props.back?.price],
+		([newLay, newBack], [oldLay, oldBack]) => {
+			if (newLay !== null && oldLay !== newLay) {
+				flashingLay.value = true;
+				setTimeout(() => (flashingLay.value = false), 200); // Fl
+			}
+			if (newBack !== null && newBack !== oldBack) {
+				flashingBack.value = true;
+				setTimeout(() => (flashingBack.value = false), 200); // Fl
+			}
+		},
+		{ immediate: true },
+	);
 </script>
 <template>
 	<div v-if="showBookie" class="flex flex-wrap mt-0.5 m-0 px-2 py-0">
@@ -82,7 +99,12 @@
 		<span v-if="lay" class="w-6/12 cursor-pointer lining-nums m-0">
 			<span
 				@click="addBet(lay.price * 1, false)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
+				:class="
+					flashingLay
+						? 'bg-red-400 dark:bg-red-300 animate-pulse'
+						: 'bg-emerald-600 dark:bg-emerald-500'
+				"
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
 				<OddsFormat :odds="lay.price * 1" #default="{ odds }">
 					{{ odds }}
 				</OddsFormat>
@@ -100,7 +122,12 @@
 		<span v-else class="w-6/12 cursor-pointer lining-nums m-0">
 			<span
 				@click="addBet('BID', false)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-emerald-600 dark:bg-emerald-500 text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
+				:class="
+					flashingLay
+						? 'bg-red-400 dark:bg-red-300 animate-pulse'
+						: 'bg-emerald-600 dark:bg-emerald-500'
+				"
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] text-white mr-0.5 m-0 px-0 py-1 rounded-sm">
 				{{ $t("BID") }}
 			</span>
 			<span
@@ -111,7 +138,12 @@
 		<span v-if="back" class="w-6/12 cursor-pointer lining-nums m-0">
 			<span
 				@click="addBet(back.price * 1, true)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-sky-600 dark:bg-sky-500 text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
+				:class="
+					flashingBack
+						? 'bg-yellow-400 dark:bg-yellow-300 animate-pulse'
+						: 'bg-sky-600 dark:bg-sky-500'
+				"
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
 				<OddsFormat :odds="back.price * 1" #default="{ odds }">
 					{{ odds }}
 				</OddsFormat>
@@ -129,7 +161,12 @@
 		<span v-else class="w-6/12 cursor-pointer lining-nums m-0">
 			<span
 				@click="addBet('ASK', true)"
-				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] bg-sky-600 dark:bg-sky-500 text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
+				:class="
+					flashingBack
+						? 'bg-yellow-400 dark:bg-yellow-300 animate-pulse'
+						: 'bg-sky-600 dark:bg-sky-500'
+				"
+				class="font-bold whitespace-nowrap lining-nums text-xs uppercase block relative text-center transition-[background-color] duration-[0.3s] text-white ml-0.5 m-0 px-0 py-1 rounded-sm">
 				{{ $t("ASK") }}
 			</span>
 			<span

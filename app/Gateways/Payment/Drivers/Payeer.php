@@ -229,6 +229,7 @@ class Payeer implements Provider
             };
             $withdraw->status = WithdrawStatus::FAILED;
             $withdraw->save();
+            $withdraw->notify();
         };
     }
 

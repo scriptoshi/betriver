@@ -28,7 +28,7 @@
 	const cancelForm = useForm({ stake: props.stake.id });
 	const cancelBet = () => {
 		cancelForm.delete(
-			window.route("cancel.destroy", { stake: props.stake.id }),
+			window.route("stakes.cancel", { stake: props.stake.id }),
 			{
 				preserveScroll: true,
 				preserveState: true,
@@ -186,16 +186,16 @@
 					</div>
 				</div>
 				<div
-					class="text-gray-500 ml-5 inline-block leading-[1em] text-[10px] font-inter font-extrabold tracking-[0.7px] uppercase">
-					{{ $t("Filled:") }}
+					class="text-gray-500 ml-2 inline-block leading-[1em] text-[10px] font-inter font-extrabold tracking-[0.7px] uppercase">
+					{{ $t("Fill:") }}
 					<span
 						class="text-sky-600 dark:text-sky-500 whitespace-nowrap">
 						<MoneyFormat :amount="stake.filled" />
 					</span>
 				</div>
 				<div
-					class="text-gray-500 ml-5 inline-block leading-[1em] text-[10px] font-inter font-extrabold tracking-[0.7px] uppercase">
-					{{ $t("Unfilled:") }}
+					class="text-gray-500 ml-2 inline-block leading-[1em] text-[10px] font-inter font-extrabold tracking-[0.7px] uppercase">
+					{{ $t("Unfill:") }}
 					<span
 						class="text-sky-600 dark:text-sky-500 whitespace-nowrap">
 						<MoneyFormat :amount="stake.unfilled" />
@@ -217,7 +217,7 @@
 					{{ $t("TradeOut") }}
 				</PrimaryButton>
 				<PrimaryButton
-					v-if="stake.unfilled > 0"
+					v-if="stake.unfilled > 0 && stake.isExposed"
 					@click.prevent="cancelBet"
 					error
 					:disabled="cancelForm.processing"

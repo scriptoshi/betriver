@@ -10,10 +10,12 @@ use App\Models\User;
 use App\Models\Trade;
 use App\Enums\StakeType;
 use App\Enums\StakeStatus;
+use App\Models\GameMarket;
 use App\Models\Market;
 use App\Support\TradeManager;
 use Carbon\Carbon;
 use Faker\Factory as Faker;
+use Str;
 
 class StakesTestTableSeeder extends Seeder
 {
@@ -28,7 +30,17 @@ class StakesTestTableSeeder extends Seeder
                 ->pluck('id')
                 ->all();
             $game->markets()->sync($marketIds);
+            GameMarket::whereNull('uuid')
+                ->orWhere('uuid', '')
+                ->chunkById(1000, function ($gameMarkets) {
+                    foreach ($gameMarkets as $gameMarket) {
+                        $gameMarket->update([
+                            'uuid' => (string) Str::uuid()
+                        ]);
+                    }
+                });
         }
+
         $market = $game->markets()
             ->where('type', 'App\Enums\Soccer\Markets\GameResult')
             ->where('segment', 'fulltime')

@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Game as GameResource;
 use App\Http\Resources\Market as ResourcesMarket;
 use App\Models\Game;
+use App\Models\GameMarket;
 use App\Models\League;
 use App\Models\Market;
 use App\Support\TradeManager;
@@ -17,9 +18,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Str;
 
 class GamesController extends Controller
 {
+
+
     /**
      * Display a listing of the resource.
      * @return \Illuminate\View\View
@@ -36,6 +40,7 @@ class GamesController extends Controller
             ->first();
         $query  = Game::query()
             ->where('active', true)
+            ->with(['gameMarkets' => fn($q) => $q->where('market_id', $defaultMarket->id)])
             ->withSum('trades as traded', 'amount')
             ->with([
                 'scores',
@@ -138,6 +143,9 @@ class GamesController extends Controller
             }
         ]);
     }
+
+
+
 
     /**
      * Add to watch list.
@@ -299,8 +307,17 @@ class GamesController extends Controller
                 ->all();
             $game->markets()->sync($marketIds);
         }
+        // ensure all gamemarkets have UUID for websockets
+        GameMarket::whereNull('uuid')
+            ->orWhere('uuid', '')
+            ->chunkById(1000, function ($gameMarkets) {
+                foreach ($gameMarkets as $gameMarket) {
+                    $gameMarket->update([
+                        'uuid' => (string) Str::uuid()
+                    ]);
+                }
+            });
         $game->loadCount('markets as marketsCount');
-
         /**
          * game ended?
          * lets ensure winning bets are marked.

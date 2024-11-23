@@ -1,8 +1,8 @@
 <?php
 
-namespace Scriptoshi\Payments\Enums;
+namespace App\Enums;
 
-enum PayoutStatus: string
+enum WithdrawStatus: string
 {
     case PENDING = 'pending';
     case CONFIRMED = 'confirmed';

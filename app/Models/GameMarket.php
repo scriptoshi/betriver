@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-
+use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -10,6 +10,7 @@ class GameMarket extends Model
 {
 
 
+    use HasUuid;
     /**
      * The database table used by the model.
      *
@@ -43,6 +44,7 @@ class GameMarket extends Model
      * @var array
      */
     protected $fillable = [
+        'uuid',
         'active',
         'bookie_active',
         'winning_bet_id',

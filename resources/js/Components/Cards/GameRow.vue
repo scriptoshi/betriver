@@ -1,4 +1,6 @@
 <script setup>
+	import { onMounted, onUnmounted, ref } from "vue";
+
 	import { Link } from "@inertiajs/vue3";
 	import { UseTimeAgo } from "@vueuse/components";
 	import { DateTime } from "luxon";
@@ -11,12 +13,27 @@
 	import ToggleWatchList from "@/Components/ToggleWatchList.vue";
 	import VueIcon from "@/Components/VueIcon.vue";
 
-	defineProps({
+	const props = defineProps({
 		game: Object,
 		defaultMarketsCount: Number,
 		market: Object,
 		showBookie: Boolean,
 		showExchange: Boolean,
+	});
+	const game = ref(props.game);
+	// events
+	const listner = ref();
+	onMounted(() => {
+		listner.value = window.Echo.channel(props.game.uuid).listen(
+			"GameChanged",
+			(event) => {
+				game.value = event;
+			},
+		);
+	});
+
+	onUnmounted(() => {
+		listner.value.stopListening("GameChanged");
 	});
 </script>
 <template>

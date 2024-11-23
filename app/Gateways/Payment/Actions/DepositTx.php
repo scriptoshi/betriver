@@ -6,6 +6,7 @@ use App\Enums\TransactionAction;
 use App\Enums\TransactionType;
 use App\Models\Deposit;
 use App\Models\Transaction;
+use App\Notifications\BalanceDeposit;
 
 class DepositTx
 {
@@ -13,14 +14,22 @@ class DepositTx
     {
         $user = $deposit->user;
         $balance_before = $user->balance;
+        $fees_percent = $user->level->settings('deposit_fees'); // eg 2 (is percentage)
+        $fees = ($deposit->amount * $fees_percent) / 100;
+        $netAmount = $deposit->amount - $fees;
         $user->increment('balance', $deposit->amount);
-        return $deposit->transaction()->create([
+        $tx =  $deposit->transaction()->create([
             'user_id' => $deposit->user_id,
             'description' => 'Deposit via Coinpayments',
-            'amount' => $deposit->amount,
+            'amount' => $netAmount,
+            'fees' => $fees,
             'balance_before' => $balance_before,
             'action' => TransactionAction::CREDIT,
             'type' => TransactionType::DEPOSIT
         ]);
+        $user->notify(new BalanceDeposit($tx));
+        return $tx;
     }
+
+    public function fees() {}
 }

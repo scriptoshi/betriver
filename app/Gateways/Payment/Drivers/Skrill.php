@@ -218,8 +218,8 @@ class Skrill implements Provider
                 $withdraw->status = WithdrawStatus::FAILED;
                 $withdraw->gateway_error = 'Preparation failed: ' . $response->body();
             }
-
             $withdraw->save();
+            $withdraw->notify();
         }
     }
 

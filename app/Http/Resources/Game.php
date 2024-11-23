@@ -87,6 +87,7 @@ class Game extends JsonResource
             'awayTeam' => new Team($this->whenLoaded('awayTeam')),
             'winner' => new Team($this->whenLoaded('winner')),
             'markets' => Market::collection($this->whenLoaded('markets')),
+            'gameMarkets' => GameMarket::collection($this->whenLoaded('gameMarkets')),
             'stakes' => Stake::collection($this->whenLoaded('stakes')),
             'lays' => StatStake::collection($this->whenLoaded('lays')),
             'backs' => StatStake::collection($this->whenLoaded('backs')),

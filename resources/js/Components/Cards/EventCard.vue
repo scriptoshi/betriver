@@ -1,4 +1,6 @@
 <script setup>
+	import { onMounted, onUnmounted, ref } from "vue";
+
 	import { UseTimeAgo } from "@vueuse/components";
 	import { DateTime } from "luxon";
 	import { MdAccesstime, RiCalendarEventFill } from "oh-vue-icons/icons";
@@ -28,8 +30,23 @@
 		hockey: Hockey,
 		"formular-one": FormularOne,
 	};
-	defineProps({
+	const props = defineProps({
 		game: Object,
+	});
+	const game = ref(props.game);
+	const listner = ref();
+	onMounted(() => {
+		if (props.game?.uuid)
+			listner.value = window.Echo.channel(props.game?.uuid).listen(
+				"GameUpdated",
+				(event) => {
+					game.value = event;
+				},
+			);
+	});
+
+	onUnmounted(() => {
+		listner.value.stopListening("GameUpdated");
 	});
 </script>
 

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\WithdrawGateway;
 use App\Enums\WithdrawStatus;
+use App\Notifications\BalanceWithdraw;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasUuid;
@@ -88,5 +89,11 @@ class Withdraw extends Model
     public function transaction(): MorphOne
     {
         return $this->morphOne(Transaction::class, 'transactable');
+    }
+
+
+    public function notify()
+    {
+        $this->user->notify(new BalanceWithdraw($this));
     }
 }

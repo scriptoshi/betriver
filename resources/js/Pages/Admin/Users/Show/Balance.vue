@@ -1,6 +1,7 @@
 <script setup>
 	import { useForm } from "@inertiajs/vue3";
 
+	import CurrencySymbol from "@/Components/CurrencySymbol.vue";
 	import FormInput from "@/Components/FormInput.vue";
 	import Loading from "@/Components/Loading.vue";
 	import PrimaryButton from "@/Components/PrimaryButton.vue";
@@ -38,7 +39,11 @@
 		<FormInput
 			label="Amount"
 			:error="form.errors.amount"
-			v-model="form.amount" />
+			v-model="form.amount">
+			<template #trail>
+				<CurrencySymbol />
+			</template>
+		</FormInput>
 		<FormInput
 			label="Details"
 			:error="form.errors.details"

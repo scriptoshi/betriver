@@ -5,8 +5,9 @@ namespace App\Api;
 use App\Enums\Hockey\GameStatus;
 use App\Enums\Hockey\ScoreType;
 use App\Enums\LeagueSport;
-
+use App\Events\GameUpdated;
 use App\Models\Game;
+use App\Support\EventHydrant;
 use Illuminate\Support\Collection;
 use Ixudra\Curl\Facades\Curl;
 
@@ -72,6 +73,7 @@ class ApiHokey extends ApiSports
                 $game->closed = true;
             }
             $game->save();
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
     }
 

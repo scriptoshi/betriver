@@ -5,8 +5,9 @@ namespace App\Api;
 use App\Enums\Handball\GameStatus;
 use App\Enums\Handball\ScoreType;
 use App\Enums\LeagueSport;
-
+use App\Events\GameUpdated;
 use App\Models\Game;
+use App\Support\EventHydrant;
 use Illuminate\Support\Collection;
 use Ixudra\Curl\Facades\Curl;
 
@@ -50,6 +51,7 @@ class ApiHandball extends ApiSports
             $game = Game::query()->where('gameId', $lg->game->id)->first();
             if (!$game) continue;
             static::saveScores($game, $lg);
+            GameUpdated::dispatch(EventHydrant::hydrate($game));
         }
     }
 
