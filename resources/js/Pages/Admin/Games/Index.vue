@@ -59,6 +59,7 @@
 	debouncedWatch(
 		[
 			search,
+			() => params.bets,
 			() => params.day,
 			() => params.status,
 			() => params.lid,
@@ -66,13 +67,14 @@
 			() => params.odds,
 			() => params.scores,
 		],
-		([search, day, status, lid, country, odds, scores]) => {
+		([search, bets, day, status, lid, country, odds, scores]) => {
 			router.get(
 				window.route("admin.games.index", {
 					sport: props.sport.toLowerCase(),
 				}),
 				{
 					...(search ? { search } : {}),
+					...(bets ? { bets } : {}),
 					...(day ? { day } : {}),
 					...(status ? { status } : {}),
 					...(country ? { country } : {}),
@@ -122,6 +124,17 @@
 		{ label: "5 days ago", value: "5-days-ago" },
 		{ label: "6 days ago", value: "6-days-ago" },
 		{ label: "1 week ago", value: "1-week-ago" },
+	];
+
+	const betsFilterOptions = [
+		{ label: "Has any bets", value: "any" },
+		{ label: "Has pending bets", value: "pending" },
+		{ label: "Has winning bets", value: "wins" },
+		{ label: "Has Losing bets", value: "loss" },
+		{ label: "Has Bookie bet", value: "bookie" },
+		{ label: "Has Bookie Gains", value: "bookie-wins" },
+		{ label: "Has Bookie Loss", value: "bookie-lost" },
+		{ label: "Bookie Admin Profit", value: "bookie-lost" },
 	];
 </script>
 <template>
@@ -178,6 +191,31 @@
 										</a>
 									</span>
 								</span>
+								<div class="lg:max-w-[200px] w-full">
+									<Multiselect
+										class="md"
+										:options="betsFilterOptions"
+										valueProp="value"
+										label="label"
+										:placeholder="$t('Bet Status')"
+										v-model="params.bets"
+										closeOnSelect>
+										<template #caret="{ isOpen }">
+											<VueIcon
+												:class="{
+													'rotate-180': isOpen,
+												}"
+												class="mr-3 relative z-10 opacity-60 flex-shrink-0 flex-grow-0 transition-transform duration-500 w-6 h-6"
+												:icon="HiSolidChevronDown" />
+										</template>
+										<template #clear="{ clear }">
+											<VueIcon
+												@click="clear"
+												class="mr-1 relative z-10 opacity-60 w-5 h-5"
+												:icon="HiSolidX" />
+										</template>
+									</Multiselect>
+								</div>
 								<div class="lg:max-w-[200px] w-full">
 									<Multiselect
 										class="md"

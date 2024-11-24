@@ -307,16 +307,7 @@ class GamesController extends Controller
                 ->all();
             $game->markets()->sync($marketIds);
         }
-        // ensure all gamemarkets have UUID for websockets
-        GameMarket::whereNull('uuid')
-            ->orWhere('uuid', '')
-            ->chunkById(1000, function ($gameMarkets) {
-                foreach ($gameMarkets as $gameMarket) {
-                    $gameMarket->update([
-                        'uuid' => (string) Str::uuid()
-                    ]);
-                }
-            });
+
         $game->loadCount('markets as marketsCount');
         /**
          * game ended?

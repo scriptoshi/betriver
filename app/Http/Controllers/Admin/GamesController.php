@@ -11,6 +11,8 @@ use App\Models\Game;
 use App\Models\League;
 use App\Models\Team;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\ValidationException;
@@ -27,6 +29,7 @@ class GamesController extends Controller
         $keyword = $request->get('search');
         $status = $request->get('status');
         $lid = $request->get('lid');
+        $bets = $request->get('bets');
         $country = $request->get('country');
         $day = $request->get('day');
         $odds = $request->get('odds');
@@ -43,6 +46,41 @@ class GamesController extends Controller
             ->withSum('tickets', 'amount');
         if (!empty($keyword)) {
             $query->where('name', 'LIKE', "%$keyword%");
+        }
+        if (!empty($bets)) {
+            switch ($bets) {
+                case "any":
+                    $query->whereHas('stakes');
+                    break;
+                case "pending":
+                    $query->whereHas('stakes', function (Builder $query) {
+                        $query->where('unfilled', '>', 0);
+                    });
+                    break;
+                case "wins":
+                    $query->whereHas('stakes', function (Builder $query) {
+                        $query->where('won', true);
+                    });
+                    break;
+                case "loss":
+                    $query->whereHas('stakes', function (Builder $query) {
+                        $query->where('won', false);
+                    });
+                    break;
+                case "bookie":
+                    $query->whereHas('wagers');
+                    break;
+                case "bookie-wins":
+                    $query->whereHas('wagers', function (Builder $query) {
+                        $query->where('won', true);
+                    });
+                case "bookie-lost":
+                    $query->whereHas('wagers', function (Builder $query) {
+                        $query->where('won', false);
+                    });
+                default:
+                    break;
+            }
         }
         if (!empty($status)) {
             $query->where('status', $status);

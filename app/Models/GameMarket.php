@@ -44,7 +44,6 @@ class GameMarket extends Model
      * @var array
      */
     protected $fillable = [
-        'uuid',
         'active',
         'bookie_active',
         'winning_bet_id',
@@ -74,5 +73,12 @@ class GameMarket extends Model
     public function winningBet(): BelongsTo
     {
         return $this->belongsTo(Bet::class, 'winning_bet_id', 'id');
+    }
+    /**
+     * Get channel the model broadcasts on
+     */
+    public function channel(): string
+    {
+        return "gamemarket.$this->id";
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Enums;
 
+use Cache;
 use Closure;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\GoogleProvider;
@@ -48,7 +49,7 @@ enum ConnectionProvider: string
     public function config($name = null)
     {
         $config = array_filter(config('services.' . $this->value, []));
-        $settings = settings()->for($this->value);
+        $settings = Cache::remember('settings.' . $this->value, 60, fn() => settings()->for($this->value));
         if ($name) {
             return  $config[$name] ?? $settings[$name] ??  null;
         }

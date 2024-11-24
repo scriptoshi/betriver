@@ -354,6 +354,6 @@ class StakesController extends Controller
             GameChanged::dispatch($gameResource, $gameMarket->game->uuid);
         }
         $market = EventHydrant::hydrateMarket($gameMarket->game, $gameMarket->market);
-        PriceChanged::dispatch($market, $gameMarket->uuid);
+        PriceChanged::dispatch($market, $gameMarket->channel());
     }
 }

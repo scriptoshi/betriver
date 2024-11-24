@@ -52,7 +52,8 @@
 			listner.value = window.Echo.channel(
 				props.market.gameMarket?.uuid,
 			).listen("PriceChanged", (event) => {
-				marketItem.value = event;
+				console.log("PriceChanged", event);
+				marketItem.value = event.market;
 			});
 	});
 

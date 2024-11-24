@@ -19,7 +19,7 @@ class GameMarket extends JsonResource
     {
         return [
             'id' => $this->id,
-            'uuid' => $this->uuid,
+            'uuid' => "gamemarket.$this->id", // channel for websockets
             'active' => $this->active,
             'bookie_active' => $this->bookie_active,
             'winning_bet_id' => $this->winning_bet_id,

@@ -14,13 +14,14 @@ use Illuminate\Queue\SerializesModels;
 class GameUpdated
 {
     use Dispatchable, InteractsWithSockets, SerializesModels;
-
+    private $channel;
     /**
      * Create a new event instance.
      */
-    public function __construct(public Game $game, private $channel)
+    public function __construct(public Game $game)
     {
         //
+        $this->channel = $this->game->id;
     }
 
     /**
@@ -30,6 +31,6 @@ class GameUpdated
      */
     public function broadcastOn(): array
     {
-        return [new Channel($this->channel)];
+        return [new Channel("gamemarket.$this->channel")];
     }
 }

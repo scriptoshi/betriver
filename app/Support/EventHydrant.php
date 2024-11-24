@@ -7,7 +7,6 @@ use App\Http\Resources\Game as ResourcesGame;
 use App\Http\Resources\Market as ResourcesMarket;
 use App\Models\Game;
 use App\Models\Market;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 class EventHydrant
 {
 
-    public static function hydrateMarket(Game $game, Market $mkt)
+    public static function hydrateMarket(Game $game, Market $mkt): ResourcesMarket
     {
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
         $rangeSize = (float) settings('odds_spread', 0.2);
@@ -89,7 +88,7 @@ class EventHydrant
     /**
      * load the game elements for the frontend
      */
-    public static function hydrateGame(Game $game, Market $defaultMarket)
+    public static function hydrateGame(Game $game, Market $defaultMarket): ResourcesGame
     {
 
         $query  = Game::query()
@@ -103,10 +102,7 @@ class EventHydrant
             ])
             ->withCount('activeMarkets as marketsCount')
             ->withExists(['odds as has_odds' => fn($q) => $q->where('market_id', $defaultMarket->id)])
-            ->latest('traded')
-            ->whereHas('league', function (Builder $query) {
-                $query->where('active', true);
-            });
+            ->latest('traded');
         DB::statement("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));");
         $rangeSize = (float) settings('odds_spread', 0.2);
         $rangeSize = $rangeSize < 0.001 ? 0.2 :  $rangeSize;
@@ -142,12 +138,13 @@ class EventHydrant
         ]);
         $game = $query->find($game->id);
         $game = new ResourcesGame($game);
+        return $game;
     }
 
     /**
      * load the game elements for the frontend
      */
-    public static function hydrate(Game $game)
+    public static function hydrate(Game $game): ResourcesGame
     {
 
         $game = Game::query()
