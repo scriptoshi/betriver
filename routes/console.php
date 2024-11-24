@@ -29,7 +29,7 @@ Artisan::command('update:games', function () {
     });
 })
     ->purpose('update games that are live')
-    ->hourly();
+    ->everyFiveMinutes();
 
 /**
  * Updates the processing withdraw status at the gateway
@@ -48,7 +48,7 @@ Artisan::command('withdraws:update', function () {
     $paypal->map(fn(Withdraw $withdraw) => $withdraw->gateway->driver()->updateWithdrawStatus($withdraw));
 })
     ->purpose('Update the processing withdraw status at the gateway')
-    ->daily();
+    ->everyFifteenMinutes();
 
 
 /**
@@ -65,33 +65,4 @@ Artisan::command('settle:stakes', function () {
 Artisan::command('lang:strap', function () {
     Artisan::call('translatable:export', ['lang' => 'en']);
     Artisan::call('vue-i18n:generate', ['--with-vendor' => 'en']);
-});
-
-Artisan::command('nwp', function () {
-    $x =  LeagueSport::FOOTBALL->handicaps();
-    dd($x);
-});
-
-Artisan::command('txt', function () {
-    // Example usage:
-    $backOdds = [2.00, 3.50, 3.50]; // Example odds for a three-way market
-    $overround = OverroundCalculator::calculateOverround($backOdds);
-    $fairOdds = OverroundCalculator::calculateFairOdds($backOdds);
-    echo "Market overround: " . $overround . "%\n";
-    echo "Fair odds: " . implode(", ", $fairOdds) . "\n";
-});
-
-
-
-
-
-
-
-Artisan::command('bo', function () {
-    $gm = GameMarket::with(['market', 'game'])->find(369);
-    foreach ($gm->market->bets as $bet) {
-        $won = $gm->market->manager()->won($gm->game, $bet);
-        if ($won)
-            dd($won, $bet->name);
-    }
 });
