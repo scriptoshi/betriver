@@ -116,7 +116,7 @@
 							$page.props.googleClientId &&
 							!!$page.props.googleClientId
 						"
-						:clientId="$page.props.enableGoogleLogin" />
+						:clientId="$page.props.googleClientId" />
 					<FacebookLogin v-if="$page.props.enableFacebookLogin" />
 					<GithubLogin v-if="$page.props.enableFacebookLogin" />
 				</div>
