@@ -112,10 +112,7 @@
 						Log in
 					</PrimaryButton>
 					<GoogleOneTap
-						v-if="
-							$page.props.googleClientId &&
-							!!$page.props.googleClientId
-						"
+						v-if="$page.props.enableGoogleLogin"
 						:clientId="$page.props.googleClientId" />
 					<FacebookLogin v-if="$page.props.enableFacebookLogin" />
 					<GithubLogin v-if="$page.props.enableFacebookLogin" />
