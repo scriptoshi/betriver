@@ -87,7 +87,9 @@
 								<div class="w-full mt-6">
 									<div class="flex items-center space-x-4">
 										<FormLabel class="mb-4">
-											{{ $t("Slide image") }}
+											{{
+												$t("Slide image (796 * 404 px)")
+											}}
 										</FormLabel>
 										<FormSwitch
 											v-model="form.change_slider_image"
@@ -106,7 +108,7 @@
 											class="mt-4"
 											v-show="form.change_slider_image">
 											<FileUploader
-												class="mb-1 h-32 sm:max-w-xl w-full"
+												class="mb-1 h-[202px] w-[398px] sm:max-w-xl"
 												v-if="$page.props.s3"
 												v-model="form.image_uri"
 												v-model:file="form.image_path"

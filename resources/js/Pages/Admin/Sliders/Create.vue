@@ -82,10 +82,14 @@
 									:error="form.errors.button" />
 								<div class="w-full mt-6">
 									<FormLabel class="mb-4">
-										{{ $t("Upload Slide Image") }}
+										{{
+											$t(
+												"Upload Slide Image (796 * 404 px)",
+											)
+										}}
 									</FormLabel>
 									<FileUploader
-										class="mb-1 h-32 sm:max-w-xl w-full"
+										class="mb-1 h-[202px] w-[398px] sm:max-w-xl"
 										v-if="$page.props.s3"
 										v-model="form.image_uri"
 										v-model:file="form.image_path"
