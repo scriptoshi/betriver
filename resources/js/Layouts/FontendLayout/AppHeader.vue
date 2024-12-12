@@ -57,7 +57,7 @@
 				class="text-gray-800 flex items-center ml-4 dark:text-white font-bold text-xl">
 				<ApplicationLogo
 					v-if="$page.props.appLogo"
-					class="w-5 h-5 mr-2" />
+					class="w-auto h-5 mr-2" />
 				<span v-else>{{ $page.props?.appName }}</span>
 			</Link>
 			<SearchInput />
