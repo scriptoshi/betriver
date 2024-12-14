@@ -92,10 +92,6 @@ Password: *Codex123#
 
 -   **Automated Background Processing:** Critical tasks like bet settlement, odds updates, and commission calculations run automatically through our scheduled jobs system.
 
-## Payment Integration
-
-Every license includes one free payment gateway integration (2-week delivery timeframe). Our experienced development team will assess your local market requirements and implement a custom payment solution tailored to your needs. This service, valued at over $500, comes completely free with your purchase.
-
 ### Supported Payment Features
 
 -   **Smart Deposit Processing:** Automatic payment detection and account crediting for most payment methods.
@@ -116,10 +112,6 @@ Every license includes one free payment gateway integration (2-week delivery tim
 
 -   **Bank-Grade Security:** From SSL encryption to secure password hashing and session management.
 -   **Compliance Ready:** Built-in compliance tools with KYC verification and transaction monitoring.
-
-## Support & Documentation
-
-Your purchase includes comprehensive documentation covering installation to advanced customization. Our responsive support team is ready to help you get the most out of your platform.
 
 ## Version History
 
