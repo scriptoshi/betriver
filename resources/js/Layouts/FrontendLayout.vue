@@ -12,7 +12,7 @@
 	import AlertMessages from "@/Layouts/AlertMessages.vue";
 	import AppHeader from "@/Layouts/FontendLayout/AppHeader.vue";
 	import Sidebar from "@/Layouts/FontendLayout/Sidebar.vue";
-	localStorage.getItem("vueuse-color-scheme") ??
+	if (!localStorage.getItem("vueuse-color-scheme"))
 		localStorage.setItem("vueuse-color-scheme", "dark");
 	const isDarkMode = useDark();
 	const leftSidebarOpen = ref(true);
