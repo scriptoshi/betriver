@@ -127,6 +127,7 @@ class HandleInertiaRequests extends Middleware
             },
             'liveCount' => fn() => Game::getLiveCount(),
             'popular' => fn() => TradeManager::popular(),
+            'forceDark' => config('app.forceDark')
         ];
     }
 }
