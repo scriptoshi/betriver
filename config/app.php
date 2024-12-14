@@ -16,6 +16,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'forceDark' => env('APP_FORCE_DARK', true),
 
     /*
     |--------------------------------------------------------------------------

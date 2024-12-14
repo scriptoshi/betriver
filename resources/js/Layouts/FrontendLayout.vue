@@ -1,7 +1,7 @@
 <script setup>
 	import { ref, watch } from "vue";
 
-	import { Link } from "@inertiajs/vue3";
+	import { Link, usePage } from "@inertiajs/vue3";
 	import { useDark } from "@vueuse/core";
 	import { ChevronDown } from "lucide-vue-next";
 
@@ -12,9 +12,11 @@
 	import AlertMessages from "@/Layouts/AlertMessages.vue";
 	import AppHeader from "@/Layouts/FontendLayout/AppHeader.vue";
 	import Sidebar from "@/Layouts/FontendLayout/Sidebar.vue";
-	if (!localStorage.getItem("vueuse-color-scheme"))
-		localStorage.setItem("vueuse-color-scheme", "dark");
 	const isDarkMode = useDark();
+	if (usePage().props.forceDark) {
+		isDarkMode.value = true;
+	}
+
 	const leftSidebarOpen = ref(true);
 	const rightSidebarOpen = ref(true);
 
