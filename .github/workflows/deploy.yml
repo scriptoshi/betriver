@@ -9,7 +9,7 @@ on:
 env:
     SITE_DIR: ${{ vars.SITE_DIR || 'betriver.scriptoshi.com' }}
     REPO_NAME: ${{ vars.REPO_NAME || 'betriver' }}
-    GIT_REMOTE: ${{ vars.GIT_REMOTE || 'github-betriver:sleepfinance/betriver.git' }}
+    GIT_REMOTE: ${{ vars.GIT_REMOTE || 'github-betriver:scriptoshi/betriver.git' }}
     ENV_SOURCE: ${{ vars.ENV_SOURCE || '/var/www/envs/.betriver' }}
 
 jobs:
